@@ -13,10 +13,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static ofc.bot.handlers.requests.Method.*;
 
 public final class Route {
+    public static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{[^/{}]+}");
     private final Method method;
     private final String route;
 
@@ -24,13 +27,13 @@ public final class Route {
         private static final String BASE_URL = "https://unbelievaboat.com/api/v1/";
 
         // ---------- Economy ----------
-        public static final Route GET_BALANCE    = new Route(GET,   BASE_URL + "guilds/%s/users/%s");
-        public static final Route SET_BALANCE    = new Route(PUT,   BASE_URL + "guilds/%s/users/%s");
-        public static final Route UPDATE_BALANCE = new Route(PATCH, BASE_URL + "guilds/%s/users/%s");
+        public static final Route GET_BALANCE    = new Route(GET,   BASE_URL + "guilds/{guild_id}/users/{user_id}");
+        public static final Route SET_BALANCE    = new Route(PUT,   BASE_URL + "guilds/{guild_id}/users/{user_id}");
+        public static final Route UPDATE_BALANCE = new Route(PATCH, BASE_URL + "guilds/{guild_id}/users/{user_id}");
     }
 
     public static class IPs {
-        public static final Route GET_IP_INFO = new Route(GET, "http://ip-api.com/json/%s");
+        public static final Route GET_IP_INFO = new Route(GET, "http://ip-api.com/json/{ip}");
     }
 
     public static class Images {
@@ -58,10 +61,32 @@ public final class Route {
     }
 
     public RequestBuilder create(Object... params) {
-        // We must create this "safeUrl" variable, as some URLs may have the "%"
-        // character on the path, which would throw exceptions on the String.format() call
-        String safeUrl = this.route.replace("%", "%%");
-        return new RequestBuilder(this.method, String.format(safeUrl, params));
+        // We use a custom placeholder syntax ({guild_id} and {user_id}) instead of String.format (%s)
+        // to avoid issues with percent signs that may appear in user-supplied data or URL tokens.
+        // This method replaces placeholders sequentially with provided parameters.
+        String endpoint = resolvePlaceholders(this.route, params);
+        return new RequestBuilder(this.method, endpoint);
+    }
+
+    private String resolvePlaceholders(String template, Object... args) {
+        Matcher matcher = PLACEHOLDER_PATTERN.matcher(template);
+        StringBuilder result = new StringBuilder();
+        int i = 0;
+
+        while (matcher.find()) {
+            if (i >= args.length) {
+                throw new IllegalArgumentException("Not enough arguments for route: " + template);
+            }
+            String replacement = Matcher.quoteReplacement(args[i++].toString());
+            matcher.appendReplacement(result, replacement);
+        }
+
+        if (i < args.length) {
+            throw new IllegalArgumentException("Too many arguments for route: " + template);
+        }
+
+        matcher.appendTail(result);
+        return result.toString();
     }
 
     public static class RequestBuilder {
