@@ -33,17 +33,17 @@ public class UnbelievaBoatRequester implements Requester {
 
             Request req = supplier.get();
             try (Response resp = client.newCall(req).execute()) {
+                ResponseBody body = resp.body();
                 int code = resp.code();
+                byte[] bytes = body == null ? new byte[0] : body.bytes();
+
+                checkRateLimitHeaders(resp.headers());
 
                 if (!resp.isSuccessful()) {
-                    LOGGER.warn("We did not receive a successful status code from the server: {}", code);
+                    LOGGER.warn("We did not receive a successful status code {} from the server: {}", code, new String(bytes));
                 }
 
                 if (code != RATE_LIMIT_CODE) {
-                    ResponseBody body = resp.body();
-                    byte[] bytes = body == null ? new byte[0] : body.bytes();
-
-                    checkRateLimitHeaders(resp.headers());
                     return new RequestMapper(bytes, resp.isSuccessful(), code);
                 }
 
