@@ -31,7 +31,7 @@ import static ofc.bot.domain.entity.enums.PolicyType.*;
 @DiscordEventHandler
 public class AutoModerator extends ListenerAdapter {
     private static final ErrorHandler DEFAULT_ERROR_HANDLER = new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER);
-    private static final LocalTime NIGHT_LIMIT = LocalTime.of(5, 0);
+    private static final LocalTime NIGHT_LIMIT = LocalTime.of(6, 0);
 
     /* REGEX patterns */
     private static final Pattern URL_PATTERN = Pattern.compile("https?://([\\w.-]+(?:\\.[\\w.-]+)+)[/\\w\\-.?=&%]*");
