@@ -58,7 +58,10 @@ public final class Route {
     }
 
     public RequestBuilder create(Object... params) {
-        return new RequestBuilder(this.method, String.format(this.route, params));
+        // We must create this "safeUrl" variable, as some URLs may have the "%"
+        // character on the path, which would throw exceptions on the String.format() call
+        String safeUrl = this.route.replace("%", "%%");
+        return new RequestBuilder(this.method, String.format(safeUrl, params));
     }
 
     public static class RequestBuilder {
