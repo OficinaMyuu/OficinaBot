@@ -189,7 +189,6 @@ public final class CommandsInitializer {
         registry.register(new BackupMemberRolesCommand(bckpRepo));
         registry.register(new BotStatusCommand(lvlRoleRepo));
         registry.register(new ClearMessagesCommand());
-        registry.register(new CreateChangelogEntryCommand());
         registry.register(new GuildInfoCommand());
         registry.register(new GuildLogoCommand());
         registry.register(new IPLookupCommand());
