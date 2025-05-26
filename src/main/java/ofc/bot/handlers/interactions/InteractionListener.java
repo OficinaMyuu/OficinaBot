@@ -42,7 +42,7 @@ public interface InteractionListener<T extends InteractionSubmitContext<?, ?>> {
     }
 
     private InteractionHandler getAnn() {
-        Class<? extends InteractionListener> clazz = this.getClass();
+        var clazz = this.getClass();
         InteractionHandler ann = clazz.getDeclaredAnnotation(InteractionHandler.class);
 
         if (ann == null)

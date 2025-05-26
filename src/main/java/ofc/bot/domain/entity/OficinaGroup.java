@@ -425,7 +425,6 @@ public class OficinaGroup extends OficinaRecord<OficinaGroup> {
     }
 
     public long calcCurrentInvoice() {
-        int today = LocalDate.now().getDayOfMonth();
         int daysLate = getDaysLate();
         long raw = getInvoiceAmount();
 
