@@ -90,7 +90,6 @@ public final class EntityInitializerManager {
                     new ColorRoleRemotionHandler(),
                     new ExpiredBanHandler(),
                     new HappyNewYearAnnouncement(),
-                    new NickTimeUpdate(),
                     new QueryCountPrinter(),
                     new RemindersHandler(),
 

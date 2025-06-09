@@ -46,8 +46,6 @@ public class MemberNickUpdateLogger extends ListenerAdapter {
         long moderatorId = entry.getUserIdLong();
         long guildId = guild.getIdLong();
 
-        if (targetId == 742729586659295283L) return;
-
         Bot.fetchUser(targetId).queue(target -> {
             UserNameUpdate editMapping = new UserNameUpdate(
                     targetId, moderatorId, guildId,
