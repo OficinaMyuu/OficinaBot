@@ -157,7 +157,7 @@ public class AutoModerator extends ListenerAdapter {
     }
 
     private boolean hasBlockedWords(String content, List<BlockedWord> blockedWords) {
-        String[] words = content.toLowerCase().split("\\s+");
+        String[] words = getSanitizedWords(content);
         LocalTime now = LocalTime.now();
         boolean isNight = now.isAfter(LocalTime.MIDNIGHT) && now.isBefore(NIGHT_LIMIT);
 
@@ -165,13 +165,17 @@ public class AutoModerator extends ListenerAdapter {
             if (!blck.isSevere() && isNight) continue;
 
             for (String word : words) {
-                String cleaned = word.replaceAll("[^a-zA-Z]", "");
-
-                if (blck.isMatchExact() && cleaned.equals(blck.getWord())) return true;
-                if (!blck.isMatchExact() && cleaned.contains(blck.getWord())) return true;
+                if (blck.isMatchExact() && word.equals(blck.getWord())) return true;
+                if (!blck.isMatchExact() && word.contains(blck.getWord())) return true;
             }
         }
         return false;
+    }
+
+    private String[] getSanitizedWords(String msg) {
+        return msg.toLowerCase()
+                .replaceAll("[*_~`#/@<>\\[\\]{}?!%$]", "")
+                .split("\\s+");
     }
 
     private boolean hasMassEmoji(String content) {
