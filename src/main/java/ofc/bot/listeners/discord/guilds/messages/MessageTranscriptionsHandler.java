@@ -149,7 +149,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
     private File downloadAudio(Message.Attachment file) {
         try {
             String fileName = String.valueOf(System.nanoTime());
-            String fileExt = String.format(".", file.getFileExtension());
+            String fileExt = String.format(".%s", file.getFileExtension());
 
             return file.getProxy()
                     .downloadToFile(File.createTempFile(fileName, fileExt))
