@@ -97,10 +97,13 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
 
         // If a new transcription is necessary, then we proceed to checking the user's permissions
         fetchResources(e, (member, msg) -> {
-            if (!msg.isVoiceMessage() || !canTranscribe(member)) return;
+            if (!canTranscribe(member)) {
+                msg.removeReaction(TRANSCRIPTION_EMOJI, member.getUser()).queue();
+                return;
+            }
 
             Message.Attachment audio = msg.getAttachments().getFirst();
-            if (!validateAction(audio, member)) {
+            if (!msg.isVoiceMessage() || !validateAction(audio, member)) {
                 msg.clearReactions(TRANSCRIPTION_EMOJI).queue();
             } else {
                 sendTranscription(openAI, msg, audio, userId);
