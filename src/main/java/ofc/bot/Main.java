@@ -1,5 +1,7 @@
 package ofc.bot;
 
+import com.openai.client.OpenAIClient;
+import com.openai.client.okhttp.OpenAIOkHttpClient;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -19,13 +21,14 @@ public final class Main {
     private static long initTime;
     private static JDA api;
     private static TwitchService twitchService;
+    private static OpenAIClient openAI;
 
     public static void main(String[] args) {
         try {
             BotFiles.loadFiles();
             DB.init();
 
-            api = JDABuilder.createDefault(Bot.get("app.token"), Bot.getIntents())
+            api = JDABuilder.createDefault(Bot.getSafe("app.token"), Bot.getIntents())
                     .setEventPassthrough(true)
                     .setBulkDeleteSplittingEnabled(false)
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
@@ -51,6 +54,11 @@ public final class Main {
 
         // Twitch
         twitchService = TwitchService.init();
+
+        // OpenAI
+        openAI = OpenAIOkHttpClient.builder()
+                .apiKey(Bot.getSafe("openai.key"))
+                .build();
     }
 
     public static JDA getApi() {
@@ -59,6 +67,10 @@ public final class Main {
 
     public static TwitchService getTwitch() {
         return twitchService;
+    }
+
+    public static OpenAIClient getOpenAI() {
+        return openAI;
     }
 
     public static long getInitTime() {

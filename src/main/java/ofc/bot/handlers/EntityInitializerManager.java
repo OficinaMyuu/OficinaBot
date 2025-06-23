@@ -185,11 +185,12 @@ public final class EntityInitializerManager {
     private static void registerDiscordListeners() {
         JDA api = Main.getApi();
         var updRepo       = Repositories.getDiscordMessageUpdateRepository();
+        var msgTrscptRepo = Repositories.getMessageTranscriptionRepository();
         var rolesRepo     = Repositories.getFormerMemberRoleRepository();
         var pnshRepo      = Repositories.getMemberPunishmentRepository();
-        var msgRepo       = Repositories.getDiscordMessageRepository();
         var colorsRepo    = Repositories.getColorRoleStateRepository();
         var cmdRepo       = Repositories.getCommandHistoryRepository();
+        var msgRepo       = Repositories.getDiscordMessageRepository();
         var namesRepo     = Repositories.getUserNameUpdateRepository();
         var usprefRepo    = Repositories.getUserPreferenceRepository();
         var modActRepo    = Repositories.getAutomodActionRepository();
@@ -228,6 +229,7 @@ public final class EntityInitializerManager {
                 new MessageCreatedLogger(msgRepo),
                 new MessageDeletedLogger(msgRepo),
                 new MessageReferenceIndicator(),
+                new MessageTranscriptionsHandler(msgTrscptRepo, appBanRepo),
                 new MessageUpdatedLogger(msgRepo, updRepo),
                 new OficinaGroupAutocompletion(grpRepo),
                 new OutageCommandsDisclaimer(),
