@@ -24,6 +24,9 @@ import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -156,12 +159,12 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
     }
 
     private String generateTranscription(OpenAIClient openAI, byte[] audio) {
-        TranscriptionCreateParams params = TranscriptionCreateParams.builder()
-                .model(AudioModel.GPT_4O_MINI_TRANSCRIBE)
-                .file(audio)
-                .build();
+        try (InputStream stream = new ByteArrayInputStream(audio)) {
+            TranscriptionCreateParams params = TranscriptionCreateParams.builder()
+                    .model(AudioModel.GPT_4O_MINI_TRANSCRIBE)
+                    .file(stream)
+                    .build();
 
-        try {
             return openAI.audio()
                     .transcriptions()
                     .create(params)
@@ -169,8 +172,10 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
                     .text();
         } catch (OpenAIInvalidDataException e) {
             LOGGER.error("Failed to create transcription", e);
-            return null;
+        } catch (IOException e) {
+            LOGGER.error("Failed to open stream on byte array", e);
         }
+        return null;
     }
 
     private void sendTranscription(OpenAIClient openAI, Message origin, Message.Attachment file, long requesterId) {
