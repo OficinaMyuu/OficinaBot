@@ -24,9 +24,7 @@ import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.File;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -146,23 +144,23 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
                 .queue(callback, (err) -> LOGGER.error("Failed to send transcription loading sign", err));
     }
 
-    private byte[] downloadAudio(Message.Attachment file) {
+    private File downloadAudio(Message.Attachment file) {
         try {
+            String fileName = String.valueOf(System.nanoTime());
             return file.getProxy()
-                    .download()
-                    .get()
-                    .readAllBytes();
+                    .downloadToFile(File.createTempFile(fileName, file.getFileExtension()))
+                    .get();
         } catch (Exception e) {
             LOGGER.error("Failed downloading audio file for transcription", e);
-            return new byte[0];
+            return null;
         }
     }
 
-    private String generateTranscription(OpenAIClient openAI, byte[] audio) {
-        try (InputStream stream = new ByteArrayInputStream(audio)) {
+    private String generateTranscription(OpenAIClient openAI, File file) {
+        try {
             TranscriptionCreateParams params = TranscriptionCreateParams.builder()
                     .model(AudioModel.GPT_4O_MINI_TRANSCRIBE)
-                    .file(stream)
+                    .file(file.toPath())
                     .build();
 
             return openAI.audio()
@@ -172,8 +170,6 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
                     .text();
         } catch (OpenAIInvalidDataException e) {
             LOGGER.error("Failed to create transcription", e);
-        } catch (IOException e) {
-            LOGGER.error("Failed to open stream on byte array", e);
         }
         return null;
     }
@@ -181,15 +177,20 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
     private void sendTranscription(OpenAIClient openAI, Message origin, Message.Attachment file, long requesterId) {
         transcribingMessages.add(origin.getIdLong());
         sendTranscribing(origin, (output) -> {
-            byte[] data = downloadAudio(file);
+            File tmpFile = downloadAudio(file);
 
-            // We failed to get a transcription :/
-            if (data.length == 0) {
+            // We failed to download the file :/
+            if (tmpFile == null) {
                 output.editMessage("Failed :/").queue();
                 return;
             }
 
-            String tr = generateTranscription(openAI, data);
+            String tr = generateTranscription(openAI, tmpFile);
+            if (tr == null) { // Failed to get the transcription
+                output.editMessage("Failed :/").queue();
+                return;
+            }
+
             String fmtTr = String.format("## Transcrição\n> %s", tr);
             String[] messages = splitTranscription(fmtTr);
 
