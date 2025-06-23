@@ -4,9 +4,11 @@ import com.openai.client.OpenAIClient;
 import com.openai.errors.OpenAIInvalidDataException;
 import com.openai.models.audio.AudioModel;
 import com.openai.models.audio.transcriptions.TranscriptionCreateParams;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.SelfUser;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.emoji.EmojiUnion;
@@ -62,14 +64,16 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
     @Override
     public synchronized void onMessageReactionAdd(MessageReactionAddEvent e) {
         OpenAIClient openAI = Main.getOpenAI();
+        JDA api = Main.getApi();
+        SelfUser self = api.getSelfUser();
         EmojiUnion emoji = e.getEmoji();
         MessageChannel channel = e.getGuildChannel();
         long userId = e.getUserIdLong();
         long messageId = e.getMessageIdLong();
 
-        if (e.getReaction().isSelf()) return;
+        if (userId == self.getIdLong()) return;
 
-        if ( !e.isFromGuild() || !emoji.equals(TRANSCRIPTION_EMOJI)) return;
+        if (!e.isFromGuild() || !emoji.equals(TRANSCRIPTION_EMOJI)) return;
 
         // Banned users cannot do anything
         if (appBanRepo.isBanned(userId)) return;
