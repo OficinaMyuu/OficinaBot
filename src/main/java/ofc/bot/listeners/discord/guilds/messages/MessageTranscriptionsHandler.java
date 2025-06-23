@@ -228,7 +228,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
             return;
         }
 
-        RestAction<Message> sendReq = ref.reply(chunks[0]);
+        RestAction<Message> sendReq = ref.editMessage(chunks[0]);
         for (int i = 1; i < chunks.length; i++) {
             String msg = chunks[i];
             sendReq = sendReq.flatMap(s -> chan.sendMessage(msg));
