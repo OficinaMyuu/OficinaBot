@@ -99,6 +99,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
             }
 
             sendTranscription(openAI, msg, audio, userId);
+            msg.clearReactions(TRANSCRIPTION_EMOJI).queue();
         });
     }
 
