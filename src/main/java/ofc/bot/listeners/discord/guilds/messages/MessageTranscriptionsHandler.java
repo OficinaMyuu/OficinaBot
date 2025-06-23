@@ -67,7 +67,9 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
         long userId = e.getUserIdLong();
         long messageId = e.getMessageIdLong();
 
-        if (!e.isFromGuild() || !emoji.equals(TRANSCRIPTION_EMOJI)) return;
+        if (e.getReaction().isSelf()) return;
+
+        if ( !e.isFromGuild() || !emoji.equals(TRANSCRIPTION_EMOJI)) return;
 
         // Banned users cannot do anything
         if (appBanRepo.isBanned(userId)) return;
@@ -96,10 +98,10 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
             Message.Attachment audio = msg.getAttachments().getFirst();
             if (!validateAction(audio, member)) {
                 msg.clearReactions(TRANSCRIPTION_EMOJI).queue();
-                return;
+            } else {
+                sendTranscription(openAI, msg, audio, userId);
             }
 
-            sendTranscription(openAI, msg, audio, userId);
             msg.clearReactions(TRANSCRIPTION_EMOJI).queue();
         });
     }
