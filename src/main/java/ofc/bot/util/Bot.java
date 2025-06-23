@@ -22,8 +22,7 @@ import java.lang.annotation.Annotation;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.NumberFormat;
-import java.time.Duration;
-import java.time.Instant;
+import java.time.*;
 import java.util.List;
 import java.util.*;
 import java.util.function.Function;
@@ -59,6 +58,17 @@ public final class Bot {
             return Gender.FEMALE;
         }
         return Gender.UNKNOWN;
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static boolean isZoneId(String zoneId) {
+        if (zoneId == null || zoneId.isEmpty()) return false;
+        try {
+            ZoneId.of(zoneId);
+            return true;
+        } catch (DateTimeException e) {
+            return false;
+        }
     }
 
     public static <T, A extends Annotation> T getSafeAnnotationValue(
@@ -251,6 +261,17 @@ public final class Bot {
         return Instant.now().getEpochSecond();
     }
 
+    public static long unixMidnightNow() {
+        return LocalDate.now()
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+                .getEpochSecond();
+    }
+
+    public static long calcUnixPeriods(long a, long b) {
+        return Math.abs(a - b);
+    }
+
     public static boolean writeToFile(String content, File file) {
         try (
                 OutputStream out = Files.newOutputStream(Path.of(file.getAbsolutePath()));
@@ -359,5 +380,6 @@ public final class Bot {
         public static final Emoji GRAY_ARROW_LEFT  = Emoji.fromFormatted("<:arrowleft:1331425997890785290>");
         public static final Emoji GRAY_ARROW_RIGHT = Emoji.fromFormatted("<:arrowright:1331425991205191730>");
         public static final Emoji INV = Emoji.fromFormatted("<:inv:1347081576298844180>");
+        public static final Emoji LOADING = Emoji.fromFormatted("<a:loading:1293036166387601469>");
     }
 }

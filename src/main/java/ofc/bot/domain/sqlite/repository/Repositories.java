@@ -25,6 +25,7 @@ public final class Repositories {
     private static MarriageRequestRepository marriageRequestRepository;
     private static MemberEmojiRepository memberEmojiRepository;
     private static MemberPunishmentRepository memberPunishmentRepository;
+    private static MessageTranscriptionRepository messageTranscriptionRepository;
     private static OficinaGroupRepository oficinaGroupRepository;
     private static ReminderRepository reminderRepository;
     private static TempBanRepository tempBanRepository;
@@ -141,6 +142,11 @@ public final class Repositories {
     public static MemberPunishmentRepository getMemberPunishmentRepository() {
         if (memberPunishmentRepository == null) memberPunishmentRepository = new MemberPunishmentRepository(getDSLContext());
         return memberPunishmentRepository;
+    }
+
+    public static MessageTranscriptionRepository getMessageTranscriptionRepository() {
+        if (messageTranscriptionRepository == null) messageTranscriptionRepository = new MessageTranscriptionRepository(getDSLContext());
+        return messageTranscriptionRepository;
     }
 
     public static OficinaGroupRepository getOficinaGroupRepository() {
