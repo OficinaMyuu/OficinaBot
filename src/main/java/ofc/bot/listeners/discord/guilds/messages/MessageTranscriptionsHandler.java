@@ -163,11 +163,14 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
                     .file(file.toPath())
                     .build();
 
-            return openAI.audio()
+            String result = openAI.audio()
                     .transcriptions()
                     .create(params)
                     .asTranscription()
                     .text();
+
+            file.delete();
+            return result;
         } catch (OpenAIInvalidDataException e) {
             LOGGER.error("Failed to create transcription", e);
         }
