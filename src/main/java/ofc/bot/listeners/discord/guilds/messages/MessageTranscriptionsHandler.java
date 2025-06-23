@@ -147,8 +147,10 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
     private File downloadAudio(Message.Attachment file) {
         try {
             String fileName = String.valueOf(System.nanoTime());
+            String fileExt = String.format(".", file.getFileExtension());
+
             return file.getProxy()
-                    .downloadToFile(File.createTempFile(fileName, file.getFileExtension()))
+                    .downloadToFile(File.createTempFile(fileName, fileExt))
                     .get();
         } catch (Exception e) {
             LOGGER.error("Failed downloading audio file for transcription", e);
