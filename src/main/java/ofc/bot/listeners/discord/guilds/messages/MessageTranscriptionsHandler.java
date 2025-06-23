@@ -228,7 +228,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
         MessageChannel chan = ref.getChannel();
 
         if (chunks.length == 1) {
-            ref.replyFormat(chunks[0]).queue();
+            ref.editMessage(chunks[0]).queue();
             return;
         }
 
