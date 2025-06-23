@@ -31,7 +31,7 @@ import java.util.function.Consumer;
 @DiscordEventHandler
 public class MessageTranscriptionsHandler extends ListenerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageTranscriptionsHandler.class);
-    private static final Emoji TRANSCRIPTION_EMOJI = Emoji.fromUnicode("\uD83C\uDF99"); // This is a microphone
+    private static final Emoji TRANSCRIPTION_EMOJI = Emoji.fromUnicode("\uD83C\uDF99\uFE0F"); // This is a microphone
     private static final int RESEND_COOLDOWN_SECONDS = 30;
     private static final int MAX_CHUNK_LENGTH = Message.MAX_CONTENT_LENGTH - 5;
     private static final Set<String> VALID_EXTENSIONS;
