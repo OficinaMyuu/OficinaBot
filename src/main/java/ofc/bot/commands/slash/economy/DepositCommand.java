@@ -47,7 +47,12 @@ public class DepositCommand extends SlashCommand {
         if (amount < 0)
             return Status.INVALID_VALUE_PROVIDED.args(amountInput);
 
-        if (wallet <= 0 || amount > wallet) {
+        if (wallet <= 0) {
+            MessageEmbed embed = embedEmptyWallet(user);
+            return ctx.replyEmbeds(Status.YOU_GOT_NO_MONEY_TO_DEPOSIT, embed);
+        }
+
+        if (amount > wallet) {
             MessageEmbed embed = embedInsfficient(user, wallet);
             return ctx.replyEmbeds(Status.YOU_GOT_NO_MONEY_TO_DEPOSIT, embed);
         }
@@ -76,6 +81,11 @@ public class DepositCommand extends SlashCommand {
         return List.of(
                 new OptionData(OptionType.STRING, "amount", "A quantia a ser depositada (forneça \"all\" sem aspas para depositar tudo).")
         );
+    }
+
+    private MessageEmbed embedEmptyWallet(User user) {
+        return EmbedFactory.embedBankAction(user, EmbedFactory.DANGER_RED,
+                "❌ Você não tem nada na carteira para ser depositado.");
     }
 
     private MessageEmbed embedInsfficient(User user, int wallet) {
