@@ -98,7 +98,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
 
         // If a new transcription is necessary, then we proceed to checking the user's permissions
         fetchResources(e, (member, msg) -> {
-            if (!canTranscribe(member)) {
+            if (!canTranscribe(member, msg)) {
                 msg.removeReaction(TRANSCRIPTION_EMOJI, member.getUser()).queue();
                 return;
             }
@@ -277,13 +277,14 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
         return Bot.distance(creation, now) < RESEND_COOLDOWN_SECONDS;
     }
 
-    private boolean canTranscribe(Member member) {
-        if (member.hasPermission(Permission.MANAGE_SERVER)) return true;
+    private boolean canTranscribe(Member requester, Message msg) {
+        if (requester.hasPermission(Permission.MANAGE_SERVER)) return true;
 
-        long userId = member.getIdLong();
+        long userId = requester.getIdLong();
+        if (userId == msg.getAuthor().getIdLong()) return false;
+
         int trCount = msgTrscptRepo.countDailyTranscriptionsByUserId(userId);
-
-        return Staff.isStaff(member)
+        return Staff.isStaff(requester)
                 ? trCount < MessageTranscription.DAILY_MAX_STAFF
                 : trCount < MessageTranscription.DAILY_MAX;
     }
