@@ -268,7 +268,7 @@ public final class Bot {
                 .getEpochSecond();
     }
 
-    public static long calcUnixPeriods(long a, long b) {
+    public static long distance(long a, long b) {
         return Math.abs(a - b);
     }
 

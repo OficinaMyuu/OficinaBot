@@ -32,6 +32,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @DiscordEventHandler
+@SuppressWarnings("UnnecessaryUnicodeEscape")
 public class MessageTranscriptionsHandler extends ListenerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageTranscriptionsHandler.class);
     private static final Emoji TRANSCRIPTION_EMOJI = Emoji.fromUnicode("\uD83C\uDF99\uFE0F"); // This is a microphone
@@ -273,7 +274,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
     private boolean isInCooldown(MessageTranscription tr) {
         long now = Bot.unixNow();
         long creation = tr.getTimeCreated();
-        return Bot.calcUnixPeriods(creation, now) < RESEND_COOLDOWN_SECONDS;
+        return Bot.distance(creation, now) < RESEND_COOLDOWN_SECONDS;
     }
 
     private boolean canTranscribe(Member member) {
