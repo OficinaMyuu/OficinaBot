@@ -151,6 +151,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
 
     private void sendTranscribing(Message message, Consumer<Message> callback) {
         message.replyFormat("> %s transcrevendo áudio...", Bot.Emojis.LOADING.getFormatted())
+                .mentionRepliedUser(false)
                 .queue(callback, (err) -> LOGGER.error("Failed to send transcription loading sign", err));
     }
 
@@ -172,6 +173,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
         try {
             TranscriptionCreateParams params = TranscriptionCreateParams.builder()
                     .model(AudioModel.GPT_4O_MINI_TRANSCRIBE)
+                    .language("pt")
                     .file(file.toPath())
                     .build();
 
