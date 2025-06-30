@@ -17,9 +17,11 @@ public class MessageDeletedLogger extends ListenerAdapter {
     }
 
     @Override
-    public void onMessageDelete(MessageDeleteEvent event) {
-        long messageId = event.getMessageIdLong();
-        Guild guild = event.getGuild();
+    public void onMessageDelete(MessageDeleteEvent e) {
+        if (!e.isFromGuild()) return;
+
+        long messageId = e.getMessageIdLong();
+        Guild guild = e.getGuild();
         guild.retrieveAuditLogs().limit(1).type(ActionType.MESSAGE_DELETE).queue((entries) -> {
             AuditLogEntry entry = entries.isEmpty() ? null : entries.getFirst();
 
