@@ -172,7 +172,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
     private String generateTranscription(OpenAIClient openAI, File file) {
         try {
             TranscriptionCreateParams params = TranscriptionCreateParams.builder()
-                    .model(AudioModel.GPT_4O_MINI_TRANSCRIBE)
+                    .model(AudioModel.GPT_4O_TRANSCRIBE)
                     .language("pt")
                     .file(file.toPath())
                     .build();
