@@ -18,7 +18,7 @@ public class DiscordMessage extends OficinaRecord<DiscordMessage> {
         super(DISCORD_MESSAGES);
     }
 
-    public DiscordMessage(long id, long authorId, long channelId,
+    public DiscordMessage(long id, long authorId, long channelId, boolean deleted,
                           @NotNull String content, @Nullable Long stickerId, @Nullable Long messageReferenceId,
                           long createdAt, long updatedAt
     ) {
@@ -28,11 +28,19 @@ public class DiscordMessage extends OficinaRecord<DiscordMessage> {
         set(DISCORD_MESSAGES.ID, id);
         set(DISCORD_MESSAGES.AUTHOR_ID, authorId);
         set(DISCORD_MESSAGES.CHANNEL_ID, channelId);
+        set(DISCORD_MESSAGES.DELETED, deleted);
         set(DISCORD_MESSAGES.CONTENT, content);
         set(DISCORD_MESSAGES.STICKER_ID, stickerId);
-        set(DISCORD_MESSAGES.MESSAGE_REFERENCE_ID, messageReferenceId);
+        set(DISCORD_MESSAGES.MESSAGE_REF_ID, messageReferenceId);
         set(DISCORD_MESSAGES.CREATED_AT, createdAt);
         set(DISCORD_MESSAGES.UPDATED_AT, updatedAt);
+    }
+
+    public DiscordMessage(long id, long authorId, long channelId,
+                          @NotNull String content, @Nullable Long stickerId, @Nullable Long messageReferenceId,
+                          long createdAt, long updatedAt
+    ) {
+        this(id, authorId, channelId, false, content, stickerId, messageReferenceId, createdAt, updatedAt);
     }
 
     public static DiscordMessage fromMessage(Message msg) {
@@ -75,17 +83,16 @@ public class DiscordMessage extends OficinaRecord<DiscordMessage> {
     }
 
     public long getMessageReferenceId() {
-        Long id = get(DISCORD_MESSAGES.MESSAGE_REFERENCE_ID);
+        Long id = get(DISCORD_MESSAGES.MESSAGE_REF_ID);
         return id == null ? 0 : id;
     }
 
     public boolean isDeleted() {
-        Integer deleted = get(DISCORD_MESSAGES.DELETED);
-        return deleted != null && deleted != 0;
+        return get(DISCORD_MESSAGES.DELETED);
     }
 
     public long getDeletionAuthorId() {
-        return get(DISCORD_MESSAGES.DELETION_AUTHOR_ID);
+        return get(DISCORD_MESSAGES.DEL_AUTHOR_ID);
     }
 
     public long getTimeCreated() {
@@ -126,17 +133,17 @@ public class DiscordMessage extends OficinaRecord<DiscordMessage> {
     }
 
     public DiscordMessage setMessageReferenceId(long refId) {
-        set(DISCORD_MESSAGES.MESSAGE_REFERENCE_ID, refId);
+        set(DISCORD_MESSAGES.MESSAGE_REF_ID, refId);
         return this;
     }
 
     public DiscordMessage setDeleted(boolean flag) {
-        set(DISCORD_MESSAGES.DELETED, flag ? 1 : 0);
+        set(DISCORD_MESSAGES.DELETED, flag);
         return this;
     }
 
     public DiscordMessage setDeletionAuthorId(long authorId) {
-        set(DISCORD_MESSAGES.DELETION_AUTHOR_ID, authorId);
+        set(DISCORD_MESSAGES.DEL_AUTHOR_ID, authorId);
         return this;
     }
 

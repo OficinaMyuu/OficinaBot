@@ -67,8 +67,8 @@ public class DiscordMessageRepository extends Repository<DiscordMessage> {
      */
     public void softDeleteByIdsAndAuthor(@NotNull List<Long> ids, long deletionAuthorId) {
         ctx.update(DISCORD_MESSAGES)
-                .set(DISCORD_MESSAGES.DELETED, 1)
-                .set(DISCORD_MESSAGES.DELETION_AUTHOR_ID, deletionAuthorId)
+                .set(DISCORD_MESSAGES.DELETED, true)
+                .set(DISCORD_MESSAGES.DEL_AUTHOR_ID, deletionAuthorId)
                 .set(DISCORD_MESSAGES.UPDATED_AT, Bot.unixNow())
                 .where(DISCORD_MESSAGES.ID.in(ids))
                 .execute();
@@ -76,8 +76,8 @@ public class DiscordMessageRepository extends Repository<DiscordMessage> {
 
     public void softDeleteByIdAndAuthor(long msgId, @Nullable Long deletionAuthorId) {
         ctx.update(DISCORD_MESSAGES)
-                .set(DISCORD_MESSAGES.DELETED, 1)
-                .set(DISCORD_MESSAGES.DELETION_AUTHOR_ID, deletionAuthorId)
+                .set(DISCORD_MESSAGES.DELETED, true)
+                .set(DISCORD_MESSAGES.DEL_AUTHOR_ID, deletionAuthorId)
                 .set(DISCORD_MESSAGES.UPDATED_AT, Bot.unixNow())
                 .where(DISCORD_MESSAGES.ID.eq(msgId))
                 .execute();
