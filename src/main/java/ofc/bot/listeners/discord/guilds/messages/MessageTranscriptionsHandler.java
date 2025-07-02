@@ -4,6 +4,9 @@ import com.openai.client.OpenAIClient;
 import com.openai.errors.OpenAIInvalidDataException;
 import com.openai.models.audio.AudioModel;
 import com.openai.models.audio.transcriptions.TranscriptionCreateParams;
+import com.openai.models.moderations.Moderation;
+import com.openai.models.moderations.ModerationCreateParams;
+import com.openai.models.moderations.ModerationModel;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -28,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -38,6 +43,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
     private static final Emoji TRANSCRIPTION_EMOJI = Emoji.fromUnicode("\uD83C\uDF99\uFE0F"); // This is a microphone
     private static final int RESEND_COOLDOWN_SECONDS = 30;
     private static final int MAX_CHUNK_LENGTH = Message.MAX_CONTENT_LENGTH - 5;
+    private static final ExecutorService DATABASE_THREAD = Executors.newSingleThreadExecutor();
     private static final Set<String> VALID_EXTENSIONS;
     private final Set<Long> transcribingMessages = new HashSet<>();
     private final MessageTranscriptionRepository msgTrscptRepo;
@@ -211,23 +217,79 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
             String fmtTr = String.format("## Transcrição\n> %s", tr);
             String[] messages = splitTranscription(fmtTr);
 
-            persist(origin, tr, requesterId, file.getDuration());
+            // Just to speed up stuff, as we are going to be making more requests
+            // and we don't want to make our users keep waiting even more
+            DATABASE_THREAD.execute(() -> persist(origin, openAI, tr, requesterId, file));
+
             sendChained(output, messages);
             transcribingMessages.remove(origin.getIdLong());
         });
     }
 
-    private void persist(Message origin, String transcription, long reqId, double audioLength) {
+    private void persist(Message origin, OpenAIClient openAI, String transcription, long reqId, Message.Attachment file) {
+        String fileExtension = file.getFileExtension();
+        double audioLength = file.getDuration();
         long msgId = origin.getIdLong();
         long chanId = origin.getChannelIdLong();
         long now = Bot.unixNow();
 
         try {
             MessageTranscription tr = new MessageTranscription(msgId, chanId, reqId, audioLength, transcription, now);
+
+            // This is a best-effort operation, if the request fail, well, sad day for us ^^
+            applyModerations(tr, openAI, transcription);
+            tr.setFileExtension(fileExtension);
+
             msgTrscptRepo.save(tr);
         } catch (Exception e) {
             LOGGER.error("Failed to persist transcription on {}/{}", chanId, msgId, e);
         }
+    }
+
+    private void applyModerations(MessageTranscription rec, OpenAIClient openAI, String tr) {
+        try {
+            Moderation moderation = getModeration(openAI, tr);
+            Moderation.CategoryScores scores = moderation.categoryScores();
+            boolean flagged = moderation.flagged();
+            double sexual = avg(scores.sexual(), scores.sexualMinors());
+            double hate = avg(scores.hate(), scores.hateThreatening());
+            double illicit = avg(scores.illicit(), scores.illicitViolent());
+            double selfHarm = avg(scores.selfHarm(), scores.selfHarmIntent(), scores.selfHarmInstructions());
+            double violence = avg(scores.violence(), scores.violenceGraphic());
+
+            rec.setHarmful(flagged)
+                    .setSexualScore(sexual)
+                    .setHateScore(hate)
+                    .setIllicitScore(illicit)
+                    .setSelfHarmScore(selfHarm)
+                    .setViolenceScore(violence);
+        } catch (Exception e) {
+            LOGGER.error("Failed to apply moderation", e);
+        }
+    }
+
+    private double avg(double... values) {
+        return Arrays.stream(values).sum() / values.length;
+    }
+
+    private Moderation getModeration(OpenAIClient openAI, String transcription) {
+        ModerationCreateParams params = ModerationCreateParams.builder()
+                .model(ModerationModel.OMNI_MODERATION_LATEST)
+                .input(transcription)
+                .build();
+
+        List<Moderation> results = openAI.moderations()
+                .create(params)
+                .results();
+        int resultCount = results.size();
+
+        if (resultCount != 1) {
+            LOGGER.warn("Unexpected: We got more results than inputs provided ({}), how??? " +
+                    "Ignoring it and using only the first one", resultCount);
+        }
+
+        // It is expected to never get an empty array as response, it makes absolutely no sense
+        return results.getFirst();
     }
 
     private void sendChained(Message ref, String[] chunks) {
