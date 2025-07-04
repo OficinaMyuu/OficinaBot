@@ -60,17 +60,6 @@ public final class Bot {
         return Gender.UNKNOWN;
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static boolean isZoneId(String zoneId) {
-        if (zoneId == null || zoneId.isEmpty()) return false;
-        try {
-            ZoneId.of(zoneId);
-            return true;
-        } catch (DateTimeException e) {
-            return false;
-        }
-    }
-
     public static <T, A extends Annotation> T getSafeAnnotationValue(
             @NotNull Object obj, @NotNull Class<A> annotation, @NotNull Function<A, T> mapper) {
         return getSafeAnnotationValue(obj.getClass(), annotation, mapper);
@@ -199,21 +188,6 @@ public final class Bot {
     public static int calcMaxPages(int total, int pageSize) {
         int maxPages = (int) Math.ceil((double) total / pageSize);
         return Math.max(maxPages, 1);
-    }
-
-    /**
-     * Checks if {@code a + b} overflows either
-     * {@link Long#MAX_VALUE} or {@link Long#MIN_VALUE}.
-     *
-     * @param a the first value.
-     * @param b the second value.
-     * @return {@code true} if the sum of both values overflows the {@code long}
-     * datatype, {@code false} otherwise.
-     */
-    public static boolean overflows(long a, long b) {
-        if (b > 0) return a > Long.MAX_VALUE - b;
-        if (b < 0) return a < Long.MIN_VALUE - b;
-        return false;
     }
 
     public static void delete(Message message) {
