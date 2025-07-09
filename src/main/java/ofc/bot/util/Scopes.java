@@ -37,6 +37,11 @@ public final class Scopes {
         public static final String PAGINATE_USERS = "VIEW_USERS";
     }
 
+    public static class Tickets {
+        public static final String CREATE_TICKET = "CREATE_TICKET";
+        public static final String DELETE_TICKET = "DELETE_TICKET";
+    }
+
     public static class Misc {
         public static final String CHOOSABLE_ROLES            = "CHOOSABLE_ROLES";
         public static final String PAGINATE_BIRTHDAYS         = "VIEW_BIRTHDAYS";
