@@ -68,6 +68,7 @@ public final class DB {
                 MessagesTranscriptionsTable.MESSAGES_TRANSCRIPTIONS,
                 OficinaGroupsTable.OFICINA_GROUPS,
                 RemindersTable.REMINDERS,
+                SupportTicketsTable.SUPPORT_TICKETS,
                 TempBansTable.TEMP_BANS,
                 TwitchSubscriptionsTable.TWITCH_SUBSCRIPTIONS,
                 UserNamesUpdatesTable.USERNAMES_UPDATES,

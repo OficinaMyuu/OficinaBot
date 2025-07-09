@@ -28,6 +28,7 @@ public final class Repositories {
     private static MessageTranscriptionRepository messageTranscriptionRepository;
     private static OficinaGroupRepository oficinaGroupRepository;
     private static ReminderRepository reminderRepository;
+    private static SupportTicketRepository supportTicketRepository;
     private static TempBanRepository tempBanRepository;
     private static TwitchSubscriptionRepository twitchSubscriptionRepository;
     private static UserEconomyRepository userEconomyRepository;
@@ -157,6 +158,11 @@ public final class Repositories {
     public static ReminderRepository getReminderRepository() {
         if (reminderRepository == null) reminderRepository = new ReminderRepository(getDSLContext());
         return reminderRepository;
+    }
+
+    public static SupportTicketRepository getSupportTicketRepository() {
+        if (supportTicketRepository == null) supportTicketRepository = new SupportTicketRepository(getDSLContext());
+        return supportTicketRepository;
     }
 
     public static TempBanRepository getTempBanRepository() {
