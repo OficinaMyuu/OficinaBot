@@ -17,7 +17,10 @@ public enum Channels {
     SOLO_GATEWAY("channels.oficina_erik.solo_gateway"),
     CHANGELOG("channels.oficina_erik.changelog"),
     LEVEL_UP("channels.oficina_erik.level_up"),
-    AUTOMOD_LOG("channels.oficina_erik.automod_log");
+    AUTOMOD_LOG("channels.oficina_erik.automod_log"),
+
+    /* ---------- Categories ---------- */
+    TICKETS("channels.oficina_erik.tickets");
 
     private final String key;
 
