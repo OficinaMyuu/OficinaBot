@@ -11,9 +11,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import ofc.bot.domain.entity.BlockedWord;
 import ofc.bot.domain.entity.enums.PolicyType;
-import ofc.bot.domain.sqlite.repository.AutomodActionRepository;
-import ofc.bot.domain.sqlite.repository.BlockedWordRepository;
-import ofc.bot.domain.sqlite.repository.MemberPunishmentRepository;
+import ofc.bot.domain.sqlite.repository.*;
 import ofc.bot.handlers.cache.PolicyService;
 import ofc.bot.handlers.moderation.PunishmentData;
 import ofc.bot.handlers.moderation.PunishmentManager;
@@ -57,13 +55,15 @@ public class AutoModerator extends ListenerAdapter {
     private final PolicyService policyCache = PolicyService.getService();
     private final Map<Long, List<BlockedWord>> blockedWordsCache;
     private final PunishmentManager punishmentManager;
+    private final SupportTicketRepository ticketRepo;
 
     public AutoModerator(
             BlockedWordRepository blckWordsRepo, MemberPunishmentRepository pnshRepo,
-            AutomodActionRepository modActRepo
+            AutomodActionRepository modActRepo, SupportTicketRepository ticketRepo
     ) {
         this.blockedWordsCache = loadBlockedWords(blckWordsRepo);
         this.punishmentManager = new PunishmentManager(pnshRepo, modActRepo);
+        this.ticketRepo = ticketRepo;
     }
 
     @Override
@@ -93,6 +93,9 @@ public class AutoModerator extends ListenerAdapter {
 
         // Immune to every kind of moderation
         if (member.hasPermission(Permission.MANAGE_SERVER)) return;
+
+        // Ticket channels are not affected by moderation
+        if (ticketRepo.isTicketChannel(chan)) return;
 
         // Checking moderations for the member's message
         validateContent(delReasons, warnReasons, content, member, chanId, hasInvites(msg));

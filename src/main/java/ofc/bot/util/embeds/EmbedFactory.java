@@ -500,6 +500,20 @@ public final class EmbedFactory {
         );
     }
 
+    public static MessageEmbed embedCreatedTicket(Member issuer, String subject, String body) {
+        EmbedBuilder builder = new EmbedBuilder();
+        Guild guild = issuer.getGuild();
+        String desc = String.format("### %s\n\n%s", subject, body);
+
+        return builder
+                .setTitle("Dados do Ticket")
+                .setColor(Bot.Colors.DEFAULT)
+                .setDescription(desc)
+                .setThumbnail(issuer.getEffectiveAvatarUrl())
+                .setFooter(guild.getName(), guild.getIconUrl())
+                .build();
+    }
+
     private static MessageEmbed embedGroupSellConfirmation(
             Member member, OficinaGroup group, String thumbUrl,
             Integer color, String act, int refund, Map<String, Object> fields

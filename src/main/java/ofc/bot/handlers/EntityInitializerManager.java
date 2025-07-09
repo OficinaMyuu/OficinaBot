@@ -40,10 +40,12 @@ import ofc.bot.listeners.discord.interactions.buttons.pagination.infractions.Inf
 import ofc.bot.listeners.discord.interactions.buttons.pagination.reminders.DeleteReminder;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.reminders.RemindersPageUpdate;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.twitch.PaginateTwitchUsers;
+import ofc.bot.listeners.discord.interactions.buttons.tickets.CloseTicketHandler;
 import ofc.bot.listeners.discord.interactions.dm.DirectMessageReceived;
 import ofc.bot.listeners.discord.interactions.menus.ChoosableRolesListener;
-import ofc.bot.listeners.discord.interactions.modals.ChangelogCreationHandler;
 import ofc.bot.listeners.discord.interactions.modals.ChoosableRolesHandler;
+import ofc.bot.listeners.discord.interactions.modals.tickets.TicketClosureHandler;
+import ofc.bot.listeners.discord.interactions.modals.tickets.TicketCreationHandler;
 import ofc.bot.listeners.discord.logs.VoiceActivity;
 import ofc.bot.listeners.discord.logs.messages.*;
 import ofc.bot.listeners.discord.logs.moderation.LogTimeout;
@@ -120,6 +122,7 @@ public final class EntityInitializerManager {
         var betUsersRepo = Repositories.getGameParticipantRepository();
         var mreqRepo     = Repositories.getMarriageRequestRepository();
         var namesRepo    = Repositories.getUserNameUpdateRepository();
+        var ticketRepo   = Repositories.getSupportTicketRepository();
         var policyRepo   = Repositories.getEntityPolicyRepository();
         var grpRepo      = Repositories.getOficinaGroupRepository();
         var ecoRepo      = Repositories.getUserEconomyRepository();
@@ -163,6 +166,10 @@ public final class EntityInitializerManager {
                 // Bets
                 new TicTacToeAcceptHandler(ecoRepo, betRepo, betUsersRepo, appBanRepo),
 
+                // Tickets
+                new TicketCreationHandler(ticketRepo),
+                new TicketClosureHandler(ticketRepo),
+
                 // Generic
                 new ChoosableRolesHandler()
         );
@@ -194,6 +201,7 @@ public final class EntityInitializerManager {
         var namesRepo     = Repositories.getUserNameUpdateRepository();
         var usprefRepo    = Repositories.getUserPreferenceRepository();
         var modActRepo    = Repositories.getAutomodActionRepository();
+        var ticketRepo    = Repositories.getSupportTicketRepository();
         var grpRepo       = Repositories.getOficinaGroupRepository();
         var blckWordsRepo = Repositories.getBlockedWordRepository();
         var ecoRepo       = Repositories.getUserEconomyRepository();
@@ -204,14 +212,14 @@ public final class EntityInitializerManager {
         var userRepo      = Repositories.getUserRepository();
 
         api.addEventListener(
-                new AutoModerator(blckWordsRepo, pnshRepo, modActRepo),
+                new AutoModerator(blckWordsRepo, pnshRepo, modActRepo, ticketRepo),
                 new AutoModLogger(),
                 new BlockDumbCommands(),
                 new BotChangelogRoleHandler(),
                 new ButtonInteractionGateway(appBanRepo),
-                new ChangelogCreationHandler(),
                 new ChatMoneyHandler(ecoRepo),
                 new ChoosableRolesListener(),
+                new CloseTicketHandler(),
                 new ColorRoleHandler(colorsRepo),
                 new DirectMessageReceived(),
                 new ErikPingReactionHelper(),

@@ -12,9 +12,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
-import ofc.bot.domain.entity.GroupBot;
-import ofc.bot.domain.entity.OficinaGroup;
-import ofc.bot.domain.entity.Reminder;
+import ofc.bot.domain.entity.*;
 import ofc.bot.domain.entity.enums.GroupPermission;
 import ofc.bot.domain.entity.enums.NameScope;
 import ofc.bot.domain.entity.enums.TransactionType;
@@ -30,7 +28,6 @@ import ofc.bot.util.Scopes;
 import java.time.Month;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -401,7 +398,6 @@ public final class EntityContextFactory {
 
     /* -------------------- Modals -------------------- */
     public static Modal createChoosableRolesModal(Message.Attachment img, long chanId, int color, int maxChoices) {
-        String uuid = UUID.randomUUID().toString();
         int maxTitle = MessageEmbed.AUTHOR_MAX_LENGTH;
         int maxDesc = TextInput.MAX_VALUE_LENGTH;
         TextInputStyle shortStyle = TextInputStyle.SHORT;
@@ -412,7 +408,7 @@ public final class EntityContextFactory {
                 TextInput.create("desc", "Descrição", textStyle).setMaxLength(maxDesc).setRequired(false),
                 TextInput.create("opts", "Opções", textStyle)
         ).map(TextInput.Builder::build).toList();
-        ModalContext ctx = ModalContext.of(uuid, "Choosable Roles", inputs)
+        ModalContext ctx = ModalContext.of("Choosable Roles", inputs)
                 .setScope(Scopes.Misc.CHOOSABLE_ROLES)
                 .put("image", img)
                 .put("channel_id", chanId)
@@ -421,6 +417,33 @@ public final class EntityContextFactory {
 
         INTERACTION_MANAGER.save(ctx);
         return ctx.getEntity();
+    }
+
+    public static Modal createTicketModal() {
+        TextInput subject = newInput("subject", "Assunto", null, true, 5, SupportTicket.MAX_SUBJECT_LENGTH);
+        TextInput body = newInput("body", "Descrição", null, false, 10, SupportTicket.MAX_BODY_LENGTH);
+        ModalContext ctx = ModalContext.of("🎫 Novo Ticket", subject, body);
+
+        INTERACTION_MANAGER.save(ctx);
+        return ctx.getEntity();
+    }
+
+    public static Modal createTicketCloseModal() {
+        String reason = "Resolvido com sucesso.";
+        TextInput reasonInput = newInput("reason", "Motivo", reason, false, 5, 2000);
+        ModalContext ctx = ModalContext.of("Fechar Ticket", reasonInput);
+
+        INTERACTION_MANAGER.save(ctx);
+        return ctx.getEntity();
+    }
+
+    private static TextInput newInput(String id, String label, String value, boolean isShort, int min, int max) {
+        TextInputStyle style = isShort ? TextInputStyle.SHORT : TextInputStyle.PARAGRAPH;
+
+        return TextInput.create(id, label, style)
+                .setRequiredRange(min, max)
+                .setValue(value)
+                .build();
     }
 
     // Utility Internals

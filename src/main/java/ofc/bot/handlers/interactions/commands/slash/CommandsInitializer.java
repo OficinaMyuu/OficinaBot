@@ -140,7 +140,6 @@ public final class CommandsInitializer {
         // Administration
         registry.register(new DisconnectAllCommand());
         registry.register(new MoveAllCommand());
-        registry.register(new NamesHistoryCommand(namesRepo));
 
         // Birthdays
         registry.register(new BirthdaysCommand(bdayRepo));
@@ -193,6 +192,8 @@ public final class CommandsInitializer {
         registry.register(new GuildLogoCommand());
         registry.register(new IPLookupCommand());
         registry.register(new MovieInstructionsCommand());
+        registry.register(new NamesHistoryCommand(namesRepo));
+        registry.register(new OpenTicketCommand());
         registry.register(new RoleAmongUsCommand());
         registry.register(new RoleInfoCommand());
         registry.register(new RoleMembersCommand());
