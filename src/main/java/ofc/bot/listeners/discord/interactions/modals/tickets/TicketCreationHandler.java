@@ -115,7 +115,7 @@ public class TicketCreationHandler implements InteractionListener<ModalSubmitCon
 
     static {
         final Emoji lockEmoji = Emoji.fromUnicode("\uD83D\uDD12");
-        ISSUER_ALLOWED_PERMS = Permission.getRaw(MESSAGE_ATTACH_FILES, MESSAGE_EMBED_LINKS);
+        ISSUER_ALLOWED_PERMS = Permission.getRaw(VIEW_CHANNEL, MESSAGE_ATTACH_FILES, MESSAGE_EMBED_LINKS);
         ISSUER_BLOCKED_PERMS = Permission.getRaw(MESSAGE_EXT_STICKER, MESSAGE_EXT_EMOJI, VOICE_USE_EXTERNAL_SOUNDS);
 
         STAFF_ALLOW_PERMS = Permission.getRaw(VIEW_CHANNEL, MESSAGE_MANAGE, MESSAGE_ATTACH_FILES);
