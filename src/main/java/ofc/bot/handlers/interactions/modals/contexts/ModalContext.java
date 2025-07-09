@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.interactions.modals.Modal;
 import ofc.bot.handlers.interactions.EntityContext;
 
 import java.util.List;
+import java.util.UUID;
 
 public class ModalContext extends EntityContext<Modal, ModalContext> {
 
@@ -22,6 +23,18 @@ public class ModalContext extends EntityContext<Modal, ModalContext> {
                 .addComponents(rows)
                 .build();
         return new ModalContext(modal);
+    }
+
+    public static ModalContext of(String customId, String title, TextInput... inputs) {
+        return of(customId, title, List.of(inputs));
+    }
+
+    public static ModalContext of(String title, List<TextInput> inputs) {
+        return of(UUID.randomUUID().toString(), title, inputs);
+    }
+
+    public static ModalContext of(String title, TextInput... inputs) {
+        return of(title, List.of(inputs));
     }
 
     @Override
