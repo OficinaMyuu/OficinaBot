@@ -422,7 +422,8 @@ public final class EntityContextFactory {
     public static Modal createTicketModal() {
         TextInput subject = newInput("subject", "Assunto", null, true, 5, SupportTicket.MAX_SUBJECT_LENGTH);
         TextInput body = newInput("body", "Descrição", null, false, 10, SupportTicket.MAX_BODY_LENGTH);
-        ModalContext ctx = ModalContext.of("🎫 Novo Ticket", subject, body);
+        ModalContext ctx = ModalContext.of("🎫 Novo Ticket", subject, body)
+                .setScope(Scopes.Tickets.CREATE_TICKET);
 
         INTERACTION_MANAGER.save(ctx);
         return ctx.getEntity();
@@ -431,7 +432,8 @@ public final class EntityContextFactory {
     public static Modal createTicketCloseModal() {
         String reason = "Resolvido com sucesso.";
         TextInput reasonInput = newInput("reason", "Motivo", reason, false, 5, 2000);
-        ModalContext ctx = ModalContext.of("Fechar Ticket", reasonInput);
+        ModalContext ctx = ModalContext.of("Fechar Ticket", reasonInput)
+                .setScope(Scopes.Tickets.DELETE_TICKET);
 
         INTERACTION_MANAGER.save(ctx);
         return ctx.getEntity();
