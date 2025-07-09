@@ -1,5 +1,6 @@
 package ofc.bot.listeners.discord.interactions.buttons.tickets;
 
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -19,7 +20,7 @@ public class CloseTicketHandler extends ListenerAdapter {
 
         if (member == null || !buttonId.equals(TicketCreationHandler.CLOSE_BUTTON_ID)) return;
 
-        if (!Staff.isStaff(member)) {
+        if (!Staff.isStaff(member) && !member.hasPermission(Permission.MANAGE_CHANNEL)) {
             e.reply("> ❌ Só staffs podem fechar um ticket... 😕").setEphemeral(true).queue();
             return;
         }
