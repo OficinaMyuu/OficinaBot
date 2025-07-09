@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import ofc.bot.handlers.interactions.EntityContextFactory;
+import ofc.bot.handlers.interactions.commands.Cooldown;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
@@ -12,6 +13,8 @@ import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashCommand;
 import ofc.bot.util.content.Staff;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.TimeUnit;
 
 @DiscordCommand(name = "ticket")
 public class OpenTicketCommand extends SlashCommand {
@@ -37,5 +40,11 @@ public class OpenTicketCommand extends SlashCommand {
     @Override
     public String getDescription() {
         return "Abre um novo ticket.";
+    }
+
+    @NotNull
+    @Override
+    public Cooldown getCooldown() {
+        return Cooldown.of(30, TimeUnit.MINUTES);
     }
 }
