@@ -44,7 +44,7 @@ public class ModalInteractionGateway extends ListenerAdapter {
 
         for (var l : listeners) {
             EXECUTOR.execute(() -> {
-                if (l.validate(submitContext)) return;
+                if (!l.validate(submitContext)) return;
                 InteractionResult state = l.onExecute(submitContext);
 
                 if (state.getContent() != null)
