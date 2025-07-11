@@ -5,8 +5,11 @@ import net.dv8tion.jda.api.entities.MessageReference;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
+
+import java.util.List;
 
 @DiscordEventHandler
 public class LorittaDailySpamBlocker extends ListenerAdapter {
@@ -18,9 +21,8 @@ public class LorittaDailySpamBlocker extends ListenerAdapter {
     public void onMessageReceived(MessageReceivedEvent e) {
         Message msg = e.getMessage();
         MessageReference msgRef = msg.getMessageReference();
-        String content = msg.getContentRaw().toLowerCase();
         User author = msg.getAuthor();
-        Status commandStatus = resolveStatus(content);
+        Status commandStatus = resolveStatus(msg);
         long userId = author.getIdLong();
 
         if (userId != LORITTA_ID || msgRef == null) return;
@@ -44,9 +46,15 @@ public class LorittaDailySpamBlocker extends ListenerAdapter {
                 """, DAILY_URL, SHOP_URL);
     }
 
-    private Status resolveStatus(String content) {
-        if (content.contains("receba a sua recompensa diária de sonhos aqui")) return Status.OK;
+    private Status resolveStatus(Message msg) {
+        String content = msg.getContentRaw().toLowerCase();
+        List<Button> buttons = msg.getButtons();
+
         if (content.contains("já recebeu a sua recompensa")) return Status.COLLECTED;
+
+        for (Button button : buttons) {
+            if (button.getLabel().toLowerCase().contains("recompensa diária")) return Status.OK;
+        }
         return Status.UNKNOWN;
     }
 
