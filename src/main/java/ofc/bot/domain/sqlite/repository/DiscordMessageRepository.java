@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jooq.DSLContext;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Repository for {@link DiscordMessage} entity.
@@ -41,6 +42,19 @@ public class DiscordMessageRepository extends Repository<DiscordMessage> {
 
     public int countByChannelId(long chanId) {
         return ctx.fetchCount(DISCORD_MESSAGES, DISCORD_MESSAGES.CHANNEL_ID.eq(chanId));
+    }
+
+    /**
+     * Gets the IDs of the users who talked in the given channel.
+     *
+     * @return A {@link Set Set&lt;Long&gt;} containing the ID of every user
+     *         who sent at least one message in this channel.
+     */
+    public Set<Long> findUsersByChannelId(long channelId) {
+        return ctx.selectDistinct(DISCORD_MESSAGES.AUTHOR_ID)
+                .from(DISCORD_MESSAGES)
+                .where(DISCORD_MESSAGES.CHANNEL_ID.eq(channelId))
+                .fetchSet(DISCORD_MESSAGES.AUTHOR_ID);
     }
 
     public boolean existsByMessageAndAuthorId(long msgId, long authorId) {

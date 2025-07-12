@@ -40,6 +40,7 @@ public final class Scopes {
     public static class Tickets {
         public static final String CREATE_TICKET = "CREATE_TICKET";
         public static final String DELETE_TICKET = "DELETE_TICKET";
+        public static final String PAGINATE_TICKETS = "PAGINATE_TICKETS";
     }
 
     public static class Misc {

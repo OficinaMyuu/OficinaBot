@@ -57,6 +57,7 @@ public final class CommandsInitializer {
         var pnshRepo      = Repositories.getMemberPunishmentRepository();
         var mreqRepo      = Repositories.getMarriageRequestRepository();
         var csinfoRepo    = Repositories.getCustomUserinfoRepository();
+        var msgRepo       = Repositories.getDiscordMessageRepository();
         var namesRepo     = Repositories.getUserNameUpdateRepository();
         var modActRepo    = Repositories.getAutomodActionRepository();
         var policyRepo    = Repositories.getEntityPolicyRepository();
@@ -198,6 +199,7 @@ public final class CommandsInitializer {
         registry.register(new RoleInfoCommand());
         registry.register(new RoleMembersCommand());
         registry.register(new ToggleEventsCommand());
+        registry.register(new ViewTicketCommand(msgRepo));
 
         // Compound Commands
         registry.register(additionals);

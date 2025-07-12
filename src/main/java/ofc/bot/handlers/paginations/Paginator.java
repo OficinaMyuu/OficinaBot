@@ -1,9 +1,8 @@
 package ofc.bot.handlers.paginations;
 
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.internal.utils.Checks;
-import ofc.bot.domain.entity.BankTransaction;
-import ofc.bot.domain.entity.MemberPunishment;
-import ofc.bot.domain.entity.Reminder;
+import ofc.bot.domain.entity.*;
 import ofc.bot.domain.entity.enums.TransactionType;
 import ofc.bot.domain.sqlite.repository.*;
 import ofc.bot.domain.viewmodels.LevelView;
@@ -55,6 +54,17 @@ public final class Paginator<T> {
                 targetId, guildId, pageSize, offset, showInactive);
 
         return new PageItem<>(punishments, pageIndex, offset, maxPages, rowCount);
+    }
+
+    public static PageItem<SupportTicket> viewTickets(User byUser, SupportTicketRepository.TicketStatus byStatus, int pageIndex) {
+        final SupportTicketRepository ticketRepo = Repositories.getSupportTicketRepository();
+
+        // In this case, we don't need to calculate the offset, as only 1 result
+        // can be shown per page, the offset is already the pageIndex itself.
+        List<SupportTicket> tickets = ticketRepo.searchByUserAndStatus(byUser, byStatus, pageIndex, 1);
+        int count = ticketRepo.countByUserAndStatus(byUser, byStatus);
+
+        return new PageItem<>(tickets, pageIndex, pageIndex, count, count);
     }
 
     public static PageItem<Reminder> viewReminders(long userId, int pageIndex) {

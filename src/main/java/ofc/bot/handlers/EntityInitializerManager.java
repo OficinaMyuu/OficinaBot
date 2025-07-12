@@ -121,6 +121,7 @@ public final class EntityInitializerManager {
         var pnshRepo     = Repositories.getMemberPunishmentRepository();
         var betUsersRepo = Repositories.getGameParticipantRepository();
         var mreqRepo     = Repositories.getMarriageRequestRepository();
+        var msgRepo      = Repositories.getDiscordMessageRepository();
         var namesRepo    = Repositories.getUserNameUpdateRepository();
         var ticketRepo   = Repositories.getSupportTicketRepository();
         var policyRepo   = Repositories.getEntityPolicyRepository();
@@ -147,6 +148,7 @@ public final class EntityInitializerManager {
                 new LevelsPageUpdate(xpRepo),
                 new NamesPageUpdate(namesRepo),
                 new ProposalListPagination(mreqRepo),
+                new TicketsPagination(msgRepo),
                 new TransactionsPagination(),
 
                 // Twitch

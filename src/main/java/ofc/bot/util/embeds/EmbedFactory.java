@@ -3,6 +3,7 @@ package ofc.bot.util.embeds;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.internal.utils.Checks;
 import net.redhogs.cronparser.CronExpressionDescriptor;
 import ofc.bot.commands.slash.economy.LeaderboardCommand;
@@ -22,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Utility class for embeds used in multiple classes.
@@ -511,6 +513,31 @@ public final class EmbedFactory {
                 .setDescription(desc)
                 .setThumbnail(issuer.getEffectiveAvatarUrl())
                 .setFooter(guild.getName(), guild.getIconUrl())
+                .build();
+    }
+
+    public static MessageEmbed embedTicketPage(User issuer, Guild guild, SupportTicket ticket, Set<Long> users) {
+        OficinaEmbed builder = new OficinaEmbed();
+        long ticketChanId = ticket.getChannelId();
+        Instant timestamp = Instant.ofEpochSecond(ticket.getTimeCreated());
+        TextChannel ticketChan = guild.getTextChannelById(ticketChanId);
+        boolean isOpen = ticketChan != null;
+        String fmtClosureAuthor = String.format("<@%d>", ticket.getClosedAuthorId());
+        String fmtStatus = isOpen ? "Aberto" : "Fechado";
+        String fmtUsers = users.stream().map(l -> String.format("- <@%d>", l)).collect(Collectors.joining("\n"));
+
+        return builder
+                .setAuthor(ticket.getTitle())
+                .setColor(Bot.Colors.DEFAULT)
+                .setDesc(ticket.getDescription())
+                .setThumbnail(issuer.getEffectiveAvatarUrl())
+                .addField("🏷 Status", fmtStatus, true)
+                .addFieldIf(!isOpen, "🚩 Quem Fechou", fmtClosureAuthor)
+                .addFieldIf(!isOpen, "📜 Por Que Fechou", ticket.getCloseReason())
+                .addFieldIf(isOpen, "📚 Canal", String.format("<#%d>", ticketChanId))
+                .addField("👥 Envolvidos", fmtUsers, false)
+                .setFooter(guild.getName(), guild.getIconUrl())
+                .setTimestamp(timestamp)
                 .build();
     }
 

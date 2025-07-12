@@ -72,6 +72,7 @@ public enum Status implements InteractionResult {
     NOTHING_CHANGED_WITH_REASON(                State.OK, true, "Nada foi alterado, pois %s."),
     LEADERBOARD_IS_EMPTY(                       State.OK, true, "O placar de líderes está vazio."),
     PAGE_IS_EMPTY(                              State.OK, true, "A página está vazia."),
+    NO_TICKETS_FOUND(                           State.OK, true, "Nenhum ticket encontrado."),
     MARRIAGE_LIST_IS_EMPTY(                     State.OK, true, "Nenhum casamento encontrado."),
     CONFIRM_GROUP_CHANNEL_CREATION(             State.OK, true, "> Tem certeza que deseja comprar este canal? Tipo: `%s`"),
     GROUP_PASSWORD_UPDATED_SUCCESSFULLY(        State.OK, true, "> Senha do grupo atualizada com sucesso!"),
