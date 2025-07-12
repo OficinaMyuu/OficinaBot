@@ -108,6 +108,7 @@ public class TicketCreationHandler implements InteractionListener<ModalSubmitCon
     private List<Role> getStaffRoles() {
         return Staff.getByScope(Staff.Scope.SUPPORT)
                 .stream()
+                .filter(s -> s.getSeniority() > 0) // Only trainees are excluded
                 .map(Staff::role)
                 .filter(Objects::nonNull)
                 .toList();

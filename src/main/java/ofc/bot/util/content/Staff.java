@@ -8,29 +8,31 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public enum Staff {
-    GENERAL(         "691178135596695593",  Scope.NONE),
-    ALMIRANTES_FROTA("1048808588375773234", Scope.NONE),
+    GENERAL(         "691178135596695593",  Scope.NONE, -1),
+    ALMIRANTES_FROTA("1048808588375773234", Scope.NONE, -1),
 
     /* Mov Call */
-    MOV_CALL_CO_LEADER(  "691167801783877653", Scope.MOV_CALL),
-    MOV_CALL_VICE_LEADER("740360644645093437", Scope.MOV_CALL),
-    MOV_CALL_SUPERIOR(   "691167797270806538", Scope.MOV_CALL),
-    MOV_CALL_MAIN(       "691173151400263732", Scope.MOV_CALL),
-    MOV_CALL_TRAINEE(    "691173142969712640", Scope.MOV_CALL),
+    MOV_CALL_CO_LEADER(  "691167801783877653", Scope.MOV_CALL, 4),
+    MOV_CALL_VICE_LEADER("740360644645093437", Scope.MOV_CALL, 3),
+    MOV_CALL_SUPERIOR(   "691167797270806538", Scope.MOV_CALL, 2),
+    MOV_CALL_MAIN(       "691173151400263732", Scope.MOV_CALL, 1),
+    MOV_CALL_TRAINEE(    "691173142969712640", Scope.MOV_CALL, 0),
     
     /* Support */
-    AJUDANTES_CO_LEADER(  "648444762852163588", Scope.SUPPORT),
-    AJUDANTES_VICE_LEADER("740360642032173156", Scope.SUPPORT),
-    AJUDANTES_SUPERIOR(   "691167798474440775", Scope.SUPPORT),
-    AJUDANTES_MAIN(       "592427681727905792", Scope.SUPPORT),
-    AJUDANTES_TRAINEE(    "648408508219260928", Scope.SUPPORT);
+    AJUDANTES_CO_LEADER(  "648444762852163588", Scope.SUPPORT, 4),
+    AJUDANTES_VICE_LEADER("740360642032173156", Scope.SUPPORT, 3),
+    AJUDANTES_SUPERIOR(   "691167798474440775", Scope.SUPPORT, 2),
+    AJUDANTES_MAIN(       "592427681727905792", Scope.SUPPORT, 1),
+    AJUDANTES_TRAINEE(    "648408508219260928", Scope.SUPPORT, 0);
 
     private final String id;
     private final Scope field;
+    private final int seniority;
 
-    Staff(String id, Scope scope) {
+    Staff(String id, Scope scope, int seniority) {
         this.id = id;
         this.field = scope;
+        this.seniority = seniority;
     }
 
     public String getId() {
@@ -39,6 +41,10 @@ public enum Staff {
 
     public Scope getField() {
         return this.field;
+    }
+
+    public int getSeniority() {
+        return this.seniority;
     }
 
     public Role role() {
