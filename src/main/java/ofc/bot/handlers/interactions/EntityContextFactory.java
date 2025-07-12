@@ -216,7 +216,7 @@ public final class EntityContextFactory {
                 .put("page_index", pageIndex - 1)
                 .setEnabled(hasPrev);
 
-        ButtonContext next = ButtonContext.primary(Bot.Emojis.GRAY_ARROW_RIGHT)
+        ButtonContext next = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_RIGHT)
                 .setScope(Scopes.Tickets.PAGINATE_TICKETS)
                 .put("by_user", byUser)
                 .put("by_status", byStatus)
