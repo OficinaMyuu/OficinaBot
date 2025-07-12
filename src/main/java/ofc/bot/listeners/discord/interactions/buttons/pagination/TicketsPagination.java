@@ -37,8 +37,8 @@ public class TicketsPagination implements InteractionListener<ButtonClickContext
     public InteractionResult onExecute(ButtonClickContext ctx) {
         JDA api = Main.getApi();
         SelfUser selfUser = api.getSelfUser();
-        SupportTicketRepository.TicketStatus byStatus = ctx.get("by_status");
-        User byUser = ctx.get("by_user");
+        SupportTicketRepository.TicketStatus byStatus = ctx.find("by_status");
+        User byUser = ctx.find("by_user");
         int pageIndex = ctx.get("page_index");
         PageItem<SupportTicket> tickets = Paginator.viewTickets(byUser, byStatus, pageIndex);
         long selfId = selfUser.getIdLong();
