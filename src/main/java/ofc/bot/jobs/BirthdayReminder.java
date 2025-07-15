@@ -25,8 +25,8 @@ import java.util.List;
 public class BirthdayReminder implements Job {
     private static final Logger LOGGER = LoggerFactory.getLogger(BirthdayReminder.class);
     private static final ErrorHandler DEFAULT_MEMBER_ERROR_HANDLER = new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER);
-    private static final String DEFAULT_MESSAGE = "@everyone BELA NOITE, vamos parabenizar esta pessoa tão especial chamada %s, por estar completando `%d` anos! Né? %s";
-    private static final String AGELESS_MESSAGE = "@everyone BELA NOITE, vamos parabenizar esta pessoa tão especial chamada %s, por estar fazendo aniversário hoje! Né? %s";
+    private static final String DEFAULT_MESSAGE = "@everyone BELA NOITE, vamos parabenizar esta pessoa tão especial, chamada %s, por estar completando `%d` anos! Né? %s";
+    private static final String AGELESS_MESSAGE = "@everyone BELA NOITE, vamos parabenizar esta pessoa tão especial, chamada %s, por estar fazendo aniversário hoje! Né? %s";
     private static final long ROLE_ID_UNDERAGE = 664918505400958986L;
     private static final long ROLE_ID_ADULT = 664918505963126814L;
     private final EntityPolicyRepository policyRepo;
