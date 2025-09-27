@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 public class PayCommand extends SlashCommand {
     private static final Logger LOGGER = LoggerFactory.getLogger(PayCommand.class);
     private static final BetManager betManager = BetManager.getManager();
-    private static final float TAX_PER_EXECUTION = 0.95f; // 5%
+    private static final float TAX_PER_EXECUTION = 1f; // 0%
     private static final int TAX_THRESHOLD = 10;
     private final UserEconomyRepository ecoRepo;
 
