@@ -371,7 +371,7 @@ public final class EntityContextFactory {
     }
 
     public static Button createModifyGroupConfirm(OficinaGroup group, String newName, int newColor, int price) {
-        return createGroupItemRemotionConfirm(
+        return createGroupItemPaymentConfirm(
                 group,
                 Scopes.Group.UPDATE_GROUP,
                 group.getCurrency().getEmoji(),
