@@ -34,7 +34,7 @@ public class LeaderboardCommand extends SlashCommand {
     @Override
     public InteractionResult onCommand(@NotNull SlashCommandContext ctx) {
         int pageIndex = ctx.getOption("page", 1, OptionMapping::getAsInt) - 1;
-        Scope scope = ctx.getEnumOption("scope", Scope.ALL, Scope.class);
+        Scope scope = ctx.getEnumOption("filter", Scope.ALL, Scope.class);
         Guild guild = ctx.getGuild();
         Paginator<LeaderboardUser> paginator = Paginator.of((o) -> ecoRepo.viewLeaderboard(scope, o, PAGE_SIZE), ecoRepo::countAll, PAGE_SIZE);
         PageItem<LeaderboardUser> lb = paginator.next(pageIndex);
@@ -66,7 +66,7 @@ public class LeaderboardCommand extends SlashCommand {
     @Override
     public List<OptionData> getOptions() {
         return List.of(
-                new OptionData(OptionType.STRING, "scope", "Qual saldo deve ser mostrado.")
+                new OptionData(OptionType.STRING, "filter", "O filtro no tipo de saldo a ser mostrado.")
                         .addChoices(getChoices()),
 
                 new OptionData(OptionType.INTEGER, "page", "A página do placar de líderes a verificar.")
