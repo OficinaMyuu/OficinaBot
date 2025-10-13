@@ -55,10 +55,11 @@ public final class EmbedFactory {
 
     public static MessageEmbed embedPrivilegedBirthday(User user, Birthday birthday) {
         EmbedBuilder builder = new EmbedBuilder();
+        String desc = String.format("O Davizinho faz aniversáriozinho dia %s.", birthday.getPrettyBirthday());
 
         return builder
                 .setAuthor("Davizinho", null, user.getEffectiveAvatarUrl())
-                .setDescription("")
+                .setDescription(desc)
                 .setColor(new Color(182, 88, 236))
                 .build();
     }
