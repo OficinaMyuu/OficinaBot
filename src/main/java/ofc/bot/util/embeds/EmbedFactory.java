@@ -53,6 +53,16 @@ public final class EmbedFactory {
                 .build();
     }
 
+    public static MessageEmbed embedPrivilegedBirthday(User user, Birthday birthday) {
+        EmbedBuilder builder = new EmbedBuilder();
+
+        return builder
+                .setAuthor("Davizinho", null, user.getEffectiveAvatarUrl())
+                .setDescription("")
+                .setColor(new Color(182, 88, 236))
+                .build();
+    }
+
     public static MessageEmbed embedChoosableRoles(Guild guild, String title, String desc, String filename, int color) {
         OficinaEmbed builder = new OficinaEmbed();
         Color embedColor = color == 0 ? Bot.Colors.DEFAULT : new Color(color);
