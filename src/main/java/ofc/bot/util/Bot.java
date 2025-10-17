@@ -25,6 +25,7 @@ import java.text.NumberFormat;
 import java.time.*;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
 public final class Bot {
@@ -137,6 +138,22 @@ public final class Bot {
 
     public static boolean isNegative(Number val) {
         return val == null || val.doubleValue() < 0;
+    }
+
+    public static boolean chance(byte chance) {
+        if (chance <= 0) return false;
+        if (chance >= 100) return true;
+
+        int random = ThreadLocalRandom.current().nextInt(100);
+        return random < chance;
+    }
+
+    public static boolean chance(double chance) {
+        if (chance <= 0) return false;
+        if (chance >= 100) return true;
+
+        double random = ThreadLocalRandom.current().nextDouble(100.0);
+        return random < chance;
     }
 
     /**
