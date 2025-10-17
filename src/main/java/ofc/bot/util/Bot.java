@@ -157,7 +157,7 @@ public final class Bot {
     }
 
     private static final double MIN_CHANCE = 1.0;
-    private static final double MAX_CHANCE = 60.0;
+    private static final double MAX_CHANCE = 40.0;
     private static final double DAY_SECONDS = 86400.0;
     public static double getMediocreChance() {
         LocalTime time = LocalTime.now();
