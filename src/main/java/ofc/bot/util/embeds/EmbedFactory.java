@@ -62,7 +62,7 @@ public final class EmbedFactory {
                 .setAuthor("Davizinho", null, user.getEffectiveAvatarUrl())
                 .setDescription(desc)
                 .setColor(new Color(182, 88, 236))
-                .setFooter(String.format("Juan: %,.2f%%/60%%", mediocreChance))
+                .setFooter(String.format("Juan: %.4f%%/60%%", mediocreChance))
                 .build();
     }
 
