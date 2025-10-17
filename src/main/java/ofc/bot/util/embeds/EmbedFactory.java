@@ -56,11 +56,13 @@ public final class EmbedFactory {
     public static MessageEmbed embedPrivilegedBirthday(User user, Birthday birthday) {
         EmbedBuilder builder = new EmbedBuilder();
         String desc = String.format("O Davizinho faz aniversáriozinho dia %s.", birthday.getPrettyBirthday());
+        double mediocreChance = Bot.getMediocreChance();
 
         return builder
                 .setAuthor("Davizinho", null, user.getEffectiveAvatarUrl())
                 .setDescription(desc)
                 .setColor(new Color(182, 88, 236))
+                .setFooter(String.format("Juan: %,.2f%%/60%%", mediocreChance))
                 .build();
     }
 

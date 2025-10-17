@@ -156,6 +156,18 @@ public final class Bot {
         return random < chance;
     }
 
+    private static final double MIN_CHANCE = 1.0;
+    private static final double MAX_CHANCE = 60.0;
+    private static final double DAY_SECONDS = 86400.0;
+    public static double getMediocreChance() {
+        LocalTime time = LocalTime.now();
+        int seconds = time.toSecondOfDay();
+        double chanceSpan = MAX_CHANCE - MIN_CHANCE;
+        double dayProportion = (double) seconds / DAY_SECONDS;
+
+        return MIN_CHANCE + (dayProportion * chanceSpan);
+    }
+
     /**
      * Checks whether a number is positive.
      * {@code 0} is considered a positive value.
