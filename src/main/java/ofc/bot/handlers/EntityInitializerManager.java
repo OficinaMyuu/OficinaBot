@@ -255,10 +255,7 @@ public final class EntityInitializerManager {
                 new UsersXPHandler(),
                 new VoiceActivity(),
                 new VoiceDisconnector(),
-                new WorkReminderHandler(),
-
-                // Lol
-                new MediocrePunishmentApplier()
+                new WorkReminderHandler()
         );
     }
 }
