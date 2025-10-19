@@ -37,6 +37,7 @@ public class BanCommand extends SlashCommand {
 
     @Override
     public InteractionResult onCommand(@NotNull SlashCommandContext ctx) {
+        User issuer = ctx.getUser();
         User target = ctx.getSafeOption("user", OptionMapping::getAsUser);
         String reason = ctx.getSafeOption("reason", OptionMapping::getAsString);
         String fmtDuration = ctx.getOption("duration", "", OptionMapping::getAsString);
@@ -44,10 +45,10 @@ public class BanCommand extends SlashCommand {
         Guild guild = ctx.getGuild();
         Member self = guild.getSelfMember();
         long targetId = target.getIdLong();
-        long selfId = self.getIdLong();
+        long issuerId = issuer.getIdLong();
         long guildId = guild.getIdLong();
 
-        if (targetId == selfId) {
+        if (issuerId == targetId) {
             return Status.YOU_CANNOT_BAN_YOURSELF;
         } 
         
