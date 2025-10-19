@@ -44,8 +44,13 @@ public class BanCommand extends SlashCommand {
         Guild guild = ctx.getGuild();
         Member self = guild.getSelfMember();
         long targetId = target.getIdLong();
+        long selfId = self.getIdLong();
         long guildId = guild.getIdLong();
 
+        if (targetId == selfId) {
+            return Status.YOU_CANNOT_BAN_YOURSELF;
+        } 
+        
         Member memberTarget = guild.getMember(target);
         if (memberTarget != null && !self.canInteract(memberTarget))
             return Status.BOT_CANNOT_BAN_PROVIDED_MEMBER;
