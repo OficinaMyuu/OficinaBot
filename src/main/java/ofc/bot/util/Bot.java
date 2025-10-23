@@ -363,7 +363,6 @@ public final class Bot {
 
     public static final class Colors {
         public static final Color DISCORD = new Color(88, 101, 242);
-        public static final Color TWITCH = new Color(144, 70, 254);
         public static final Color DEFAULT = new Color(170, 67, 254);
     }
 

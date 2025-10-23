@@ -4,7 +4,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.internal.utils.Checks;
 import net.redhogs.cronparser.CronExpressionDescriptor;
 import ofc.bot.commands.slash.economy.LeaderboardCommand;
 import ofc.bot.domain.entity.*;
@@ -12,7 +11,6 @@ import ofc.bot.domain.entity.enums.*;
 import ofc.bot.domain.viewmodels.*;
 import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.paginations.PageItem;
-import ofc.bot.twitch.TwitchService;
 import ofc.bot.util.Bot;
 import ofc.bot.util.OficinaEmbed;
 
@@ -33,7 +31,6 @@ import java.util.stream.Collectors;
  */
 public final class EmbedFactory {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private static final String HYPERLINK_FORMAT = "[%s](<%s>)"; // We surround with <> to hide additional embeds
     public static final Color DANGER_RED = new Color(255, 50, 50);
     public static final Color OK_GREEN = new Color(80, 255, 80);
 
@@ -748,49 +745,6 @@ public final class EmbedFactory {
         }
     }
 
-    public static MessageEmbed embedTwitchUser(Guild guild, com.github.twitch4j.helix.domain.User user) {
-        EmbedBuilder builder = new EmbedBuilder();
-
-        BroadcasterType broadcasterType = getBroadcasterType(user);
-        TwitchUserType userType = getTwitchUserType(user);
-        String displayName = user.getDisplayName();
-        String login = user.getLogin();
-        String description = user.getDescription();
-        String offlineImageUrl = nullIfBlank(user.getOfflineImageUrl());
-        String profileUrl = nullIfBlank(user.getProfileImageUrl());
-        String type = String.format("%s / %s", broadcasterType.toHyperlink(), userType.display);
-        String id = user.getId();
-        String createdAt = String.format("<t:%d>", user.getCreatedAt().getEpochSecond());
-        String url = String.format("%s/%s", TwitchService.BASE_URL, login);
-
-        return builder
-                .setTitle(displayName)
-                .setDescription(description)
-                .setColor(Bot.Colors.TWITCH)
-                .setThumbnail(profileUrl)
-                .setImage(offlineImageUrl)
-                .addField("🌐 ID", id, true)
-                .addField("🎯 Tipo de Streamer", type, true)
-                .addField("📅 Entrou", createdAt, true)
-                .addField("🔗 Url", url, true)
-                .setFooter(guild.getName(), guild.getIconUrl())
-                .build();
-    }
-
-    private static String nullIfBlank(String str) {
-        return str == null || str.isBlank() ? null : str;
-    }
-
-    private static BroadcasterType getBroadcasterType(com.github.twitch4j.helix.domain.User user) {
-        String type = user.getBroadcasterType().toUpperCase();
-        return BroadcasterType.fromName(type);
-    }
-
-    private static TwitchUserType getTwitchUserType(com.github.twitch4j.helix.domain.User user) {
-        String type = user.getType().toUpperCase();
-        return TwitchUserType.fromName(type);
-    }
-
     private static final class TransactionEntryBuilder {
         private final List<String> fields = new ArrayList<>();
 
@@ -812,58 +766,6 @@ public final class EmbedFactory {
 
         String build() {
             return String.format("```yml\n%s\n```", String.join("\n", fields)).strip();
-        }
-    }
-
-    private enum BroadcasterType {
-        AFFILIATE("Affiliate", "https://help.twitch.tv/s/article/joining-the-affiliate-program"),
-        PARTNER("Partner", "https://help.twitch.tv/s/article/partner-program-overview"),
-        NORMAL("Normal", null);
-
-        private final String display;
-        private final String url;
-
-        BroadcasterType(String display, String url) {
-            Checks.notNull(display, "Display");
-            this.display = display;
-            this.url = url;
-        }
-
-        static BroadcasterType fromName(String name) {
-            for (BroadcasterType bt : BroadcasterType.values()) {
-                if (bt.name().equals(name)) {
-                    return bt;
-                }
-            }
-            return NORMAL; // Falls back to a normal user
-        }
-
-        String toHyperlink() {
-            return this.url == null
-                    ? this.display
-                    : String.format(HYPERLINK_FORMAT, this.display, this.url);
-        }
-    }
-
-    private enum TwitchUserType {
-        ADMIN("Admin"),
-        GLOBAL_MOD("Moderador Global"),
-        STAFF("Twitch Staff"),
-        NORMAL("Normal");
-
-        private final String display;
-
-        TwitchUserType(String display) {
-            this.display = display;
-        }
-
-        static TwitchUserType fromName(String name) {
-            for (TwitchUserType bt : TwitchUserType.values()) {
-                if (bt.name().equals(name)) {
-                    return bt;
-                }
-            }
-            return NORMAL;
         }
     }
 }

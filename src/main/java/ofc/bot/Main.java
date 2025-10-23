@@ -11,7 +11,6 @@ import ofc.bot.domain.sqlite.DB;
 import ofc.bot.handlers.ConsoleQueryHandler;
 import ofc.bot.handlers.EntityInitializerManager;
 import ofc.bot.internal.data.BotFiles;
-import ofc.bot.twitch.TwitchService;
 import ofc.bot.util.Bot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,6 @@ public final class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private static long initTime;
     private static JDA api;
-    private static TwitchService twitchService;
     private static OpenAIClient openAI;
 
     public static void main(String[] args) {
@@ -52,9 +50,6 @@ public final class Main {
         EntityInitializerManager.registerSlashCommands();
         EntityInitializerManager.registerComposedInteractions();
 
-        // Twitch
-        twitchService = TwitchService.init();
-
         // OpenAI
         openAI = OpenAIOkHttpClient.builder()
                 .apiKey(Bot.getSafe("openai.key"))
@@ -63,10 +58,6 @@ public final class Main {
 
     public static JDA getApi() {
         return api;
-    }
-
-    public static TwitchService getTwitch() {
-        return twitchService;
     }
 
     public static OpenAIClient getOpenAI() {

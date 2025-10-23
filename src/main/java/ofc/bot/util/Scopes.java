@@ -33,10 +33,6 @@ public final class Scopes {
         public static final String CREATE_TICTACTOE = "CREATE_TICTACTOE";
     }
 
-    public static class Twitch {
-        public static final String PAGINATE_USERS = "VIEW_USERS";
-    }
-
     public static class Tickets {
         public static final String CREATE_TICKET = "CREATE_TICKET";
         public static final String DELETE_TICKET = "DELETE_TICKET";

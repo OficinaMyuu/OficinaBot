@@ -8,30 +8,21 @@ import ofc.bot.Main;
 import ofc.bot.commands.slash.*;
 import ofc.bot.commands.slash.additionals.AdditionalRolesCommand;
 import ofc.bot.commands.slash.bets.BetTicTacToeCommand;
-import ofc.bot.commands.slash.birthday.BirthdayAddCommand;
-import ofc.bot.commands.slash.birthday.BirthdayRemoveCommand;
-import ofc.bot.commands.slash.birthday.BirthdaysCommand;
+import ofc.bot.commands.slash.birthday.*;
 import ofc.bot.commands.slash.economy.*;
 import ofc.bot.commands.slash.groups.*;
 import ofc.bot.commands.slash.groups.channel.CreateGroupChannelCommand;
 import ofc.bot.commands.slash.groups.member.AddGroupMemberCommand;
 import ofc.bot.commands.slash.groups.member.RemoveGroupMemberCommand;
-import ofc.bot.commands.slash.levels.LevelsCommand;
-import ofc.bot.commands.slash.levels.LevelsRolesCommand;
-import ofc.bot.commands.slash.levels.RankCommand;
+import ofc.bot.commands.slash.levels.*;
 import ofc.bot.commands.slash.moderation.*;
 import ofc.bot.commands.slash.policies.AddPolicyCommand;
 import ofc.bot.commands.slash.policies.RemovePolicyCommand;
-import ofc.bot.commands.slash.relationships.DivorceCommand;
-import ofc.bot.commands.slash.relationships.MarryCommand;
-import ofc.bot.commands.slash.relationships.UpdateMarriageCreationCommand;
+import ofc.bot.commands.slash.relationships.*;
 import ofc.bot.commands.slash.relationships.marriages.*;
 import ofc.bot.commands.slash.reminders.*;
 import ofc.bot.commands.slash.stafflist.RefreshStaffListMessageCommand;
 import ofc.bot.commands.slash.stafflist.StaffListMessagesRegenerateCommand;
-import ofc.bot.commands.slash.twitch.ListTwitchChannelsCommand;
-import ofc.bot.commands.slash.twitch.SubscribeTwitchCommand;
-import ofc.bot.commands.slash.twitch.UnsubscribeTwitchCommand;
 import ofc.bot.commands.slash.userinfo.UserinfoCommand;
 import ofc.bot.commands.slash.userinfo.custom.*;
 import ofc.bot.domain.sqlite.repository.Repositories;
@@ -52,7 +43,6 @@ public final class CommandsInitializer {
      */
     public static void initializeSlashCommands() {
         SlashCommandsRegistryManager registry = SlashCommandsRegistryManager.getManager();
-        var twitchSubRepo = Repositories.getTwitchSubscriptionRepository();
         var bckpRepo      = Repositories.getFormerMemberRoleRepository();
         var pnshRepo      = Repositories.getMemberPunishmentRepository();
         var mreqRepo      = Repositories.getMarriageRequestRepository();
@@ -96,12 +86,6 @@ public final class CommandsInitializer {
                 .addSubcommand(new CancelProposalCommand(mreqRepo))
                 .addSubcommand(new ProposalsListCommand(mreqRepo))
                 .addSubcommand(new MarriageRejectCommand(mreqRepo));
-
-        // Twitch
-        SlashCommand twitch = new EmptySlashCommand("twitch", "Gerencia as atividades da Twitch.")
-                .addSubcommand(new ListTwitchChannelsCommand())
-                .addSubcommand(new SubscribeTwitchCommand(twitchSubRepo))
-                .addSubcommand(new UnsubscribeTwitchCommand(twitchSubRepo));
 
         // Custom Userinfo
         SlashCommand customizeUserinfo = new EmptySlashCommand("customize", "Customize o seu userinfo.", Permission.MANAGE_SERVER)
@@ -210,7 +194,6 @@ public final class CommandsInitializer {
         registry.register(marriage);
         registry.register(remind);
         registry.register(group);
-        registry.register(twitch);
         registry.register(customizeUserinfo);
 
         // Send them to Discord and clear the temporary cache

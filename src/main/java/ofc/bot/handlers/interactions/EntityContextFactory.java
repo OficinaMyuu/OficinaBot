@@ -1,6 +1,5 @@
 package ofc.bot.handlers.interactions;
 
-import com.github.twitch4j.helix.domain.User;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -163,26 +162,6 @@ public final class EntityContextFactory {
 
         INTERACTION_MANAGER.save(prev, next, delete);
         return List.of(prev.getEntity(), next.getEntity(), delete.getEntity());
-    }
-
-    public static List<Button> createTwitchUsersButtons(List<User> users, int pageIndex) {
-        boolean hasPrevious = pageIndex > 0;
-        boolean hasNext = pageIndex < users.size() - 1;
-
-        ButtonContext prev = ButtonContext.primary("Previous")
-                .setScope(Scopes.Twitch.PAGINATE_USERS)
-                .put("users", users)
-                .put("page_index", pageIndex - 1)
-                .setEnabled(hasPrevious);
-
-        ButtonContext next = ButtonContext.primary("Next")
-                .setScope(Scopes.Twitch.PAGINATE_USERS)
-                .put("users", users)
-                .put("page_index", pageIndex + 1)
-                .setEnabled(hasNext);
-
-        INTERACTION_MANAGER.save(prev, next);
-        return List.of(prev.getEntity(), next.getEntity());
     }
 
     public static List<Button> createLevelsButtons(long userId, int pageIndex, boolean hasNext) {

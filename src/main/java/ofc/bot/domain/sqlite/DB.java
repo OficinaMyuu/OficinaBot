@@ -70,7 +70,6 @@ public final class DB {
                 RemindersTable.REMINDERS,
                 SupportTicketsTable.SUPPORT_TICKETS,
                 TempBansTable.TEMP_BANS,
-                TwitchSubscriptionsTable.TWITCH_SUBSCRIPTIONS,
                 UserNamesUpdatesTable.USERNAMES_UPDATES,
                 UsersEconomyTable.USERS_ECONOMY,
                 UsersPreferencesTable.USERS_PREFERENCES,
