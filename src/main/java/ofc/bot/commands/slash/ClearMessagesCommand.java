@@ -1,11 +1,13 @@
 package ofc.bot.commands.slash;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.requests.RestAction;
 import ofc.bot.handlers.interactions.commands.Cooldown;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
@@ -35,7 +37,7 @@ public class ClearMessagesCommand extends SlashCommand {
         channel.getHistory().retrievePast(amount).queue(msgs -> {
             int msgCount = msgs.size();
 
-            channel.deleteMessages(msgs).queue(s -> {
+            deleteMessages(channel, msgs).queue(v -> {
                 ctx.reply(Status.MESSAGES_SUCCESSFULLY_DELETED.args(msgCount, channel.getName()));
             }, err -> {
                 LOGGER.error("Could not clear {} messages from #{}", msgCount, channel.getId(), err);
@@ -48,7 +50,7 @@ public class ClearMessagesCommand extends SlashCommand {
     @NotNull
     @Override
     public String getDescription() {
-        return "Limpa de 2 a 100 mensagens do chat de uma só vez.";
+        return "Limpa de 1 a 100 mensagens do chat de uma só vez.";
     }
 
     @NotNull
@@ -62,10 +64,16 @@ public class ClearMessagesCommand extends SlashCommand {
     public List<OptionData> getOptions() {
         return List.of(
                 new OptionData(OptionType.INTEGER, "amount", "A quantidade de mensagens a ser limpada.", true)
-                        .setRequiredRange(2, 100),
+                        .setRequiredRange(1, 100),
                 new OptionData(OptionType.CHANNEL, "channel", "O canal ser limpado as mensagens (Padrão: atual).")
                         .setChannelTypes(getTextChannelTypes())
         );
+    }
+
+    private RestAction<Void> deleteMessages(GuildMessageChannel chan, List<Message> msgs) {
+        return msgs.size() == 1
+                ? msgs.getFirst().delete()
+                : chan.deleteMessages(msgs);
     }
 
     private static List<ChannelType> getTextChannelTypes() {
