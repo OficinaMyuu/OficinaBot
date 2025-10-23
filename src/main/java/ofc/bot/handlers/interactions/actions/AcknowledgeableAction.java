@@ -146,7 +146,7 @@ public interface AcknowledgeableAction<T, B> {
     InteractionResult editFiles(@NotNull FileUpload... files);
 
     @NotNull
-    default InteractionResult replyFile(byte @NotNull [] data, @NotNull String fileName) {
+    default InteractionResult replyFile(@NotNull byte[] data, @NotNull String fileName) {
         return replyFiles(FileUpload.fromData(data, fileName));
     }
 
