@@ -99,7 +99,7 @@ public class BanCommand extends SlashCommand {
         return List.of(
                 new OptionData(OptionType.USER, "user", "O usuário a ser banido", true),
                 new OptionData(OptionType.STRING, "reason", "O motivo do banimento.", true)
-                        .setRequiredLength(5, 400),
+                        .setRequiredLength(4, 400),
                 new OptionData(OptionType.STRING, "duration", "O tempo que o membro deve ficar banido.")
                         .setMinLength(2),
                 new OptionData(OptionType.STRING, "history-deletion", "Apague o histórico de mensagens dentro do período selecionado.")
