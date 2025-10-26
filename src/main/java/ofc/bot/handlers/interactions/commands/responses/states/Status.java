@@ -181,6 +181,7 @@ public enum Status implements InteractionResult {
     NAME_TOO_SHORT(                             State.FAILURE, true,  "Nomes precisam ter %d ou mais caracteres."),
     YOU_CANNOT_PUNISH_YOURSELF(                 State.FAILURE, true,  "Você não pode punir você mesmo."),
     YOU_CANNOT_BAN_YOURSELF(                    State.FAILURE, true,  "Você não pode banir você mesmo."),
+    YOU_CANNOT_KICK_YOURSELF(                   State.FAILURE, true,  "Você não pode expulsar você mesmo."),
     YOUR_GROUP_DOES_NOT_HAVE_TEXT_CHANNEL(      State.FAILURE, true,  "Seu grupo não possui um canal de texto."),
     FAILED_TO_VALIDATE_PASSPHRASE(              State.FAILURE, true,  "Não foi possível validar a frase de confirmação."),
     INCORRECT_CONFIRMATION_VALUE(               State.FAILURE, true,  "O valor de confirmação está incorreto."),
