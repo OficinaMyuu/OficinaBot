@@ -62,7 +62,7 @@ public class WarnCommand extends SlashCommand {
         return List.of(
                 new OptionData(OptionType.USER, "member", "O membro a ser advertido.", true),
                 new OptionData(OptionType.STRING, "reason", "O motivo da punição.", true)
-                        .setRequiredLength(5, 2000)
+                        .setRequiredLength(4, 2000)
         );
     }
 }
