@@ -61,7 +61,7 @@ public class KickCommand extends SlashCommand {
         return List.of(
                 new OptionData(OptionType.USER, "member", "O membro a ser expulso", true),
                 new OptionData(OptionType.STRING, "reason", "O motivo da expulsão.", true)
-                        .setMaxLength(500)
+                        .setRequiredRange(4, 500)
         );
     }
 }
