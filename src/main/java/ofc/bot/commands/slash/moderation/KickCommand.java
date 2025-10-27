@@ -1,9 +1,7 @@
 package ofc.bot.commands.slash.moderation;
 
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -26,14 +24,19 @@ public class KickCommand extends SlashCommand {
 
     @Override
     public InteractionResult onCommand(@NotNull SlashCommandContext ctx) {
+        User issuer = ctx.getUser();
         Member target = ctx.getOption("member", OptionMapping::getAsMember);
         String reason = ctx.getSafeOption("reason", OptionMapping::getAsString);
         Guild guild = ctx.getGuild();
         Member self = guild.getSelfMember();
+        long issuerId = issuer.getIdLong();
         long guildId = guild.getIdLong();
 
         if (target == null)
             return Status.MEMBER_NOT_FOUND;
+
+        if (target.getIdLong() == issuerId)
+            return Status.YOU_CANNOT_KICK_YOURSELF;
 
         if (!self.canInteract(target))
             return Status.BOT_CANNOT_KICK_PROVIDED_MEMBER;
