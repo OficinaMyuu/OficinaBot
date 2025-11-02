@@ -34,14 +34,14 @@ public class RemoveGroupMemberCommand extends SlashSubcommand {
         Member member = ctx.getOption("member", OptionMapping::getAsMember);
         OficinaGroup group = grpRepo.findByOwnerId(ownerId);
 
+        if (group == null)
+            return Status.YOU_DO_NOT_OWN_A_GROUP;
+
         if (member == null)
             return Status.MEMBER_NOT_FOUND;
 
         if (member.equals(issuer))
             return Status.CANNOT_LEAVE_YOUR_OWN_GROUP;
-
-        if (group == null)
-            return Status.YOU_DO_NOT_OWN_A_GROUP;
 
         if (!hasRole(member, group.getRoleId()))
             return Status.MEMBER_NOT_IN_THE_GROUP;
