@@ -1,8 +1,8 @@
 package ofc.bot.listeners.discord.interactions.buttons.groups;
 
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.UserSnowflake;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.InteractionListener;
@@ -32,6 +32,7 @@ public class GroupMemberRemoveHandler implements InteractionListener<ButtonClick
 
         guild.removeRoleFromMember(UserSnowflake.fromId(targetId), groupRole).queue(v -> {
             ctx.reply(Status.MEMBER_SUCCESSFULLY_REMOVED_FROM_GROUP.args(targetId));
+            handleDisconnect(guild, group, targetId);
 
             GroupHelper.registerMemberRemoved(group);
         }, (err) -> {
@@ -40,5 +41,19 @@ public class GroupMemberRemoveHandler implements InteractionListener<ButtonClick
         });
         ctx.disable();
         return Status.OK;
+    }
+
+    private void handleDisconnect(Guild guild, OficinaGroup group, long userId) {
+        guild.retrieveMemberById(userId).queue((member) -> {
+            GuildVoiceState voice = member.getVoiceState();
+            AudioChannelUnion memberChannel = voice == null ? null : voice.getChannel();
+            VoiceChannel groupChannel = group.getVoiceChannel();
+
+            if (memberChannel == null || groupChannel == null) return;
+
+            if (memberChannel.getIdLong() == groupChannel.getIdLong()) {
+                guild.kickVoiceMember(member).queue();
+            }
+        }, (err) -> LOGGER.error("Could not find member @{} to disconnect, sad", userId));
     }
 }
