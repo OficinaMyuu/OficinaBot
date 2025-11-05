@@ -100,7 +100,10 @@ public final class EntityInitializerManager {
 
                     // Groups
                     new GroupsInvoiceHandler(),
-                    new LateGroupsChecker()
+                    new LateGroupsChecker(),
+
+                    // Nicks
+                    new NickTimeUpdate()
             );
             SchedulerRegistryManager.start();
         } catch (SchedulerException e) {
