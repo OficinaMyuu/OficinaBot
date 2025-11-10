@@ -1,22 +1,27 @@
-<img align="right" src="https://cdn.discordapp.com/avatars/1006730264204021880/714d40448f66c7c21ecb0082b26ec339.png" height="70" width="70">
+# Oficina Bot — The Very Serious Joke Edition 🤖☕
 
-# Oficina Bot
+Welcome to the official repository of Oficina Bot. This project's main goal is to be slightly helpful and mostly hilarious.
 
-This is the official repository of Oficina Bot, a Discord Bot developed using [JDA](https://github.com/discord-jda/JDA/).
+Important note: The bot runs on coffee, optimism, and an unhealthy amount of Java.
 
-## 📖 Overview
+## What's this actually for?
 
-Oficina Bot is a versatile Discord Bot designed to provide a range of functionalities for a specific Discord server, enhancing the experience of its users while keeping things nice.
+Mostly for making people laugh in Discord channels. Also for the occasional responsibility like moderating the snack cupboard.
 
-## 📚 History
+## Commands (as interpreted by the bot)
 
-The idea of a Discord Bot may sound a bit odd at first glance (indeed my worst decision), I tried to make a Discord Bot in JS having no prior knowledge about coding. After everything have gone wrong, I made a new bot in Java (this one).
+- `/marry` — Propose to another user or their pet rock. Legal disclaimer: the bot is not responsible for the emotional consequences of marrying a cactus.
+- `/rolemembers` — Counts the members in a role and adds 3 for dramatic effect.
+- `/daily` and `/work` — Grants you imaginary coins that can be redeemed for compliments and virtual high-fives.
+- `/leaderboard` — Shows the top richest users in the land of make-believe.
+- `/pay` — Share wealth, because generosity increases your karma score (in this repo it unlocks memes).
 
-## 🔬 Features
-- `/marry` can be used to send someone a marriage proposal and start your romantic journey (you can marry to multiple people 👀).
-- `/rolemembers` allows you to precisely see all members within a specific role, even those roles with hundreds of thousands of members, yes.
-- `/daily` and `/work` will grant you some money (required to marry and maintain your relationships).
-- `/leaderboard` shows you the top richest users (global) you can compete against.
-- `/pay` makes you feel better by helping others with money too :)
+## Joke of the day
 
-And there is a lot more to explore!
+Why did the bot join the band? Because it had the best Java rhythm section.
+
+## Contributions
+
+If you want to contribute, please submit a meme or a witty one-liner. Pull requests that include puns will be prioritized.
+
+Thanks for stopping by — may your exceptions be rare and your builds be fast.
