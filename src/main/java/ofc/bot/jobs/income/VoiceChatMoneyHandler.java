@@ -21,7 +21,7 @@ import java.util.Random;
 public class VoiceChatMoneyHandler implements Job {
     private static final Logger LOGGER = LoggerFactory.getLogger(VoiceChatMoneyHandler.class);
     private static final Random random = new Random();
-    private static final List<Long> SPECIAL_CHANNEL_IDS = List.of(1065077982588305538L, 693627612454453250L);
+    private static final List<Long> SPECIAL_CHANNEL_IDS = List.of(1065077982588305538L, 1414389901415419915L, 693627612454453250L);
     private static final int MIN_VALUE = 20;
     private static final int MAX_VALUE = 40;
     private final UnbelievaBoatClient paymentManager = PaymentManagerProvider.getUnbelievaBoatClient();
