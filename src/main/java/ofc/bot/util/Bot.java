@@ -202,6 +202,71 @@ public final class Bot {
         return newStr + "...";
     }
 
+    public static String formatDateDistance(long epoch1, long epoch2) {
+        long diffSeconds = Math.abs(epoch1 - epoch2);
+
+        // If less than a minute
+        if (diffSeconds < 60) {
+            return diffSeconds + (diffSeconds == 1 ? " segundo" : " segundos");
+        }
+
+        // If less than an hour
+        long diffMinutes = diffSeconds / 60;
+        if (diffMinutes < 60) {
+            return diffMinutes + (diffMinutes == 1 ? " minuto" : " minutos");
+        }
+
+        // If less than a day
+        long diffHours = diffMinutes / 60;
+        if (diffHours < 24) {
+            return diffHours + (diffHours == 1 ? " hora" : " horas");
+        }
+
+        // If less than a week
+        long diffDays = diffHours / 24;
+        if (diffDays < 7) {
+            return diffDays + (diffDays == 1 ? " dia" : " dias");
+        }
+
+        // If less than a month (approx by weeks)
+        long diffWeeks = diffDays / 7;
+        if (diffWeeks < 4) {
+            return diffWeeks + (diffWeeks == 1 ? " semana" : " semanas");
+        }
+
+        // --- From MONTH onward -> no omission: compute exact months & years ---
+        // Convert epoch to LocalDate for precise month/year diff
+        LocalDate d1 = Instant.ofEpochSecond(epoch1).atZone(ZoneOffset.UTC).toLocalDate();
+        LocalDate d2 = Instant.ofEpochSecond(epoch2).atZone(ZoneOffset.UTC).toLocalDate();
+
+        Period p = Period.between(d1.isBefore(d2) ? d1 : d2,
+                d1.isBefore(d2) ? d2 : d1);
+
+        int years = p.getYears();
+        int months = p.getMonths();
+
+        // If less than a year
+        if (years == 0) {
+            return months == 1 ? "1 mês" : months + " meses";
+        }
+
+        // If years >= 1
+        StringBuilder sb = new StringBuilder();
+
+        // Years
+        if (years == 1) sb.append("1 ano");
+        else sb.append(years).append(" anos");
+
+        // Months
+        if (months > 0) {
+            sb.append(" e ");
+            if (months == 1) sb.append("1 mês");
+            else sb.append(months).append(" meses");
+        }
+
+        return sb.toString();
+    }
+
     public static int calcMaxPages(int total, int pageSize) {
         int maxPages = (int) Math.ceil((double) total / pageSize);
         return Math.max(maxPages, 1);

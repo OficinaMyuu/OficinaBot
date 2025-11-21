@@ -14,7 +14,6 @@ import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashSubcommand;
 import ofc.bot.util.Bot;
-import ofc.bot.util.GroupHelper;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -83,21 +82,21 @@ public class GroupInfoCommand extends SlashSubcommand {
     private MessageEmbed embed(int color, List<Member> members, Guild guild, OficinaGroup group) {
         EmbedBuilder builder = new EmbedBuilder();
         long rent = group.calcRawRent(members);
-        long appreciation = calcExpenses(group);
+        long now = Bot.unixNow();
         RentStatus rentStatus = group.getRentStatus();
         String hex = Bot.fmtColorHex(color);
         String fmtRent = String.format("%s/mês", Bot.fmtMoney(rent));
-        String fmtApprec = Bot.fmtMoney(appreciation);
         String fmtMembers = Bot.fmtNum(members.size());
         String fmtTimestamp = String.format("<t:%d>", group.getTimeCreated());
         String fmtRentStatus = group.isRentLate() ? "⚠️ Atrasado" : rentStatus.getDisplayStatus();
+        String fmtDistance = Bot.formatDateDistance(now, group.getTimeCreated());
 
         return builder
                 .setTitle(group.getName())
                 .setColor(color)
                 .addField("🎨 Cor", hex, true)
                 .addField("💳 Economia", group.getCurrency().getName(), true)
-                .addField("💎 Gastos", fmtApprec, true)
+                .addField("👶 Idade do Grupo", fmtDistance, true)
                 .addField("📅 Aluguel", fmtRent, true)
                 .addField("👑 Dono", group.getOwnerAsMention(), true)
                 .addField("🏡 Status de Aluguel", fmtRentStatus, true)
@@ -105,9 +104,5 @@ public class GroupInfoCommand extends SlashSubcommand {
                 .addField("📅 Criação", fmtTimestamp, true)
                 .setFooter(guild.getName(), guild.getIconUrl())
                 .build();
-    }
-
-    private long calcExpenses(OficinaGroup group) {
-        return group.getAmountPaid() + GroupHelper.calcPurchases(group);
     }
 }
