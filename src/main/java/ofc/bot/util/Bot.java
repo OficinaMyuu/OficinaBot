@@ -1,5 +1,6 @@
 package ofc.bot.util;
 
+import net.dv8tion.jda.annotations.ReplaceWith;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
@@ -317,6 +318,8 @@ public final class Bot {
         return Instant.now().toEpochMilli();
     }
 
+    @Deprecated
+    @ReplaceWith("nowMillis()")
     public static long unixNow() {
         return Instant.now().getEpochSecond();
     }
