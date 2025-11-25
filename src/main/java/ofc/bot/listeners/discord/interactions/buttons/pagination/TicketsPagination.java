@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.Main;
 import ofc.bot.domain.entity.SupportTicket;
-import ofc.bot.domain.sqlite.repository.DiscordMessageRepository;
+import ofc.bot.domain.sqlite.repository.MessageVersionRepository;
 import ofc.bot.domain.sqlite.repository.SupportTicketRepository;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.EntityContextFactory;
@@ -27,10 +27,10 @@ import java.util.Set;
 @InteractionHandler(scope = Scopes.Tickets.PAGINATE_TICKETS, autoResponseType = AutoResponseType.DEFER_EDIT)
 public class TicketsPagination implements InteractionListener<ButtonClickContext> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TicketsPagination.class);
-    private final DiscordMessageRepository msgRepo;
+    private final MessageVersionRepository msgVrsRepo;
 
-    public TicketsPagination(DiscordMessageRepository msgRepo) {
-        this.msgRepo = msgRepo;
+    public TicketsPagination(MessageVersionRepository msgVrsRepo) {
+        this.msgVrsRepo = msgVrsRepo;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class TicketsPagination implements InteractionListener<ButtonClickContext
         long chanId = ticket.getChannelId();
         boolean hasMore = tickets.hasMore();
         Guild guild = ctx.getGuild();
-        Set<Long> users = msgRepo.findUsersByChannelId(chanId);
+        Set<Long> users = msgVrsRepo.findUsersByChannelId(chanId);
         users.remove(selfId);
 
         api.retrieveUserById(ticket.getInitiatorId()).queue(issuer -> {
