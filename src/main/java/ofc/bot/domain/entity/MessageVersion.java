@@ -1,13 +1,37 @@
 package ofc.bot.domain.entity;
 
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageReference;
+import net.dv8tion.jda.api.entities.sticker.StickerItem;
 import ofc.bot.domain.tables.MessagesVersionsTable;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class MessageVersion extends OficinaRecord<MessageVersion> {
     private static final MessagesVersionsTable MESSAGES_VERSIONS = MessagesVersionsTable.MESSAGE_VERSIONS;
 
     public MessageVersion() {
         super(MESSAGES_VERSIONS);
+    }
+
+    public MessageVersion(Message discordMessage) {
+        this();
+        List<StickerItem> stickers = discordMessage.getStickers();
+        String content = discordMessage.getContentRaw();
+        MessageReference ref = discordMessage.getMessageReference();
+        Long refId = ref == null ? null : ref.getMessageIdLong();
+        Long stickerId = stickers.isEmpty() ? null : stickers.getFirst().getIdLong();
+        long chanId = discordMessage.getChannelIdLong();
+        long authorId = discordMessage.getAuthor().getIdLong();
+        long msgId = discordMessage.getIdLong();
+
+        this.setMessageId(msgId)
+                .setAuthorId(authorId)
+                .setChannelId(chanId)
+                .setMessageReferenceId(refId)
+                .setContent(content)
+                .setStickerId(stickerId);
     }
 
     /** @return Auto-incrementing version row ID. */
@@ -132,7 +156,7 @@ public class MessageVersion extends OficinaRecord<MessageVersion> {
      * Sets the Discord message ID this version belongs to.
      *
      * @param id The message ID.
-     * @return This record instance.
+     * @return The same message version instance, for chaining convenience.
      */
     public MessageVersion setMessageId(long id) {
         set(MESSAGES_VERSIONS.MESSAGE_ID, id);
@@ -140,10 +164,32 @@ public class MessageVersion extends OficinaRecord<MessageVersion> {
     }
 
     /**
+     * Sets the author of this message.
+     *
+     * @param id The ID of the user who sent this message.
+     * @return The same message version instance, for chaining convenience.
+     */
+    public MessageVersion setAuthorId(long id) {
+        set(MESSAGES_VERSIONS.AUTHOR_ID, id);
+        return this;
+    }
+
+    /**
+     * Sets the channel where this message was sent in.
+     *
+     * @param id The ID of the channel where this message is in.
+     * @return The same message version instance, for chaining convenience.
+     */
+    public MessageVersion setChannelId(long id) {
+        set(MESSAGES_VERSIONS.CHANNEL_ID, id);
+        return this;
+    }
+
+    /**
      * Sets the referenced (replied-to) message ID.
      *
      * @param id Target message, or {@code null} to indicate no reference.
-     * @return This record instance.
+     * @return The same message version instance, for chaining convenience.
      */
     public MessageVersion setMessageReferenceId(@Nullable Long id) {
         set(MESSAGES_VERSIONS.MESSAGE_REF_ID, id);
@@ -154,7 +200,7 @@ public class MessageVersion extends OficinaRecord<MessageVersion> {
      * Sets the textual content for this version.
      *
      * @param content Text content, or {@code null}.
-     * @return This record instance.
+     * @return The same message version instance, for chaining convenience.
      */
     public MessageVersion setContent(@Nullable String content) {
         set(MESSAGES_VERSIONS.CONTENT, content);
@@ -165,7 +211,7 @@ public class MessageVersion extends OficinaRecord<MessageVersion> {
      * Sets the sticker ID for this version.
      *
      * @param id Sticker ID, or {@code null}.
-     * @return This record instance.
+     * @return The same message version instance, for chaining convenience.
      */
     public MessageVersion setStickerId(@Nullable Long id) {
         set(MESSAGES_VERSIONS.STICKER_ID, id);
@@ -176,7 +222,7 @@ public class MessageVersion extends OficinaRecord<MessageVersion> {
      * Marks this version as representing a deletion (or not).
      *
      * @param deleted Whether the message is deleted at this version.
-     * @return This record instance.
+     * @return The same message version instance, for chaining convenience.
      */
     public MessageVersion setDeleted(boolean deleted) {
         set(MESSAGES_VERSIONS.IS_DELETED, deleted);
@@ -187,7 +233,7 @@ public class MessageVersion extends OficinaRecord<MessageVersion> {
      * Marks whether this version is the original version.
      *
      * @param original {@code true} if this is the first version.
-     * @return This record instance.
+     * @return The same message version instance, for chaining convenience.
      */
     public MessageVersion setOriginal(boolean original) {
         set(MESSAGES_VERSIONS.IS_ORIGINAL, original);
@@ -198,7 +244,7 @@ public class MessageVersion extends OficinaRecord<MessageVersion> {
      * Sets the user/bot who deleted the message for this version.
      *
      * @param id User ID or {@code null}.
-     * @return This record instance.
+     * @return The same message version instance, for chaining convenience.
      */
     public MessageVersion setDeletedById(@Nullable Long id) {
         set(MESSAGES_VERSIONS.DELETED_BY_ID, id);
@@ -209,7 +255,7 @@ public class MessageVersion extends OficinaRecord<MessageVersion> {
      * Sets the timestamp at which this version was recorded.
      *
      * @param timestamp UNIX epoch milliseconds.
-     * @return This record instance.
+     * @return The same message version instance, for chaining convenience.
      */
     public MessageVersion setTimeCreated(long timestamp) {
         set(MESSAGES_VERSIONS.CREATED_AT, timestamp);
