@@ -6,6 +6,8 @@ import ofc.bot.domain.tables.MessagesVersionsTable;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 
+import java.util.Set;
+
 /**
  * Repository for {@link MessageVersion} entity.
  */
@@ -20,6 +22,20 @@ public class MessageVersionRepository extends Repository<MessageVersion> {
     @Override
     public InitializableTable<MessageVersion> getTable() {
         return MESSAGES_VERSIONS;
+    }
+
+    /**
+     * Gets the IDs of the users who talked in the given channel.
+     *
+     * @return A {@link Set Set&lt;Long&gt;} containing the ID of every user
+     *         who sent at least one message in this channel.
+     */
+    public Set<Long> findUsersByChannelId(long chanId) {
+        return ctx.selectDistinct(MESSAGES_VERSIONS.AUTHOR_ID)
+                .from(MESSAGES_VERSIONS)
+                .where(MESSAGES_VERSIONS.CHANNEL_ID.eq(chanId))
+                .and(MESSAGES_VERSIONS.AUTHOR_ID.isNotNull())
+                .fetchSet(MESSAGES_VERSIONS.AUTHOR_ID);
     }
 
     /**
