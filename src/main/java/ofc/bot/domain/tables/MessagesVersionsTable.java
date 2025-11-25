@@ -130,7 +130,7 @@ public class MessagesVersionsTable extends InitializableTable<MessageVersion> {
     public final Field<String> CONTENT      = newField("content",        CHAR);
     public final Field<Long> STICKER_ID     = newField("sticker_id",     BIGINT);
     public final Field<Boolean> IS_DELETED  = newField("is_deleted",     BOOL.notNull());
-    public final Field<Boolean> IS_ORIGINAL = newField("is_original",    BOOL.notNull());
+    public final Field<Boolean> IS_ORIGINAL = newField("is_original",    BOOL.notNull().defaultValue(false));
     public final Field<Long> DELETED_BY_ID  = newField("deleted_by_id",  BIGINT);
     public final Field<Long> CREATED_AT     = newField("created_at",     BIGINT.notNull());
 
