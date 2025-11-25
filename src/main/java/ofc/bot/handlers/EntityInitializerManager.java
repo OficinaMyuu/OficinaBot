@@ -123,7 +123,7 @@ public final class EntityInitializerManager {
         var pnshRepo     = Repositories.getMemberPunishmentRepository();
         var betUsersRepo = Repositories.getGameParticipantRepository();
         var mreqRepo     = Repositories.getMarriageRequestRepository();
-        var msgRepo      = Repositories.getDiscordMessageRepository();
+        var msgVrsRepo   = Repositories.getMessageVersionRepository();
         var namesRepo    = Repositories.getUserNameUpdateRepository();
         var ticketRepo   = Repositories.getSupportTicketRepository();
         var policyRepo   = Repositories.getEntityPolicyRepository();
@@ -150,7 +150,7 @@ public final class EntityInitializerManager {
                 new LevelsPageUpdate(xpRepo),
                 new NamesPageUpdate(namesRepo),
                 new ProposalListPagination(mreqRepo),
-                new TicketsPagination(msgRepo),
+                new TicketsPagination(msgVrsRepo),
                 new TransactionsPagination(),
 
                 // Groups' commands confirmation handlers
@@ -192,13 +192,12 @@ public final class EntityInitializerManager {
 
     private static void registerDiscordListeners() {
         JDA api = Main.getApi();
-        var updRepo       = Repositories.getDiscordMessageUpdateRepository();
         var msgTrscptRepo = Repositories.getMessageTranscriptionRepository();
         var rolesRepo     = Repositories.getFormerMemberRoleRepository();
         var pnshRepo      = Repositories.getMemberPunishmentRepository();
         var colorsRepo    = Repositories.getColorRoleStateRepository();
         var cmdRepo       = Repositories.getCommandHistoryRepository();
-        var msgRepo       = Repositories.getDiscordMessageRepository();
+        var msgVrsRepo    = Repositories.getMessageVersionRepository();
         var namesRepo     = Repositories.getUserNameUpdateRepository();
         var usprefRepo    = Repositories.getUserPreferenceRepository();
         var modActRepo    = Repositories.getAutomodActionRepository();
@@ -234,12 +233,12 @@ public final class EntityInitializerManager {
                 new MemberNickUpdateLogger(namesRepo, userRepo),
                 new MemberRolesBackup(rolesRepo, xpRepo),
                 new ModalInteractionGateway(),
-                new MessageBulkDeleteLogger(msgRepo),
-                new MessageCreatedLogger(msgRepo),
-                new MessageDeletedLogger(msgRepo),
+                new MessageBulkDeleteLogger(msgVrsRepo),
+                new MessageCreatedLogger(msgVrsRepo),
+                new MessageDeletedLogger(msgVrsRepo),
                 new MessageReferenceIndicator(),
                 new MessageTranscriptionsHandler(msgTrscptRepo, appBanRepo),
-                new MessageUpdatedLogger(msgRepo, updRepo),
+                new MessageUpdatedLogger(msgVrsRepo),
                 new OficinaGroupAutocompletion(grpRepo),
                 new OutageCommandsDisclaimer(),
                 new ResourceAutocompletion(userRepo),

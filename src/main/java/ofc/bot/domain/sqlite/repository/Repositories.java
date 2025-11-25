@@ -13,8 +13,6 @@ public final class Repositories {
     private static ColorRoleStateRepository colorRoleStateRepository;
     private static CommandHistoryRepository commandHistoryRepository;
     private static CustomUserinfoRepository customUserinfoRepository;
-    private static DiscordMessageRepository discordMessageRepository;
-    private static DiscordMessageUpdateRepository discordMessageUpdateRepository;
     private static EntityPolicyRepository entityPolicyRepository;
     private static FormerMemberRoleRepository formerMemberRoleRepository;
     private static GameParticipantRepository gameParticipantRepository;
@@ -26,6 +24,7 @@ public final class Repositories {
     private static MemberEmojiRepository memberEmojiRepository;
     private static MemberPunishmentRepository memberPunishmentRepository;
     private static MessageTranscriptionRepository messageTranscriptionRepository;
+    private static MessageVersionRepository messageVersionRepository;
     private static OficinaGroupRepository oficinaGroupRepository;
     private static ReminderRepository reminderRepository;
     private static SupportTicketRepository supportTicketRepository;
@@ -84,16 +83,6 @@ public final class Repositories {
         return customUserinfoRepository;
     }
 
-    public static DiscordMessageRepository getDiscordMessageRepository() {
-        if (discordMessageRepository == null) discordMessageRepository = new DiscordMessageRepository(getDSLContext());
-        return discordMessageRepository;
-    }
-
-    public static DiscordMessageUpdateRepository getDiscordMessageUpdateRepository() {
-        if (discordMessageUpdateRepository == null) discordMessageUpdateRepository = new DiscordMessageUpdateRepository(getDSLContext());
-        return discordMessageUpdateRepository;
-    }
-
     public static EntityPolicyRepository getEntityPolicyRepository() {
         if (entityPolicyRepository == null) entityPolicyRepository = new EntityPolicyRepository(getDSLContext());
         return entityPolicyRepository;
@@ -147,6 +136,11 @@ public final class Repositories {
     public static MessageTranscriptionRepository getMessageTranscriptionRepository() {
         if (messageTranscriptionRepository == null) messageTranscriptionRepository = new MessageTranscriptionRepository(getDSLContext());
         return messageTranscriptionRepository;
+    }
+
+    public static MessageVersionRepository getMessageVersionRepository() {
+        if (messageVersionRepository == null) messageVersionRepository = new MessageVersionRepository(getDSLContext());
+        return messageVersionRepository;
     }
 
     public static OficinaGroupRepository getOficinaGroupRepository() {
