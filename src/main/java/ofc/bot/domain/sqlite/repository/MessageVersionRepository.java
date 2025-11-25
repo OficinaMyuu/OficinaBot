@@ -22,6 +22,19 @@ public class MessageVersionRepository extends Repository<MessageVersion> {
         return MESSAGES_VERSIONS;
     }
 
+    /**
+     * Checks if a given version matches the provided parameters.
+     * <p>
+     * This method <em>DOES NOT</em> check the {@link MessageVersion#isDeleted() is_deleted} column/field.
+     *
+     * @return {@code true} if the message exists, {@code false} otherwise.
+     */
+    public boolean findsByMessageAndAuthorId(long msgId, long authorId) {
+        return ctx.fetchExists(MESSAGES_VERSIONS, MESSAGES_VERSIONS.MESSAGE_ID.eq(msgId)
+                .and(MESSAGES_VERSIONS.AUTHOR_ID.eq(authorId))
+        );
+    }
+
     public MessageVersion findLastById(long msgId) {
         return ctx.selectFrom(MESSAGES_VERSIONS)
                 .where(MESSAGES_VERSIONS.MESSAGE_ID.eq(msgId))
