@@ -199,6 +199,7 @@ public final class EntityInitializerManager {
         var colorsRepo    = Repositories.getColorRoleStateRepository();
         var cmdRepo       = Repositories.getCommandHistoryRepository();
         var msgRepo       = Repositories.getDiscordMessageRepository();
+        var msgVrsRepo    = Repositories.getMessageVersionRepository();
         var namesRepo     = Repositories.getUserNameUpdateRepository();
         var usprefRepo    = Repositories.getUserPreferenceRepository();
         var modActRepo    = Repositories.getAutomodActionRepository();
@@ -234,12 +235,12 @@ public final class EntityInitializerManager {
                 new MemberNickUpdateLogger(namesRepo, userRepo),
                 new MemberRolesBackup(rolesRepo, xpRepo),
                 new ModalInteractionGateway(),
-                new MessageBulkDeleteLogger(msgRepo),
-                new MessageCreatedLogger(msgRepo),
-                new MessageDeletedLogger(msgRepo),
+                new MessageBulkDeleteLogger(msgVrsRepo),
+                new MessageCreatedLogger(msgVrsRepo),
+                new MessageDeletedLogger(msgVrsRepo),
                 new MessageReferenceIndicator(),
                 new MessageTranscriptionsHandler(msgTrscptRepo, appBanRepo),
-                new MessageUpdatedLogger(msgRepo, updRepo),
+                new MessageUpdatedLogger(msgVrsRepo),
                 new OficinaGroupAutocompletion(grpRepo),
                 new OutageCommandsDisclaimer(),
                 new ResourceAutocompletion(userRepo),
