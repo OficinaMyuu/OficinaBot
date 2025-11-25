@@ -313,6 +313,10 @@ public final class Bot {
         return result.substring(0, result.length() - 1);
     }
 
+    public static long nowMillis() {
+        return Instant.now().toEpochMilli();
+    }
+
     public static long unixNow() {
         return Instant.now().getEpochSecond();
     }
