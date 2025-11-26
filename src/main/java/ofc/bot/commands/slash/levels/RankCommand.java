@@ -38,8 +38,7 @@ public class RankCommand extends SlashCommand {
 
     @Override
     public InteractionResult onCommand(@NotNull SlashCommandContext ctx) {
-        Member issuer = ctx.getIssuer();
-        Member target = ctx.getOption("member", issuer, OptionMapping::getAsMember);
+        Member target = ctx.getOption("member", OptionMapping::getAsMember);
 
         if (target == null)
             return Status.USER_NOT_FOUND;
