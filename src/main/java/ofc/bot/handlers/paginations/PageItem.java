@@ -49,7 +49,7 @@ public class PageItem<T>{
      * Checks if there are more pages available.
      * <p>
      * Useful when creating
-     * {@link net.dv8tion.jda.api.interactions.components.buttons.Button Button}s
+     * {@link net.dv8tion.jda.api.components.buttons.Button Button}s
      * for interactive pagination.
      *
      * @return {@code true} if there are more pages available,
