@@ -3,7 +3,7 @@ package ofc.bot.handlers.interactions.actions;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.Interaction;
-import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.utils.FileUpload;
 import ofc.bot.handlers.interactions.commands.responses.InteractionResponseBuilder;
 import ofc.bot.handlers.interactions.commands.responses.InteractionResponseData;
