@@ -1,16 +1,17 @@
 package ofc.bot.handlers.interactions;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.components.label.Label;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
-import net.dv8tion.jda.api.interactions.components.text.TextInput;
-import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
-import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.modals.Modal;
 import ofc.bot.domain.entity.*;
 import ofc.bot.domain.entity.enums.GroupPermission;
 import ofc.bot.domain.entity.enums.NameScope;
@@ -29,7 +30,6 @@ import java.time.Month;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 public final class EntityContextFactory {
     private static final InteractionMemoryManager INTERACTION_MANAGER = InteractionMemoryManager.getManager();
@@ -406,12 +406,19 @@ public final class EntityContextFactory {
         TextInputStyle shortStyle = TextInputStyle.SHORT;
         TextInputStyle textStyle = TextInputStyle.PARAGRAPH;
 
-        List<TextInput> inputs = Stream.of(
-                TextInput.create("title", "Título", shortStyle).setMaxLength(maxTitle),
-                TextInput.create("desc", "Descrição", textStyle).setMaxLength(maxDesc).setRequired(false),
-                TextInput.create("opts", "Opções", textStyle)
-        ).map(TextInput.Builder::build).toList();
-        ModalContext ctx = ModalContext.of("Choosable Roles", inputs)
+        List<Label> labels = List.of(
+                Label.of("Título", TextInput.create("title", shortStyle)
+                        .setMaxLength(maxTitle)
+                        .build()),
+
+                Label.of("Descrição", TextInput.create("desc", textStyle)
+                        .setMaxLength(maxDesc)
+                        .setRequired(false)
+                        .build()),
+
+                Label.of("Opções", TextInput.create("opts", textStyle).build())
+        );
+        ModalContext ctx = ModalContext.of("Choosable Roles", labels)
                 .setScope(Scopes.Misc.CHOOSABLE_ROLES)
                 .put("image", img)
                 .put("channel_id", chanId)
@@ -423,9 +430,17 @@ public final class EntityContextFactory {
     }
 
     public static Modal createTicketModal() {
-        TextInput subject = newInput("subject", "Assunto", null, true, 5, SupportTicket.MAX_SUBJECT_LENGTH);
-        TextInput body = newInput("body", "Descrição", null, false, 10, SupportTicket.MAX_BODY_LENGTH);
-        ModalContext ctx = ModalContext.of("🎫 Novo Ticket", subject, body)
+        List<Label> labels = List.of(
+                Label.of("Assunto", TextInput.create("subject", toStyle(true))
+                        .setRequiredRange(5, SupportTicket.MAX_SUBJECT_LENGTH)
+                        .build()),
+
+                Label.of("body", TextInput.create("Descrição", toStyle(false))
+                        .setRequiredRange(10, SupportTicket.MAX_BODY_LENGTH)
+                        .build())
+        );
+
+        ModalContext ctx = ModalContext.of("🎫 Novo Ticket", labels)
                 .setScope(Scopes.Tickets.CREATE_TICKET);
 
         INTERACTION_MANAGER.save(ctx);
@@ -433,22 +448,16 @@ public final class EntityContextFactory {
     }
 
     public static Modal createTicketCloseModal() {
-        String reason = "Resolvido com sucesso.";
-        TextInput reasonInput = newInput("reason", "Motivo", reason, false, 5, 2000);
-        ModalContext ctx = ModalContext.of("Fechar Ticket", reasonInput)
+        final String reason = "Resolvido com sucesso.";
+        Label label = Label.of("Motivo", TextInput.create("reason", toStyle(false))
+                .setRequiredRange(5, 2000)
+                .setValue(reason)
+                .build());
+        ModalContext ctx = ModalContext.of("Fechar Ticket", label)
                 .setScope(Scopes.Tickets.DELETE_TICKET);
 
         INTERACTION_MANAGER.save(ctx);
         return ctx.getEntity();
-    }
-
-    private static TextInput newInput(String id, String label, String value, boolean isShort, int min, int max) {
-        TextInputStyle style = isShort ? TextInputStyle.SHORT : TextInputStyle.PARAGRAPH;
-
-        return TextInput.create(id, label, style)
-                .setRequiredRange(min, max)
-                .setValue(value)
-                .build();
     }
 
     // Utility Internals
@@ -462,6 +471,10 @@ public final class EntityContextFactory {
             OficinaGroup group, String scope, Emoji emoji, int price, Map<String, Object> payload
     ) {
         return genericConfirmButton(group, ButtonStyle.DANGER, "Remoção", emoji, scope, price, payload);
+    }
+
+    private static TextInputStyle toStyle(boolean isShort) {
+        return isShort ? TextInputStyle.SHORT : TextInputStyle.PARAGRAPH;
     }
 
     private static Button genericConfirmButton(
