@@ -1,16 +1,16 @@
 package ofc.bot.listeners.discord.interactions.buttons.pagination;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.commands.slash.economy.TransactionsCommand;
 import ofc.bot.domain.entity.BankTransaction;
 import ofc.bot.domain.entity.enums.TransactionType;
 import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.interactions.AutoResponseType;
+import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.InteractionListener;
 import ofc.bot.handlers.interactions.buttons.contexts.ButtonClickContext;
-import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.handlers.paginations.PageItem;
@@ -45,7 +45,7 @@ public class TransactionsPagination implements InteractionListener<ButtonClickCo
 
             ctx.create()
                     .setEmbeds(embed)
-                    .setActionRow(btns)
+                    .setActionRows(btns)
                     .edit();
         }, (err) -> ctx.reply(Status.USER_NOT_FOUND));
         return Status.OK;

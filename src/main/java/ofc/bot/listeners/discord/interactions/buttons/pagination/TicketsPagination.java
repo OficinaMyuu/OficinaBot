@@ -1,8 +1,8 @@
 package ofc.bot.listeners.discord.interactions.buttons.pagination;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.Main;
 import ofc.bot.domain.entity.SupportTicket;
 import ofc.bot.domain.sqlite.repository.MessageVersionRepository;
@@ -57,9 +57,10 @@ public class TicketsPagination implements InteractionListener<ButtonClickContext
             MessageEmbed embed = EmbedFactory.embedTicketPage(issuer, guild, ticket, users);
             List<Button> buttons = EntityContextFactory.createTicketsButtons(byUser, byStatus, pageIndex, hasMore);
 
-            ctx.editMessageEmbeds(embed)
-                    .setActionRow(buttons)
-                    .queue();
+            ctx.create()
+                    .setEmbeds(embed)
+                    .setActionRows(buttons)
+                    .edit();
         }, (err) -> { // Also ???
             LOGGER.error("We failed to fetch the user who issued ticket {}", ticket.getId(), err);
         });

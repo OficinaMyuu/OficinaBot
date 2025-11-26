@@ -1,13 +1,13 @@
 package ofc.bot.listeners.discord.interactions.buttons.pagination;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.sqlite.repository.MarriageRequestRepository;
 import ofc.bot.domain.viewmodels.ProposalsView;
+import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.InteractionListener;
 import ofc.bot.handlers.interactions.buttons.contexts.ButtonClickContext;
-import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.util.Bot;
@@ -40,7 +40,7 @@ public class ProposalListPagination implements InteractionListener<ButtonClickCo
 
             ctx.create()
                     .setEmbeds(embed)
-                    .setActionRow(buttons)
+                    .setActionRows(buttons)
                     .edit();
         }, (e) -> ctx.reply(Status.USER_NOT_FOUND));
         return Status.OK;

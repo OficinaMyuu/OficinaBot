@@ -1,8 +1,8 @@
 package ofc.bot.listeners.discord.interactions.buttons.pagination.reminders;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.entity.Reminder;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.EntityContextFactory;
@@ -37,7 +37,7 @@ public class RemindersPageUpdate implements InteractionListener<ButtonClickConte
 
         return ctx.create()
                 .setEmbeds(embed)
-                .setActionRow(buttons)
+                .setActionRows(buttons)
                 .edit();
     }
 }

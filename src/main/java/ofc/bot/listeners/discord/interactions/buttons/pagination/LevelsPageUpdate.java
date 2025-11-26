@@ -1,15 +1,15 @@
 package ofc.bot.listeners.discord.interactions.buttons.pagination;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.commands.slash.levels.LevelsCommand;
 import ofc.bot.domain.sqlite.repository.UserXPRepository;
 import ofc.bot.domain.viewmodels.LevelView;
 import ofc.bot.handlers.interactions.AutoResponseType;
+import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.InteractionListener;
 import ofc.bot.handlers.interactions.buttons.contexts.ButtonClickContext;
-import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.handlers.paginations.PageItem;
@@ -45,7 +45,7 @@ public class LevelsPageUpdate implements InteractionListener<ButtonClickContext>
 
         return ctx.create()
                 .setEmbeds(embed)
-                .setActionRow(buttons)
+                .setActionRows(buttons)
                 .edit();
     }
 }

@@ -1,11 +1,11 @@
 package ofc.bot.listeners.discord.guilds.messages;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageReference;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 
@@ -48,7 +48,7 @@ public class LorittaDailySpamBlocker extends ListenerAdapter {
 
     private Status resolveStatus(Message msg) {
         String content = msg.getContentRaw().toLowerCase();
-        List<Button> buttons = msg.getButtons();
+        List<Button> buttons = msg.getComponentTree().findAll(Button.class);
 
         if (content.contains("já recebeu a sua recompensa")) return Status.COLLECTED;
 

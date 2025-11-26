@@ -1,12 +1,13 @@
 package ofc.bot.listeners.discord.interactions.modals.tickets;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.requests.restaction.ChannelAction;
 import ofc.bot.domain.entity.SupportTicket;
 import ofc.bot.domain.sqlite.repository.SupportTicketRepository;
@@ -95,7 +96,7 @@ public class TicketCreationHandler implements InteractionListener<ModalSubmitCon
 
             TextChannel chan = creation.complete();
             chan.sendMessageEmbeds(initialEmbed)
-                    .addActionRow(CLOSE_TICKET_BUTTON)
+                    .addComponents(ActionRow.of(CLOSE_TICKET_BUTTON))
                     .queue();
 
             return chan;
