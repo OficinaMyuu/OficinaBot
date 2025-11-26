@@ -1,8 +1,8 @@
 package ofc.bot.handlers.interactions.buttons.contexts;
 
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import ofc.bot.handlers.interactions.EntityContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,7 +22,7 @@ public class ButtonContext extends EntityContext<Button, ButtonContext> {
 
     @Override
     public String getId() {
-        return getEntity().getId();
+        return getEntity().getCustomId();
     }
 
     public static ButtonContext of(ButtonStyle style, String label, Emoji emoji) {

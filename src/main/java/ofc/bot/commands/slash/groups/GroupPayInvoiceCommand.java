@@ -1,8 +1,8 @@
 package ofc.bot.commands.slash.groups;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.RentStatus;
 import ofc.bot.domain.sqlite.repository.OficinaGroupRepository;
@@ -47,7 +47,7 @@ public class GroupPayInvoiceCommand extends SlashSubcommand {
 
         return ctx.create()
                 .setEmbeds(embed)
-                .setActionRow(confirm)
+                .setActionRows(confirm)
                 .send();
     }
 

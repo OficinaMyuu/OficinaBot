@@ -1,16 +1,14 @@
 package ofc.bot.handlers.interactions.buttons.contexts;
 
+import net.dv8tion.jda.api.components.MessageTopLevelComponent;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.replacer.ComponentReplacer;
+import net.dv8tion.jda.api.components.tree.MessageComponentTree;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.LayoutComponent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
 import net.dv8tion.jda.api.requests.restaction.MessageEditAction;
 import ofc.bot.handlers.interactions.InteractionSubmitContext;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ButtonClickContext extends InteractionSubmitContext<ButtonContext, ButtonInteraction> {
 
@@ -33,14 +31,17 @@ public class ButtonClickContext extends InteractionSubmitContext<ButtonContext, 
      * Disables the button the user has clicked.
      */
     public void disable() {
-        List<Button> buttons = new ArrayList<>(getMessage().getButtons());
-        int btnIndex = findTargetButtonIndex();
+        ButtonInteraction source = getSource();
+        Button clicked = source.getButton();
+        Message msg = getMessage();
+        MessageComponentTree components = msg.getComponentTree();
 
-        Button button = buttons.get(btnIndex);
-        buttons.set(btnIndex, button.asDisabled());
+        ComponentReplacer replacer = ComponentReplacer.byUniqueId(clicked.getUniqueId(),
+                clicked.asDisabled()
+        );
 
-        editMessageComponents(ActionRow.of(buttons))
-                .queue();
+        MessageComponentTree updated = components.replace(replacer);
+        msg.editMessageComponents(updated).queue();
     }
 
     public MessageEditAction editMessage(String content) {
@@ -51,21 +52,11 @@ public class ButtonClickContext extends InteractionSubmitContext<ButtonContext, 
         return getMessage().editMessageEmbeds(embeds);
     }
 
-    public MessageEditAction editMessageComponents(LayoutComponent... components) {
+    public MessageEditAction editMessageComponents(MessageTopLevelComponent... components) {
         return getMessage().editMessageComponents(components);
     }
 
     public Message getMessage() {
         return getSource().getMessage();
-    }
-
-    private int findTargetButtonIndex() {
-        List<Button> buttons = getMessage().getButtons();
-        for (int i = 0; i < buttons.size(); i++) {
-            Button current = buttons.get(i);
-            if (getSource().getComponentId().equals(current.getId()))
-                return i;
-        }
-        return -1;
     }
 }

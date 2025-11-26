@@ -1,5 +1,6 @@
 package ofc.bot.commands.slash.groups;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -7,7 +8,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.domain.sqlite.repository.OficinaGroupRepository;
@@ -64,7 +64,7 @@ public class GroupPinsCommand extends SlashSubcommand {
 
         return ctx.create()
                 .setEmbeds(embed)
-                .setActionRow(confirm)
+                .setActionRows(confirm)
                 .send();
     }
 

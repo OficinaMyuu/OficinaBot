@@ -1,10 +1,10 @@
 package ofc.bot.commands.slash.bets;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
 import ofc.bot.handlers.games.betting.BetManager;
 import ofc.bot.handlers.games.betting.tictactoe.TicTacToeGame;
@@ -53,7 +53,7 @@ public class BetTicTacToeCommand extends SlashSubcommand {
 
         return ctx.create()
                 .setEmbeds(embed)
-                .setActionRow(accept)
+                .setActionRows(accept)
                 .setContent(Status.USER_INVITING_TO_TICTACTOE.args(member.getAsMention()))
                 .send();
     }

@@ -1,11 +1,12 @@
 package ofc.bot.listeners.discord.interactions.modals;
 
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.selections.SelectMenu;
+import net.dv8tion.jda.api.components.selections.SelectOption;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
-import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.utils.FileUpload;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.InteractionListener;
@@ -66,7 +67,7 @@ public class ChoosableRolesHandler implements InteractionListener<ModalSubmitCon
 
         chan.sendMessageEmbeds(embed)
                 .setFiles(files)
-                .setActionRow(rolesMenu)
+                .setComponents(ActionRow.of(rolesMenu))
                 .queue();
 
         return ctx.reply(Status.DONE);

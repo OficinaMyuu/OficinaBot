@@ -1,6 +1,7 @@
 package ofc.bot.commands.slash;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
@@ -8,7 +9,6 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.entity.enums.NameScope;
 import ofc.bot.domain.sqlite.repository.UserNameUpdateRepository;
 import ofc.bot.domain.viewmodels.NamesHistoryView;
@@ -54,7 +54,7 @@ public class NamesHistoryCommand extends SlashCommand {
 
         return ctx.create()
                 .setEmbeds(embed)
-                .setActionRow(buttons)
+                .setActionRows(buttons)
                 .send();
     }
 

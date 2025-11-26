@@ -1,10 +1,10 @@
 package ofc.bot.commands.slash.groups.member;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.domain.sqlite.repository.OficinaGroupRepository;
@@ -62,7 +62,7 @@ public class AddGroupMemberCommand extends SlashSubcommand {
         Button confirm = EntityContextFactory.createAddGroupMemberConfirm(group, newMember, price);
         MessageEmbed embed = EmbedFactory.embedGroupMemberAdd(issuer, group, newMember, price);
         return ctx.create()
-                .setActionRow(confirm)
+                .setActionRows(confirm)
                 .setEmbeds(embed)
                 .send();
     }

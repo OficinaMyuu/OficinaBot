@@ -1,11 +1,11 @@
 package ofc.bot.commands.slash.groups.member;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.sqlite.repository.OficinaGroupRepository;
 import ofc.bot.handlers.interactions.EntityContextFactory;
@@ -49,7 +49,7 @@ public class RemoveGroupMemberCommand extends SlashSubcommand {
         Button confirm = EntityContextFactory.createRemoveGroupMemberConfirm(group, member.getIdLong());
         MessageEmbed embed = EmbedFactory.embedGroupMemberRemove(issuer, group, member);
         return ctx.create(true)
-                .setActionRow(confirm)
+                .setActionRows(confirm)
                 .setEmbeds(embed)
                 .send();
     }

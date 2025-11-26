@@ -2,12 +2,12 @@ package ofc.bot.commands.slash;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.Main;
 import ofc.bot.domain.entity.SupportTicket;
 import ofc.bot.domain.sqlite.repository.MessageVersionRepository;
@@ -63,7 +63,7 @@ public class ViewTicketCommand extends SlashCommand {
 
             ctx.create()
                     .setEmbeds(embed)
-                    .setActionRow(buttons)
+                    .setActionRows(buttons)
                     .send();
         }, (err) -> { // ????????
             LOGGER.error("We somehow did not find the user who issued the ticket for id #{}", ticket.getId(), err);

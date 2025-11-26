@@ -1,8 +1,8 @@
 package ofc.bot.listeners.discord.interactions.buttons.pagination.reminders;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.entity.Reminder;
 import ofc.bot.domain.sqlite.repository.ReminderRepository;
 import ofc.bot.handlers.interactions.AutoResponseType;
@@ -58,7 +58,7 @@ public class DeleteReminder implements InteractionListener<ButtonClickContext> {
 
             return ctx.create()
                     .setEmbeds(embed)
-                    .setActionRow(buttons)
+                    .setActionRows(buttons)
                     .edit();
         } catch (DataAccessException e) {
             LOGGER.error("Failed to set reminder {} as expired", reminderId, e);

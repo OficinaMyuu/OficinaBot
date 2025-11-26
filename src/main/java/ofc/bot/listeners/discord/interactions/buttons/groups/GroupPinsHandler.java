@@ -3,6 +3,7 @@ package ofc.bot.listeners.discord.interactions.buttons.groups;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.requests.RestAction;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.handlers.economy.*;
@@ -18,13 +19,10 @@ import ofc.bot.util.content.annotations.listeners.InteractionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-
 @InteractionHandler(scope = Scopes.Group.PIN_MESSAGE, autoResponseType = AutoResponseType.THINKING)
 public class GroupPinsHandler implements InteractionListener<ButtonClickContext> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupPinsHandler.class);
     private static final BetManager betManager = BetManager.getManager();
-    private static final int MAX_PINNED_MESSAGES = 50;
 
     @Override
     public InteractionResult onExecute(ButtonClickContext ctx) {
@@ -51,12 +49,6 @@ public class GroupPinsHandler implements InteractionListener<ButtonClickContext>
             return parseException(e);
         }
 
-        if (shouldPin) {
-            List<Message> msgs = chan.retrievePinnedMessages().complete();
-            if (msgs.size() >= MAX_PINNED_MESSAGES)
-                return Status.HIT_MAX_PINNED_MESSAGES;
-        }
-
         boolean isPinned = msg.isPinned();
         if (isPinned && shouldPin)
             return Status.MESSAGE_ALREADY_PINNED;
@@ -75,6 +67,12 @@ public class GroupPinsHandler implements InteractionListener<ButtonClickContext>
             } else
                 ctx.reply(Status.MESSAGE_SUCCESSFULLY_UNPINNED);
         }, err -> {
+            if (err instanceof ErrorResponseException errResp &&
+                    errResp.getErrorResponse() == ErrorResponse.MAX_MESSAGE_PINS) {
+                ctx.reply(Status.HIT_MAX_PINNED_MESSAGES);
+                return;
+            }
+
             LOGGER.error("Could not pin message", err);
             ctx.reply(Status.COULD_NOT_EXECUTE_SUCH_OPERATION);
         });

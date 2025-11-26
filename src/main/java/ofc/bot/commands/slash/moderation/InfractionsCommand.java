@@ -1,13 +1,13 @@
 package ofc.bot.commands.slash.moderation;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.entity.MemberPunishment;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
@@ -47,7 +47,7 @@ public class InfractionsCommand extends SlashCommand {
 
         return ctx.create()
                 .setEmbeds(embed)
-                .setActionRow(btns)
+                .setActionRows(btns)
                 .send();
     }
 

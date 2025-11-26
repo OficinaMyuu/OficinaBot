@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.modals.Modal;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.listeners.discord.interactions.modals.tickets.TicketCreationHandler;
 import ofc.bot.util.content.Staff;

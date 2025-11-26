@@ -1,14 +1,14 @@
 package ofc.bot.listeners.discord.interactions.buttons.pagination.infractions;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.commands.slash.moderation.InfractionsCommand;
 import ofc.bot.domain.entity.MemberPunishment;
 import ofc.bot.handlers.interactions.AutoResponseType;
+import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.InteractionListener;
 import ofc.bot.handlers.interactions.buttons.contexts.ButtonClickContext;
-import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.handlers.paginations.PageItem;
@@ -47,7 +47,7 @@ public class InfractionsPageUpdate implements InteractionListener<ButtonClickCon
 
             ctx.create()
                     .setEmbeds(embed)
-                    .setActionRow(btns)
+                    .setActionRows(btns)
                     .edit();
         }, (err) -> ctx.reply(Status.USER_NOT_FOUND));
         return Status.OK;

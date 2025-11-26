@@ -1,11 +1,11 @@
 package ofc.bot.commands.slash.reminders;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.entity.Reminder;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
@@ -39,7 +39,7 @@ public class ListRemindersCommand extends SlashSubcommand {
 
         return ctx.create()
                 .setEmbeds(embed)
-                .setActionRow(buttons)
+                .setActionRows(buttons)
                 .send();
     }
 

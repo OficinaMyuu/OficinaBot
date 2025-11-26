@@ -1,8 +1,8 @@
 package ofc.bot.listeners.discord.interactions.buttons.pagination.infractions;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.commands.slash.moderation.InfractionsCommand;
 import ofc.bot.domain.entity.MemberPunishment;
 import ofc.bot.domain.sqlite.repository.MemberPunishmentRepository;
@@ -73,7 +73,7 @@ public class DeleteInfraction implements InteractionListener<ButtonClickContext>
 
             ctx.create()
                     .setEmbeds(embed)
-                    .setActionRow(btns)
+                    .setActionRows(btns)
                     .edit();
         }, (err) -> ctx.reply(Status.USER_NOT_FOUND));
         return Status.OK;
