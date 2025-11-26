@@ -1,11 +1,13 @@
 package ofc.bot.handlers.interactions.commands.responses;
 
+import net.dv8tion.jda.api.components.MessageTopLevelComponent;
+import net.dv8tion.jda.api.components.MessageTopLevelComponentUnion;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
-import net.dv8tion.jda.api.interactions.components.LayoutComponent;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
@@ -83,6 +85,11 @@ public class InteractionResponseBuilder implements InteractionResponseData {
         return this;
     }
 
+    public InteractionResponseBuilder setUsingComponentsV2(boolean flag) {
+        builder.useComponentsV2(flag);
+        return this;
+    }
+
     public InteractionResponseBuilder setAllowedMentions(Collection<Message.MentionType> mentions) {
         builder.setAllowedMentions(mentions);
         return this;
@@ -107,23 +114,23 @@ public class InteractionResponseBuilder implements InteractionResponseData {
         return this;
     }
 
-    public InteractionResponseBuilder setComponents(LayoutComponent... components) {
+    public InteractionResponseBuilder setComponents(MessageTopLevelComponent... components) {
         builder.setComponents(components);
         return this;
     }
 
-    public InteractionResponseBuilder setComponents(List<? extends LayoutComponent> components) {
+    public InteractionResponseBuilder setComponents(List<? extends MessageTopLevelComponent> components) {
         builder.setComponents(components);
         return this;
     }
 
-    public InteractionResponseBuilder setActionRow(List<? extends ItemComponent> components) {
-        builder.setActionRow(components);
+    public InteractionResponseBuilder setActionRows(ActionRowChildComponent... rows) {
+        builder.setComponents(ActionRow.of(List.of(rows)));
         return this;
     }
 
-    public InteractionResponseBuilder setActionRow(ItemComponent... components) {
-        builder.setActionRow(components);
+    public InteractionResponseBuilder setActionRows(List<? extends ActionRowChildComponent> row) {
+        builder.setComponents(ActionRow.of(row));
         return this;
     }
 
@@ -177,8 +184,13 @@ public class InteractionResponseBuilder implements InteractionResponseData {
 
     @NotNull
     @Override
-    public List<LayoutComponent> getComponents() {
+    public List<MessageTopLevelComponentUnion> getComponents() {
         return builder.getComponents();
+    }
+
+    @Override
+    public boolean isUsingComponentsV2() {
+        return builder.isUsingComponentsV2();
     }
 
     @NotNull

@@ -1,12 +1,12 @@
 package ofc.bot.commands.slash.birthday;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.entity.Birthday;
 import ofc.bot.domain.sqlite.repository.BirthdayRepository;
 import ofc.bot.handlers.interactions.EntityContextFactory;
@@ -42,7 +42,7 @@ public class BirthdaysCommand extends SlashCommand {
 
         return ctx.create()
                 .setEmbeds(embed)
-                .setActionRow(buttons)
+                .setActionRows(buttons)
                 .send();
     }
 

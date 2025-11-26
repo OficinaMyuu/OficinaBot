@@ -1,12 +1,12 @@
 package ofc.bot.commands.slash.groups;
 
 import com.vdurmont.emoji.EmojiManager;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.RentStatus;
 import ofc.bot.domain.entity.enums.StoreItemType;
@@ -87,7 +87,7 @@ public class CreateGroupCommand extends SlashSubcommand {
         Button confirmButton = EntityContextFactory.createGroupConfirm(group, color);
         MessageEmbed embed = EmbedFactory.embedGroupCreate(issuer, group, color);
         return ctx.create()
-                .setActionRow(confirmButton)
+                .setActionRows(confirmButton)
                 .setEmbeds(embed)
                 .send();
     }

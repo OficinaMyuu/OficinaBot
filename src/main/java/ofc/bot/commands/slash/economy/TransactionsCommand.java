@@ -1,12 +1,12 @@
 package ofc.bot.commands.slash.economy;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.entity.BankTransaction;
 import ofc.bot.domain.entity.enums.TransactionType;
 import ofc.bot.handlers.economy.CurrencyType;
@@ -51,7 +51,7 @@ public class TransactionsCommand extends SlashCommand {
 
         return ctx.create()
                 .setEmbeds(embed)
-                .setActionRow(btns)
+                .setActionRows(btns)
                 .send();
     }
 

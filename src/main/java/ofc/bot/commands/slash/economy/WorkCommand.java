@@ -1,8 +1,8 @@
 package ofc.bot.commands.slash.economy;
 
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import ofc.bot.domain.entity.BankTransaction;
 import ofc.bot.domain.entity.UserEconomy;
 import ofc.bot.domain.entity.enums.TransactionType;
@@ -47,7 +47,7 @@ public class WorkCommand extends SlashCommand {
         if (nextWorkAt > now) {
             return ctx.create(true)
                     .setContentFormat("Você poderá trabalhar de novo <t:%s:R>.", nextWorkAt)
-                    .setActionRow(getReminderButton())
+                    .setActionRows(getReminderButton())
                     .send(Status.WAIT_BEFORE_WORK_AGAIN);
         }
 
