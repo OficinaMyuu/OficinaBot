@@ -3,13 +3,13 @@ package ofc.bot.handlers.games.betting.tictactoe;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.internal.utils.Checks;
 import ofc.bot.domain.entity.*;
@@ -125,7 +125,7 @@ public class TicTacToeGame implements Bet<Character> {
         api.retrieveUserById(currentPlayerId).queue(user -> {
             MessageEmbed embed = EmbedFactory.embedTicTacToeGame(user);
             List<ActionRow> rows = Stream.of(EntityContextFactory.createTicTacToeTable(id, currentPlayerId, grid))
-                    .map(ActionRow::of)
+                    .map(btns -> ActionRow.of(List.of(btns)))
                     .toList();
 
             message.editMessageEmbeds(embed)
@@ -393,7 +393,7 @@ public class TicTacToeGame implements Bet<Character> {
             User curr = api.retrieveUserById(currentPlayerId).complete();
             MessageEmbed embed = EmbedFactory.embedTicTacToeGame(curr);
             List<ActionRow> rows = Stream.of(EntityContextFactory.createTicTacToeTable(id, currentPlayerId, grid))
-                    .map(ActionRow::of)
+                    .map(btns -> ActionRow.of(List.of(btns)))
                     .toList();
 
             scheduler.reset();
