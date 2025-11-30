@@ -2,6 +2,8 @@ package ofc.bot.util;
 
 import net.dv8tion.jda.annotations.ReplaceWith;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
+import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.requests.ErrorResponse;
@@ -65,6 +67,55 @@ public final class Bot {
     public static <T, A extends Annotation> T getSafeAnnotationValue(
             @NotNull Object obj, @NotNull Class<A> annotation, @NotNull Function<A, T> mapper) {
         return getSafeAnnotationValue(obj.getClass(), annotation, mapper);
+    }
+
+    /**
+     * Checks whether the given member is currently connected to the voice channel
+     * matching the provided ID.
+     * <p>
+     * This method handles cases where the member's voice state is missing or
+     * if they are not connected to any channel, returning {@code false} in those instances.
+     * <p>
+     * <b>Note:</b> This method will not check for the type (or even existence) of the
+     * provided {@code channelId}, you can safely provide any value you want for it.
+     *
+     * @param member The {@link Member} to be checked. Must not be null.
+     * @param channelId The snowflake ID of the voice channel to check.
+     * @return {@code true} if the member is connected to the channel with the given ID;
+     * {@code false} otherwise.
+     * @throws IllegalArgumentException If the provided {@code member} is null.
+     */
+    public static boolean isInVoiceChannel(@NotNull Member member, long channelId) {
+        Checks.notNull(member, "Member");
+
+        GuildVoiceState state = member.getVoiceState();
+
+        // Fail if VoiceState is null (unlikely but possible with cache config)
+        if (state == null) {
+            return false;
+        }
+
+        AudioChannelUnion currentChannel = state.getChannel();
+        return currentChannel != null && currentChannel.getIdLong() == channelId;
+    }
+
+    /**
+     * Checks whether the given member is currently connected to the provided voice channel.
+     * <p>
+     * This is a convenience overload for {@link #isInVoiceChannel(Member, long)}.
+     *
+     * @param member The {@link Member} to be checked.
+     * @param channel The {@link AudioChannel} to check against.
+     *        If {@code null}, this method returns {@code false}.
+     * @return {@code true} if the member is connected to the provided channel;
+     *         {@code false} otherwise.
+     * @throws IllegalArgumentException If the provided {@code member} is null.
+     */
+    public static boolean isInVoiceChannel(@NotNull Member member, @Nullable AudioChannel channel) {
+        if (channel == null) {
+            return false;
+        }
+        return isInVoiceChannel(member, channel.getIdLong());
     }
 
     public static <T, A extends Annotation> T getSafeAnnotationValue(
