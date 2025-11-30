@@ -3,6 +3,7 @@ package ofc.bot.commands.slash.groups;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.AutoCompleteQuery;
@@ -15,6 +16,7 @@ import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashSubcommand;
+import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +71,7 @@ public class LeaveGroupCommand extends SlashSubcommand {
             if (!silent)
                 group.sendMessagef("\uD83D\uDC4B O membro %s saiu do grupo.", issuer.getAsMention());
 
+            dropGroupVoiceConnection(issuer, group);
             ctx.reply(Status.SUCCESSFULLY_REMOVED_FROM_GROUP.args(group.getName()));
         });
         return Status.OK;
@@ -89,6 +92,16 @@ public class LeaveGroupCommand extends SlashSubcommand {
                         .setRequiredLength(10, 10),
                 new OptionData(OptionType.BOOLEAN, "silent", "Sair sem avisar no chat (Padrão: false).")
         );
+    }
+
+    private void dropGroupVoiceConnection(Member member, OficinaGroup group) {
+        Guild guild = member.getGuild();
+        VoiceChannel voice = group.getVoiceChannel();
+        boolean isGroupTalking = Bot.isInVoiceChannel(member, voice);
+
+        if (isGroupTalking) {
+            guild.kickVoiceMember(member).queue();
+        }
     }
 
     private boolean isPresent(List<Role> roles, long roleId) {
