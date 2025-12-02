@@ -45,12 +45,12 @@ public final class EntityContextFactory {
         boolean hasPrevious = currMonth != Month.JANUARY;
         boolean hasNext = currMonth != Month.DECEMBER;
 
-        ButtonContext prevButton = ButtonContext.primary(Emoji.fromUnicode("◀"))
+        ButtonContext prevButton = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_LEFT)
                 .setScope(Scopes.Misc.PAGINATE_BIRTHDAYS)
                 .put("month", previousMonth)
                 .setEnabled(hasPrevious);
 
-        ButtonContext nextButton = ButtonContext.primary(Emoji.fromUnicode("▶"))
+        ButtonContext nextButton = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_RIGHT)
                 .setScope(Scopes.Misc.PAGINATE_BIRTHDAYS)
                 .put("month", nextMonth)
                 .setEnabled(hasNext);
@@ -64,7 +64,7 @@ public final class EntityContextFactory {
                                                          int pageIndex, boolean hasNext) {
         boolean hasPrevious = pageIndex > 0;
 
-        ButtonContext prev = ButtonContext.primary("Previous")
+        ButtonContext prev = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_LEFT)
                 .setScope(Scopes.Economy.VIEW_TRANSACTIONS)
                 .put("page_index", pageIndex - 1)
                 .put("user_id", userId)
@@ -72,7 +72,7 @@ public final class EntityContextFactory {
                 .put("actions", actions)
                 .setEnabled(hasPrevious);
 
-        ButtonContext next = ButtonContext.primary("Next")
+        ButtonContext next = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_RIGHT)
                 .setScope(Scopes.Economy.VIEW_TRANSACTIONS)
                 .put("page_index", pageIndex + 1)
                 .put("user_id", userId)
@@ -89,7 +89,7 @@ public final class EntityContextFactory {
                                                         boolean showInactive, boolean hasNext) {
         boolean hasPrevious = pageIndex > 0;
 
-        ButtonContext prev = ButtonContext.primary("Previous")
+        ButtonContext prev = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_LEFT)
                 .setScope(Scopes.Punishments.VIEW_INFRACTIONS)
                 .setPermission(Permission.MESSAGE_MANAGE)
                 .put("page_index", pageIndex - 1)
@@ -97,7 +97,7 @@ public final class EntityContextFactory {
                 .put("show_inactive", showInactive)
                 .setEnabled(hasPrevious);
 
-        ButtonContext next = ButtonContext.primary("Next")
+        ButtonContext next = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_RIGHT)
                 .setScope(Scopes.Punishments.VIEW_INFRACTIONS)
                 .setPermission(Permission.MESSAGE_MANAGE)
                 .put("page_index", pageIndex + 1)
@@ -121,13 +121,13 @@ public final class EntityContextFactory {
     public static List<Button> createLeaderboardButtons(Paginator<LeaderboardUser> paginator, int pageIndex, boolean hasNext) {
         boolean hasPrevious = pageIndex > 0;
 
-        ButtonContext prev = ButtonContext.primary("Previous")
+        ButtonContext prev = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_LEFT)
                 .setScope(Scopes.Economy.VIEW_LEADERBOARD)
                 .put("page_index", pageIndex - 1)
                 .put("paginator", paginator)
                 .setEnabled(hasPrevious);
 
-        ButtonContext next = ButtonContext.primary("Next")
+        ButtonContext next = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_RIGHT)
                 .setScope(Scopes.Economy.VIEW_LEADERBOARD)
                 .put("page_index", pageIndex + 1)
                 .put("paginator", paginator)
@@ -141,13 +141,13 @@ public final class EntityContextFactory {
         long userId = rem.getUserId();
         boolean hasPrevious = pageIndex > 0;
 
-        ButtonContext prev = ButtonContext.primary("Previous")
+        ButtonContext prev = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_LEFT)
                 .setScope(Scopes.Reminders.VIEW_REMINDERS)
                 .put("page_index", pageIndex - 1)
                 .addUser(userId)
                 .setEnabled(hasPrevious);
 
-        ButtonContext next = ButtonContext.primary("Next")
+        ButtonContext next = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_RIGHT)
                 .setScope(Scopes.Reminders.VIEW_REMINDERS)
                 .put("page_index", pageIndex + 1)
                 .addUser(userId)
@@ -211,7 +211,7 @@ public final class EntityContextFactory {
         int nextOffset = currentOffset + 10;
         boolean hasPrevious = currentOffset >= 10;
 
-        ButtonContext prev = ButtonContext.primary("Previous")
+        ButtonContext prev = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_LEFT)
                 .setScope(Scopes.Misc.PAGINATE_NAME_UPDATE)
                 .put("offset", previousOffset)
                 .put("type", type)
@@ -219,7 +219,7 @@ public final class EntityContextFactory {
                 .setPermission(Permission.MANAGE_SERVER)
                 .setEnabled(hasPrevious);
 
-        ButtonContext next = ButtonContext.primary("Next")
+        ButtonContext next = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_RIGHT)
                 .setScope(Scopes.Misc.PAGINATE_NAME_UPDATE)
                 .put("offset", nextOffset)
                 .put("type", type)
@@ -236,14 +236,14 @@ public final class EntityContextFactory {
         int nextPage = page + 1;
         boolean hasPrevious = page > 1;
 
-        ButtonContext prev = ButtonContext.primary("Previous")
+        ButtonContext prev = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_LEFT)
                 .setScope(Scopes.Misc.PAGINATE_MARRIAGE_REQUESTS)
                 .addUser(userId)
                 .put("page", previousPage)
                 .put("type", type)
                 .setEnabled(hasPrevious);
 
-        ButtonContext next = ButtonContext.primary("Next")
+        ButtonContext next = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_RIGHT)
                 .setScope(Scopes.Misc.PAGINATE_MARRIAGE_REQUESTS)
                 .addUser(userId)
                 .put("page", nextPage)
