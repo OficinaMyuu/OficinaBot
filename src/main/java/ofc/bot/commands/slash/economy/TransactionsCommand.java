@@ -31,11 +31,10 @@ public class TransactionsCommand extends SlashCommand {
     public InteractionResult onCommand(@NotNull SlashCommandContext ctx) {
         long userId = ctx.getUserId();
         int pageIndex = ctx.getOption("page", 1, OptionMapping::getAsInt) - 1;
-        boolean hasChatMoney = ctx.getOption("include-chatmoney", false, OptionMapping::getAsBoolean);
         boolean crossEconomy = ctx.getOption("cross-economy", true, OptionMapping::getAsBoolean);
         Guild guild = ctx.getGuild();
         User user = ctx.getUser();
-        List<TransactionType> actions = getTypes(hasChatMoney);
+        List<TransactionType> actions = getTypes();
         List<CurrencyType> currencies = getCurrencies(crossEconomy);
         PageItem<BankTransaction> trs = Paginator.viewTransactions(userId, pageIndex, PAGE_SIZE, currencies, actions);
 
@@ -65,17 +64,14 @@ public class TransactionsCommand extends SlashCommand {
     @Override
     public List<OptionData> getOptions() {
         return List.of(
-                new OptionData(OptionType.BOOLEAN, "include-chatmoney", "Se devemos incluir registros de chat-money na lista (padrão: False)."),
                 new OptionData(OptionType.BOOLEAN, "cross-economy", "Se devemos incluir meros registros de outras economias na lista (padrão: True)."),
                 new OptionData(OptionType.INTEGER, "page", "A página do histórico de transações.")
                         .setRequiredRange(1, Integer.MAX_VALUE)
         );
     }
 
-    private List<TransactionType> getTypes(boolean includesChatMoney) {
-        return includesChatMoney
-                ? TransactionType.allExcept()
-                : TransactionType.allExcept(TransactionType.CHAT_MONEY);
+    private List<TransactionType> getTypes() {
+        return TransactionType.allExcept();
     }
 
     private List<CurrencyType> getCurrencies(boolean crossEconomy) {
