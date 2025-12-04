@@ -494,5 +494,6 @@ public final class Bot {
         public static final Emoji GRAY_ARROW_RIGHT = Emoji.fromFormatted("<:arrowright:1331425991205191730>");
         public static final Emoji INV = Emoji.fromFormatted("<:inv:1347081576298844180>");
         public static final Emoji LOADING = Emoji.fromFormatted("<a:loading:1293036166387601469>");
+        public static final Emoji DOWNLOAD = Emoji.fromUnicode("\uD83D\uDCBE");
     }
 }
