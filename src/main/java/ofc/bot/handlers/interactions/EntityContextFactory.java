@@ -16,7 +16,6 @@ import ofc.bot.domain.entity.*;
 import ofc.bot.domain.entity.enums.GroupPermission;
 import ofc.bot.domain.entity.enums.NameScope;
 import ofc.bot.domain.entity.enums.TransactionType;
-import ofc.bot.domain.sqlite.repository.SupportTicketRepository;
 import ofc.bot.domain.viewmodels.LeaderboardUser;
 import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.games.betting.tictactoe.GameGrid;
@@ -184,21 +183,18 @@ public final class EntityContextFactory {
     }
 
     public static List<Button> createTicketsButtons(net.dv8tion.jda.api.entities.User byUser, // jfc
-                                                    SupportTicketRepository.TicketStatus byStatus,
                                                     int pageIndex, boolean hasNext) {
         boolean hasPrev = pageIndex > 0;
 
         ButtonContext prev = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_LEFT)
                 .setScope(Scopes.Tickets.PAGINATE_TICKETS)
                 .put("by_user", byUser)
-                .put("by_status", byStatus)
                 .put("page_index", pageIndex - 1)
                 .setEnabled(hasPrev);
 
         ButtonContext next = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_RIGHT)
                 .setScope(Scopes.Tickets.PAGINATE_TICKETS)
                 .put("by_user", byUser)
-                .put("by_status", byStatus)
                 .put("page_index", pageIndex + 1)
                 .setEnabled(hasNext);
 

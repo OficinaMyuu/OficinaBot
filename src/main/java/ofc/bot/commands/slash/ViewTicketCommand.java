@@ -4,14 +4,12 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.Main;
 import ofc.bot.domain.entity.SupportTicket;
 import ofc.bot.domain.sqlite.repository.MessageVersionRepository;
-import ofc.bot.domain.sqlite.repository.SupportTicketRepository;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
@@ -25,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -43,9 +40,8 @@ public class ViewTicketCommand extends SlashCommand {
         JDA api = Main.getApi();
         SelfUser self = api.getSelfUser();
         Guild guild = ctx.getGuild();
-        SupportTicketRepository.TicketStatus byStatus = ctx.getEnumOption("by-status", SupportTicketRepository.TicketStatus.class);
         User byUser = ctx.getOption("by-user", OptionMapping::getAsUser);
-        PageItem<SupportTicket> tickets = Paginator.viewTickets(byUser, byStatus, 0);
+        PageItem<SupportTicket> tickets = Paginator.viewTickets(byUser, 0);
         long selfId = self.getIdLong();
 
         if (tickets.isEmpty())
@@ -59,7 +55,7 @@ public class ViewTicketCommand extends SlashCommand {
 
         api.retrieveUserById(ticket.getInitiatorId()).queue(issuer -> {
             MessageEmbed embed = EmbedFactory.embedTicketPage(issuer, guild, ticket, users);
-            List<Button> buttons = EntityContextFactory.createTicketsButtons(byUser, byStatus, 0, hasMore);
+            List<Button> buttons = EntityContextFactory.createTicketsButtons(byUser, 0, hasMore);
 
             ctx.create()
                     .setEmbeds(embed)
@@ -82,15 +78,7 @@ public class ViewTicketCommand extends SlashCommand {
     @Override
     public List<OptionData> getOptions() {
         return List.of(
-                new OptionData(OptionType.USER, "by-user", "Filtra por usuário."),
-                new OptionData(OptionType.STRING, "by-status", "O status de operação do ticket.")
-                        .addChoices(getStatusChoices())
+                new OptionData(OptionType.USER, "by-user", "Filtra por usuário.")
         );
-    }
-
-    private List<Command.Choice> getStatusChoices() {
-        return Arrays.stream(SupportTicketRepository.TicketStatus.values())
-                .map(ts -> new Command.Choice(ts.getDisplay(), ts.name()))
-                .toList();
     }
 }

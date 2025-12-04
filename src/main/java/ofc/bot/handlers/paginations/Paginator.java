@@ -56,13 +56,13 @@ public final class Paginator<T> {
         return new PageItem<>(punishments, pageIndex, offset, maxPages, rowCount);
     }
 
-    public static PageItem<SupportTicket> viewTickets(User byUser, SupportTicketRepository.TicketStatus byStatus, int pageIndex) {
+    public static PageItem<SupportTicket> viewTickets(User byUser, int pageIndex) {
         final SupportTicketRepository ticketRepo = Repositories.getSupportTicketRepository();
 
         // In this case, we don't need to calculate the offset, as only 1 result
         // can be shown per page, the offset is already the pageIndex itself.
-        List<SupportTicket> tickets = ticketRepo.searchByUserAndStatus(byUser, byStatus, pageIndex, 1);
-        int count = ticketRepo.countByUserAndStatus(byUser, byStatus);
+        List<SupportTicket> tickets = ticketRepo.searchByUser(byUser, pageIndex, 1);
+        int count = ticketRepo.countByUser(byUser);
 
         return new PageItem<>(tickets, pageIndex, pageIndex, count, count);
     }

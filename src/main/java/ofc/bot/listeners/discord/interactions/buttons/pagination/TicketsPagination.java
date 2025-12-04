@@ -6,7 +6,6 @@ import net.dv8tion.jda.api.entities.*;
 import ofc.bot.Main;
 import ofc.bot.domain.entity.SupportTicket;
 import ofc.bot.domain.sqlite.repository.MessageVersionRepository;
-import ofc.bot.domain.sqlite.repository.SupportTicketRepository;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.InteractionListener;
@@ -37,10 +36,9 @@ public class TicketsPagination implements InteractionListener<ButtonClickContext
     public InteractionResult onExecute(ButtonClickContext ctx) {
         JDA api = Main.getApi();
         SelfUser selfUser = api.getSelfUser();
-        SupportTicketRepository.TicketStatus byStatus = ctx.find("by_status");
         User byUser = ctx.find("by_user");
         int pageIndex = ctx.get("page_index");
-        PageItem<SupportTicket> tickets = Paginator.viewTickets(byUser, byStatus, pageIndex);
+        PageItem<SupportTicket> tickets = Paginator.viewTickets(byUser, pageIndex);
         long selfId = selfUser.getIdLong();
 
         if (tickets.isEmpty())
@@ -55,7 +53,7 @@ public class TicketsPagination implements InteractionListener<ButtonClickContext
 
         api.retrieveUserById(ticket.getInitiatorId()).queue(issuer -> {
             MessageEmbed embed = EmbedFactory.embedTicketPage(issuer, guild, ticket, users);
-            List<Button> buttons = EntityContextFactory.createTicketsButtons(byUser, byStatus, pageIndex, hasMore);
+            List<Button> buttons = EntityContextFactory.createTicketsButtons(byUser, pageIndex, hasMore);
 
             ctx.create()
                     .setEmbeds(embed)
