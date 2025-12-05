@@ -87,6 +87,7 @@ public class BackupMemberRolesCommand extends SlashCommand {
                 // Ensure the bot will never attempt to give the user a role
                 // they don't have permission to.
                 .filter(bot::canInteract)
+                .filter(r -> !r.isManaged())
                 .toList();
     }
 }
