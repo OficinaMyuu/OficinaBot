@@ -427,13 +427,19 @@ public final class EntityContextFactory {
 
     public static Modal createTicketModal() {
         List<Label> labels = List.of(
-                Label.of("Assunto", TextInput.create("subject", toStyle(true))
-                        .setRequiredRange(5, SupportTicket.MAX_SUBJECT_LENGTH)
-                        .build()),
+                Label.of(
+                        "Assunto",
+                        "Um breve título/descrição da ocorrência.",
+                        TextInput.create("subject", toStyle(true))
+                                .setRequiredRange(5, SupportTicket.MAX_SUBJECT_LENGTH)
+                                .build()),
 
-                Label.of("body", TextInput.create("Descrição", toStyle(false))
-                        .setRequiredRange(10, SupportTicket.MAX_BODY_LENGTH)
-                        .build())
+                Label.of(
+                        "Descrição",
+                        "Você poderá adicionar mais detalhes após a criação do ticket.",
+                        TextInput.create("body", toStyle(false))
+                                .setRequiredRange(10, SupportTicket.MAX_BODY_LENGTH)
+                                .build())
         );
 
         ModalContext ctx = ModalContext.of("🎫 Novo Ticket", labels)
