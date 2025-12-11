@@ -247,7 +247,6 @@ public final class EntityInitializerManager {
                 new SteamScamBlocker(),
                 new StudyRoleHandler(),
                 new UnbanTempBanCleaner(tmpBanRepo),
-                new UnverifiedMembersRegisterBlocker(),
                 new UserGlobalNameUpdateLogger(namesRepo, userRepo),
                 new UserNameUpdateLogger(namesRepo, userRepo),
                 new UsersXPHandler(),
