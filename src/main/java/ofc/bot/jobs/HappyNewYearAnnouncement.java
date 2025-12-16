@@ -27,7 +27,7 @@ public class HappyNewYearAnnouncement implements Job {
         int year = LocalDate.now().getYear();
 
         String message = """
-                FELIZ %d!!! FELIZ ANO NOVOOO 🥳🥳🥳
+                @everyone FELIZ %d!!! FELIZ ANO NOVOOO 🥳🥳🥳
                 
                 > https://youtu.be/kL44EeYxSm8
                 """;
