@@ -3,7 +3,7 @@ package ofc.bot.listeners.discord.interactions.buttons.pagination;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import ofc.bot.commands.slash.levels.LevelsCommand;
+import ofc.bot.commands.impl.slash.levels.LevelsCommand;
 import ofc.bot.domain.sqlite.repository.UserXPRepository;
 import ofc.bot.domain.viewmodels.LevelView;
 import ofc.bot.handlers.interactions.AutoResponseType;

@@ -3,7 +3,7 @@ package ofc.bot.listeners.discord.interactions.buttons.pagination;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import ofc.bot.commands.slash.economy.TransactionsCommand;
+import ofc.bot.commands.impl.slash.economy.TransactionsCommand;
 import ofc.bot.domain.entity.BankTransaction;
 import ofc.bot.domain.entity.enums.TransactionType;
 import ofc.bot.handlers.economy.CurrencyType;
