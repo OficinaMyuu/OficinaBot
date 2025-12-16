@@ -91,6 +91,7 @@ public final class EntityInitializerManager {
                     new ColorRoleRemotionHandler(),
                     new ExpiredBanHandler(),
                     new HappyNewYearAnnouncement(),
+                    new LucianoHuckReminder(),
                     new QueryCountPrinter(),
                     new RemindersHandler(),
 
