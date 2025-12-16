@@ -38,13 +38,14 @@ public class TicketsPagination implements InteractionListener<ButtonClickContext
         SelfUser selfUser = api.getSelfUser();
         User byUser = ctx.find("by_user");
         int pageIndex = ctx.get("page_index");
-        PageItem<SupportTicket> tickets = Paginator.viewTickets(byUser, pageIndex);
         long selfId = selfUser.getIdLong();
+        PageItem<SupportTicket> tickets = Paginator.viewTickets(byUser, pageIndex);
 
         if (tickets.isEmpty())
             return Status.NO_TICKETS_FOUND;
 
         SupportTicket ticket = tickets.get(0);
+        int ticketId = ticket.getId();
         long chanId = ticket.getChannelId();
         boolean hasMore = tickets.hasMore();
         Guild guild = ctx.getGuild();
@@ -53,14 +54,14 @@ public class TicketsPagination implements InteractionListener<ButtonClickContext
 
         api.retrieveUserById(ticket.getInitiatorId()).queue(issuer -> {
             MessageEmbed embed = EmbedFactory.embedTicketPage(issuer, guild, ticket, users);
-            List<Button> buttons = EntityContextFactory.createTicketsButtons(byUser, pageIndex, hasMore);
+            List<Button> buttons = EntityContextFactory.createTicketsButtons(byUser, ticket, pageIndex, hasMore);
 
             ctx.create()
                     .setEmbeds(embed)
                     .setActionRows(buttons)
                     .edit();
         }, (err) -> { // Also ???
-            LOGGER.error("We failed to fetch the user who issued ticket {}", ticket.getId(), err);
+            LOGGER.error("We failed to fetch the user who issued ticket {}", ticketId, err);
         });
         return Status.OK;
     }

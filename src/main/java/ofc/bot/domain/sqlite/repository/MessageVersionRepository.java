@@ -6,6 +6,7 @@ import ofc.bot.domain.tables.MessagesVersionsTable;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -36,6 +37,12 @@ public class MessageVersionRepository extends Repository<MessageVersion> {
                 .where(MESSAGES_VERSIONS.CHANNEL_ID.eq(chanId))
                 .and(MESSAGES_VERSIONS.AUTHOR_ID.isNotNull())
                 .fetchSet(MESSAGES_VERSIONS.AUTHOR_ID);
+    }
+
+    public List<MessageVersion> findLastValid(long chanId) {
+        return ctx.selectFrom(MESSAGES_VERSIONS)
+                .where(MESSAGES_VERSIONS.CHANNEL_ID.eq(chanId))
+                .fetch();
     }
 
     /**

@@ -45,6 +45,10 @@ public class SupportTicketRepository extends Repository<SupportTicket> {
                 .orElse(1);
     }
 
+    public SupportTicket findById(int id) {
+        return ctx.fetchOne(SUPPORT_TICKETS, SUPPORT_TICKETS.ID.eq(id));
+    }
+
     /**
      * Checks if the given channel is (or was) a ticket channel.
      * <p>

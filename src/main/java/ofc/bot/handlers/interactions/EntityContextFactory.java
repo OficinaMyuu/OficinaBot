@@ -183,23 +183,30 @@ public final class EntityContextFactory {
     }
 
     public static List<Button> createTicketsButtons(net.dv8tion.jda.api.entities.User byUser, // jfc
-                                                    int pageIndex, boolean hasNext) {
+                                                    SupportTicket ticket, int pageIndex, boolean hasNext
+    ) {
         boolean hasPrev = pageIndex > 0;
+
+        ButtonContext getMessages = ButtonContext.success("Baixar", Bot.Emojis.DOWNLOAD)
+                .setScope(Scopes.Tickets.DOWNLOAD_MESSAGES)
+                .put("ticket", ticket);
 
         ButtonContext prev = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_LEFT)
                 .setScope(Scopes.Tickets.PAGINATE_TICKETS)
                 .put("by_user", byUser)
                 .put("page_index", pageIndex - 1)
+                .put("ticket", ticket)
                 .setEnabled(hasPrev);
 
         ButtonContext next = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_RIGHT)
                 .setScope(Scopes.Tickets.PAGINATE_TICKETS)
                 .put("by_user", byUser)
                 .put("page_index", pageIndex + 1)
+                .put("ticket", ticket)
                 .setEnabled(hasNext);
 
         INTERACTION_MANAGER.save(prev, next);
-        return List.of(prev.getEntity(), next.getEntity());
+        return List.of(getMessages.getEntity(), prev.getEntity(), next.getEntity());
     }
 
     public static List<Button> createNamesHistoryButtons(NameScope type, long targetId, int currentOffset, boolean hasNext) {

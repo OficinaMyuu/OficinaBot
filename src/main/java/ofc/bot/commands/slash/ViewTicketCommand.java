@@ -55,7 +55,7 @@ public class ViewTicketCommand extends SlashCommand {
 
         api.retrieveUserById(ticket.getInitiatorId()).queue(issuer -> {
             MessageEmbed embed = EmbedFactory.embedTicketPage(issuer, guild, ticket, users);
-            List<Button> buttons = EntityContextFactory.createTicketsButtons(byUser, 0, hasMore);
+            List<Button> buttons = EntityContextFactory.createTicketsButtons(byUser, ticket, 0, hasMore);
 
             ctx.create()
                     .setEmbeds(embed)
