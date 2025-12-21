@@ -9,6 +9,13 @@ public class MentionLog extends OficinaRecord<MentionLog> {
         super(MENTIONS_LOG);
     }
 
+    public MentionLog(long msgId, long authorId, long mentionedId) {
+        this();
+        set(MENTIONS_LOG.MSG_ID, msgId);
+        set(MENTIONS_LOG.AUTHOR_ID, authorId);
+        set(MENTIONS_LOG.MENTIONED_ID, mentionedId);
+    }
+
     public int getId() {
         return get(MENTIONS_LOG.ID);
     }
