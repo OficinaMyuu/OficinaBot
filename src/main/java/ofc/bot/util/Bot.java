@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.restaction.CacheRestAction;
@@ -32,6 +33,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
 public final class Bot {
+    public static final DiscordLocale DEFAULT_DISCORD_LOCALE = DiscordLocale.PORTUGUESE_BRAZILIAN;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
     private static final Locale LOCALE = Locale.of("pt", "BR");
     private static final String KEY_FEMALE_ID = "roles.genders.female.id";
