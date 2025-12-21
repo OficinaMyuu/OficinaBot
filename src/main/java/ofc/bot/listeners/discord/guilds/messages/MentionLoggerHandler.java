@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ofc.bot.domain.entity.MentionLog;
 import ofc.bot.domain.sqlite.repository.MentionLogRepository;
+import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 import org.apache.commons.collections4.Bag;
 
@@ -26,9 +27,10 @@ public class MentionLoggerHandler extends ListenerAdapter {
         Bag<User> mentions = msg.getMentions().getUsersBag();
         long msgId = msg.getIdLong();
         long authorId = author.getIdLong();
+        long now = Bot.nowMillis();
 
         mentions.forEach((mnt) -> {
-            MentionLog entry = new MentionLog(msgId, authorId, mnt.getIdLong());
+            MentionLog entry = new MentionLog(msgId, authorId, mnt.getIdLong(), now);
             mentionLogRepo.save(entry);
         });
     }

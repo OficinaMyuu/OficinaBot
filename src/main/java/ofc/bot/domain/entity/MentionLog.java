@@ -9,11 +9,12 @@ public class MentionLog extends OficinaRecord<MentionLog> {
         super(MENTIONS_LOG);
     }
 
-    public MentionLog(long msgId, long authorId, long mentionedId) {
+    public MentionLog(long msgId, long authorId, long mentionedId, long timestamp) {
         this();
         set(MENTIONS_LOG.MSG_ID, msgId);
         set(MENTIONS_LOG.AUTHOR_ID, authorId);
         set(MENTIONS_LOG.MENTIONED_ID, mentionedId);
+        set(MENTIONS_LOG.CREATED_AT, timestamp);
     }
 
     public int getId() {
