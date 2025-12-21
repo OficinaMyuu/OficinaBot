@@ -9,6 +9,15 @@ public class VoiceHeartbeat extends OficinaRecord<VoiceHeartbeat> {
         super(VOICE_HEARTBEATS);
     }
 
+    public VoiceHeartbeat(long userId, long channelId, boolean isMuted, boolean isDeafened, long timestamp) {
+        this();
+        set(VOICE_HEARTBEATS.USER_ID, userId);
+        set(VOICE_HEARTBEATS.CHANNEL_ID, channelId);
+        set(VOICE_HEARTBEATS.IS_MUTED, isMuted);
+        set(VOICE_HEARTBEATS.IS_DEAFENED, isDeafened);
+        set(VOICE_HEARTBEATS.CREATED_AT, timestamp);
+    }
+
     public int getId() {
         return get(VOICE_HEARTBEATS.ID);
     }
