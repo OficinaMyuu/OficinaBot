@@ -194,23 +194,24 @@ public final class EntityInitializerManager {
     private static void registerDiscordListeners() {
         JDA api = Main.getApi();
         var msgTrscptRepo = Repositories.getMessageTranscriptionRepository();
-        var rolesRepo     = Repositories.getFormerMemberRoleRepository();
-        var pnshRepo      = Repositories.getMemberPunishmentRepository();
-        var colorsRepo    = Repositories.getColorRoleStateRepository();
-        var cmdRepo       = Repositories.getCommandHistoryRepository();
-        var msgVrsRepo    = Repositories.getMessageVersionRepository();
-        var namesRepo     = Repositories.getUserNameUpdateRepository();
-        var usprefRepo    = Repositories.getUserPreferenceRepository();
-        var modActRepo    = Repositories.getAutomodActionRepository();
-        var ticketRepo    = Repositories.getSupportTicketRepository();
-        var grpRepo       = Repositories.getOficinaGroupRepository();
+        var rolesRepo = Repositories.getFormerMemberRoleRepository();
+        var pnshRepo = Repositories.getMemberPunishmentRepository();
+        var colorsRepo = Repositories.getColorRoleStateRepository();
+        var usprefRepo = Repositories.getUserPreferenceRepository();
+        var mentionLogRepo = Repositories.getMentionLogRepository();
         var blckWordsRepo = Repositories.getBlockedWordRepository();
-        var ecoRepo       = Repositories.getUserEconomyRepository();
-        var appBanRepo    = Repositories.getAppUserBanRepository();
-        var grpBotRepo    = Repositories.getGroupBotRepository();
-        var tmpBanRepo    = Repositories.getTempBanRepository();
-        var xpRepo        = Repositories.getUserXPRepository();
-        var userRepo      = Repositories.getUserRepository();
+        var msgVrsRepo = Repositories.getMessageVersionRepository();
+        var namesRepo = Repositories.getUserNameUpdateRepository();
+        var modActRepo = Repositories.getAutomodActionRepository();
+        var ticketRepo = Repositories.getSupportTicketRepository();
+        var cmdRepo = Repositories.getCommandHistoryRepository();
+        var appBanRepo = Repositories.getAppUserBanRepository();
+        var grpRepo = Repositories.getOficinaGroupRepository();
+        var ecoRepo = Repositories.getUserEconomyRepository();
+        var grpBotRepo = Repositories.getGroupBotRepository();
+        var tmpBanRepo = Repositories.getTempBanRepository();
+        var xpRepo = Repositories.getUserXPRepository();
+        var userRepo = Repositories.getUserRepository();
 
         api.addEventListener(
                 new AutoModerator(blckWordsRepo, pnshRepo, modActRepo, ticketRepo),
@@ -230,6 +231,7 @@ public final class EntityInitializerManager {
                 new LeaveGroupCommand.FakePISuggester(),
                 new LogTimeout(),
                 new LorittaDailySpamBlocker(),
+                new MentionLoggerHandler(mentionLogRepo),
                 new MemberJoinUpsert(),
                 new MemberNickUpdateLogger(namesRepo, userRepo),
                 new MemberRolesBackup(rolesRepo, xpRepo),
