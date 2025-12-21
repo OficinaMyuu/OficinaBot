@@ -36,6 +36,7 @@ public final class Repositories {
     private static UserRepository userRepository;
     private static UserSubscriptionRepository userSubscriptionRepository;
     private static UserXPRepository userXPRepository;
+    private static VoiceHeartbeatRepository voiceHeartbeatRepository;
 
     private Repositories() {}
 
@@ -197,6 +198,11 @@ public final class Repositories {
     public static UserXPRepository getUserXPRepository() {
         if (userXPRepository == null) userXPRepository = new UserXPRepository(getDSLContext());
         return userXPRepository;
+    }
+
+    public static VoiceHeartbeatRepository getVoiceHeartbeatRepository() {
+        if (voiceHeartbeatRepository == null) voiceHeartbeatRepository = new VoiceHeartbeatRepository(getDSLContext());
+        return voiceHeartbeatRepository;
     }
 
     private static DSLContext getDSLContext() {
