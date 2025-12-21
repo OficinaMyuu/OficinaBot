@@ -1,6 +1,6 @@
 package ofc.bot.jobs;
 
-import ofc.bot.commands.slash.relationships.MarryCommand;
+import ofc.bot.commands.impl.slash.relationships.MarryCommand;
 import ofc.bot.domain.entity.Marriage;
 import ofc.bot.domain.entity.UserEconomy;
 import ofc.bot.domain.entity.enums.PolicyType;

@@ -2,7 +2,7 @@ package ofc.bot.handlers;
 
 import net.dv8tion.jda.api.JDA;
 import ofc.bot.Main;
-import ofc.bot.commands.slash.groups.LeaveGroupCommand;
+import ofc.bot.commands.impl.slash.groups.LeaveGroupCommand;
 import ofc.bot.domain.sqlite.repository.*;
 import ofc.bot.events.eventbus.EventBus;
 import ofc.bot.handlers.cache.PolicyService;
