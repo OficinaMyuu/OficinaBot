@@ -82,6 +82,8 @@ public final class EntityInitializerManager {
     }
 
     public static void initializeCronJobs() {
+        VoiceHeartbeatRepository vcHeartbeatRepo = Repositories.getVoiceHeartbeatRepository();
+
         try {
             SchedulerRegistryManager.initializeSchedulers(
                     new ExpiredBackupsRemover(),
@@ -94,6 +96,7 @@ public final class EntityInitializerManager {
                     new LucianoHuckReminder(),
                     new QueryCountPrinter(),
                     new RemindersHandler(),
+                    new VoiceHeartbeatCounter(vcHeartbeatRepo),
 
                     // Voice Income
                     new VoiceChatMoneyHandler(),
