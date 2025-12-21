@@ -63,6 +63,7 @@ public final class DB {
                 MarriagesTable.MARRIAGES,
                 MembersEmojisTable.MEMBERS_EMOJIS,
                 MembersPunishmentsTable.MEMBERS_PUNISHMENTS,
+                MentionsLogTable.MENTIONS_LOG,
                 MessagesTranscriptionsTable.MESSAGES_TRANSCRIPTIONS,
                 MessagesVersionsTable.MESSAGE_VERSIONS,
                 OficinaGroupsTable.OFICINA_GROUPS,

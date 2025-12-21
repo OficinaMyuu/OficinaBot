@@ -23,6 +23,7 @@ public final class Repositories {
     private static MarriageRequestRepository marriageRequestRepository;
     private static MemberEmojiRepository memberEmojiRepository;
     private static MemberPunishmentRepository memberPunishmentRepository;
+    private static MentionLogRepository mentionLogRepository;
     private static MessageTranscriptionRepository messageTranscriptionRepository;
     private static MessageVersionRepository messageVersionRepository;
     private static OficinaGroupRepository oficinaGroupRepository;
@@ -131,6 +132,11 @@ public final class Repositories {
     public static MemberPunishmentRepository getMemberPunishmentRepository() {
         if (memberPunishmentRepository == null) memberPunishmentRepository = new MemberPunishmentRepository(getDSLContext());
         return memberPunishmentRepository;
+    }
+
+    public static MentionLogRepository getMentionLogRepository() {
+        if (mentionLogRepository == null) mentionLogRepository = new MentionLogRepository(getDSLContext());
+        return mentionLogRepository;
     }
 
     public static MessageTranscriptionRepository getMessageTranscriptionRepository() {
