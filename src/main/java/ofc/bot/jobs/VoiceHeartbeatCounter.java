@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import ofc.bot.Main;
 import ofc.bot.domain.entity.VoiceHeartbeat;
+import ofc.bot.domain.sqlite.repository.Repositories;
 import ofc.bot.domain.sqlite.repository.VoiceHeartbeatRepository;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.jobs.CronJob;
@@ -16,11 +17,7 @@ import java.util.List;
 
 @CronJob(expression = "0 * * ? * * *") // Every minute
 public class VoiceHeartbeatCounter implements Job {
-    private final VoiceHeartbeatRepository vcHeartbeatRepo;
-
-    public VoiceHeartbeatCounter(VoiceHeartbeatRepository vcHeartbeatRepo) {
-        this.vcHeartbeatRepo = vcHeartbeatRepo;
-    }
+    private final VoiceHeartbeatRepository vcHeartbeatRepo = Repositories.getVoiceHeartbeatRepository();
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
