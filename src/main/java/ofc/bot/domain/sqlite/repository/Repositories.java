@@ -23,6 +23,7 @@ public final class Repositories {
     private static MarriageRequestRepository marriageRequestRepository;
     private static MemberEmojiRepository memberEmojiRepository;
     private static MemberPunishmentRepository memberPunishmentRepository;
+    private static MentionLogRepository mentionLogRepository;
     private static MessageTranscriptionRepository messageTranscriptionRepository;
     private static MessageVersionRepository messageVersionRepository;
     private static OficinaGroupRepository oficinaGroupRepository;
@@ -35,6 +36,7 @@ public final class Repositories {
     private static UserRepository userRepository;
     private static UserSubscriptionRepository userSubscriptionRepository;
     private static UserXPRepository userXPRepository;
+    private static VoiceHeartbeatRepository voiceHeartbeatRepository;
 
     private Repositories() {}
 
@@ -133,6 +135,11 @@ public final class Repositories {
         return memberPunishmentRepository;
     }
 
+    public static MentionLogRepository getMentionLogRepository() {
+        if (mentionLogRepository == null) mentionLogRepository = new MentionLogRepository(getDSLContext());
+        return mentionLogRepository;
+    }
+
     public static MessageTranscriptionRepository getMessageTranscriptionRepository() {
         if (messageTranscriptionRepository == null) messageTranscriptionRepository = new MessageTranscriptionRepository(getDSLContext());
         return messageTranscriptionRepository;
@@ -191,6 +198,11 @@ public final class Repositories {
     public static UserXPRepository getUserXPRepository() {
         if (userXPRepository == null) userXPRepository = new UserXPRepository(getDSLContext());
         return userXPRepository;
+    }
+
+    public static VoiceHeartbeatRepository getVoiceHeartbeatRepository() {
+        if (voiceHeartbeatRepository == null) voiceHeartbeatRepository = new VoiceHeartbeatRepository(getDSLContext());
+        return voiceHeartbeatRepository;
     }
 
     private static DSLContext getDSLContext() {

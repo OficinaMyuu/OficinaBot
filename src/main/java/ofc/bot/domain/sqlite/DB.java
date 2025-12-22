@@ -63,6 +63,7 @@ public final class DB {
                 MarriagesTable.MARRIAGES,
                 MembersEmojisTable.MEMBERS_EMOJIS,
                 MembersPunishmentsTable.MEMBERS_PUNISHMENTS,
+                MentionsLogTable.MENTIONS_LOG,
                 MessagesTranscriptionsTable.MESSAGES_TRANSCRIPTIONS,
                 MessagesVersionsTable.MESSAGE_VERSIONS,
                 OficinaGroupsTable.OFICINA_GROUPS,
@@ -74,7 +75,8 @@ public final class DB {
                 UsersPreferencesTable.USERS_PREFERENCES,
                 UsersTable.USERS,
                 UsersSubscriptionsTable.USERS_SUBSCRIPTIONS,
-                UsersXPTable.USERS_XP
+                UsersXPTable.USERS_XP,
+                VoiceHeartbeatsTable.VOICE_HEARTBEATS
         );
     }
 

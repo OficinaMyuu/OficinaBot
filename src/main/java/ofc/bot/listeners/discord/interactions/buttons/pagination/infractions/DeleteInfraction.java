@@ -3,7 +3,7 @@ package ofc.bot.listeners.discord.interactions.buttons.pagination.infractions;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import ofc.bot.commands.slash.moderation.InfractionsCommand;
+import ofc.bot.commands.impl.slash.moderation.InfractionsCommand;
 import ofc.bot.domain.entity.MemberPunishment;
 import ofc.bot.domain.sqlite.repository.MemberPunishmentRepository;
 import ofc.bot.handlers.interactions.AutoResponseType;

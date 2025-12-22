@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ofc.bot.Main;
-import ofc.bot.commands.slash.economy.WorkCommand;
+import ofc.bot.commands.impl.slash.economy.WorkCommand;
 import ofc.bot.domain.entity.UserEconomy;
 import ofc.bot.domain.sqlite.repository.Repositories;
 import ofc.bot.domain.sqlite.repository.UserEconomyRepository;

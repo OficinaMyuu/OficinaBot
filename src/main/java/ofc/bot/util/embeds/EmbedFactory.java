@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.redhogs.cronparser.CronExpressionDescriptor;
-import ofc.bot.commands.slash.economy.LeaderboardCommand;
+import ofc.bot.commands.impl.slash.economy.LeaderboardCommand;
 import ofc.bot.domain.entity.*;
 import ofc.bot.domain.entity.enums.*;
 import ofc.bot.domain.viewmodels.*;

@@ -1,7 +1,7 @@
 package ofc.bot.domain.sqlite.repository;
 
 import net.dv8tion.jda.internal.utils.Checks;
-import ofc.bot.commands.slash.economy.LeaderboardCommand;
+import ofc.bot.commands.impl.slash.economy.LeaderboardCommand;
 import ofc.bot.domain.abstractions.InitializableTable;
 import ofc.bot.domain.entity.UserEconomy;
 import ofc.bot.domain.sqlite.MapperFactory;
