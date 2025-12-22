@@ -1,6 +1,7 @@
 ## Pull Request Changes
 
 - [ ] Internal Code
+- [ ] Database / Migrations (schema changes)
 - [ ] Discord Interface (affecting end-user experience)
 - [ ] Documentation
 - [ ] Other: \_____
