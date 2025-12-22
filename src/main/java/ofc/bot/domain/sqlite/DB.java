@@ -50,6 +50,7 @@ public final class DB {
                 BetGamesTable.BET_GAMES,
                 BirthdaysTable.BIRTHDAYS,
                 BlockedWordsTable.BLOCKED_WORDS,
+                ColorRoleItemsTable.COLOR_ROLE_ITEMS,
                 ColorRolesStateTable.COLOR_ROLES_STATES,
                 CommandsHistoryTable.COMMANDS_HISTORY,
                 CustomUserinfoTable.CUSTOM_USERINFO,

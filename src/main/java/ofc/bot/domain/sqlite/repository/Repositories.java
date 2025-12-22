@@ -10,6 +10,7 @@ public final class Repositories {
     private static BetGameRepository gameRepository;
     private static BirthdayRepository birthdayRepository;
     private static BlockedWordRepository blockedWordRepository;
+    private static ColorRoleItemRepository colorRoleItemRepository;
     private static ColorRoleStateRepository colorRoleStateRepository;
     private static CommandHistoryRepository commandHistoryRepository;
     private static CustomUserinfoRepository customUserinfoRepository;
@@ -68,6 +69,11 @@ public final class Repositories {
     public static BlockedWordRepository getBlockedWordRepository() {
         if (blockedWordRepository == null) blockedWordRepository = new BlockedWordRepository(getDSLContext());
         return blockedWordRepository;
+    }
+
+    public static ColorRoleItemRepository getColorRoleItemRepository() {
+        if (colorRoleItemRepository == null) colorRoleItemRepository = new ColorRoleItemRepository(getDSLContext());
+        return colorRoleItemRepository;
     }
 
     public static ColorRoleStateRepository getColorRoleStateRepository() {
