@@ -26,7 +26,6 @@ import ofc.bot.listeners.discord.guilds.members.MemberJoinUpsert;
 import ofc.bot.listeners.discord.guilds.messages.*;
 import ofc.bot.listeners.discord.guilds.reactionroles.BotChangelogRoleHandler;
 import ofc.bot.listeners.discord.guilds.reactionroles.StudyRoleHandler;
-import ofc.bot.listeners.discord.guilds.roles.ColorRoleHandler;
 import ofc.bot.listeners.discord.guilds.roles.MemberRolesBackup;
 import ofc.bot.listeners.discord.guilds.voice.solo.SoloChannelsHandler;
 import ofc.bot.listeners.discord.interactions.GenericInteractionLocaleUpsert;
@@ -39,6 +38,8 @@ import ofc.bot.listeners.discord.interactions.buttons.pagination.infractions.Del
 import ofc.bot.listeners.discord.interactions.buttons.pagination.infractions.InfractionsPageUpdate;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.reminders.DeleteReminder;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.reminders.RemindersPageUpdate;
+import ofc.bot.listeners.discord.interactions.buttons.shop.ColorRolePurchaseHandler;
+import ofc.bot.listeners.discord.interactions.buttons.shop.ColorRoleRemoveHandler;
 import ofc.bot.listeners.discord.interactions.buttons.tickets.CloseTicketHandler;
 import ofc.bot.listeners.discord.interactions.dm.DirectMessageReceived;
 import ofc.bot.listeners.discord.interactions.menus.ChoosableRolesListener;
@@ -121,20 +122,21 @@ public final class EntityInitializerManager {
     }
 
     public static void registerComposedInteractions() {
-        var pnshRepo     = Repositories.getMemberPunishmentRepository();
+        var colorStateRepo = Repositories.getColorRoleStateRepository();
         var betUsersRepo = Repositories.getGameParticipantRepository();
-        var mreqRepo     = Repositories.getMarriageRequestRepository();
-        var msgVrsRepo   = Repositories.getMessageVersionRepository();
-        var namesRepo    = Repositories.getUserNameUpdateRepository();
-        var ticketRepo   = Repositories.getSupportTicketRepository();
-        var policyRepo   = Repositories.getEntityPolicyRepository();
-        var grpRepo      = Repositories.getOficinaGroupRepository();
-        var ecoRepo      = Repositories.getUserEconomyRepository();
-        var appBanRepo   = Repositories.getAppUserBanRepository();
-        var bdayRepo     = Repositories.getBirthdayRepository();
-        var remRepo      = Repositories.getReminderRepository();
-        var betRepo      = Repositories.getBetGameRepository();
-        var xpRepo       = Repositories.getUserXPRepository();
+        var pnshRepo = Repositories.getMemberPunishmentRepository();
+        var msgVrsRepo = Repositories.getMessageVersionRepository();
+        var mreqRepo = Repositories.getMarriageRequestRepository();
+        var namesRepo = Repositories.getUserNameUpdateRepository();
+        var ticketRepo = Repositories.getSupportTicketRepository();
+        var policyRepo = Repositories.getEntityPolicyRepository();
+        var appBanRepo = Repositories.getAppUserBanRepository();
+        var grpRepo = Repositories.getOficinaGroupRepository();
+        var ecoRepo = Repositories.getUserEconomyRepository();
+        var bdayRepo = Repositories.getBirthdayRepository();
+        var remRepo = Repositories.getReminderRepository();
+        var betRepo = Repositories.getBetGameRepository();
+        var xpRepo = Repositories.getUserXPRepository();
 
         InteractionMemoryManager.getManager().registerListeners(
                 // Infractions
@@ -153,6 +155,10 @@ public final class EntityInitializerManager {
                 new ProposalListPagination(mreqRepo),
                 new TicketsPagination(msgVrsRepo),
                 new TransactionsPagination(),
+
+                // Shop
+                new ColorRolePurchaseHandler(colorStateRepo),
+                new ColorRoleRemoveHandler(colorStateRepo),
 
                 // Groups' commands confirmation handlers
                 new GroupBotAddHandler(),
@@ -196,7 +202,6 @@ public final class EntityInitializerManager {
         var msgTrscptRepo = Repositories.getMessageTranscriptionRepository();
         var rolesRepo = Repositories.getFormerMemberRoleRepository();
         var pnshRepo = Repositories.getMemberPunishmentRepository();
-        var colorsRepo = Repositories.getColorRoleStateRepository();
         var usprefRepo = Repositories.getUserPreferenceRepository();
         var mentionLogRepo = Repositories.getMentionLogRepository();
         var blckWordsRepo = Repositories.getBlockedWordRepository();
@@ -222,7 +227,6 @@ public final class EntityInitializerManager {
                 new ChatMoneyHandler(ecoRepo),
                 new ChoosableRolesListener(),
                 new CloseTicketHandler(),
-                new ColorRoleHandler(colorsRepo),
                 new DirectMessageReceived(),
                 new ErikPingReactionHelper(),
                 new GenericInteractionLocaleUpsert(usprefRepo),
