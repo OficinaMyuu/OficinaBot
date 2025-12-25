@@ -2,6 +2,7 @@ package ofc.bot.handlers;
 
 import net.dv8tion.jda.api.JDA;
 import ofc.bot.Main;
+import ofc.bot.commands.impl.slash.colors.AddColorRoleCommand;
 import ofc.bot.commands.impl.slash.colors.RemoveColorRoleCommand;
 import ofc.bot.commands.impl.slash.groups.LeaveGroupCommand;
 import ofc.bot.domain.sqlite.repository.*;
@@ -202,6 +203,7 @@ public final class EntityInitializerManager {
         JDA api = Main.getApi();
         var msgTrscptRepo = Repositories.getMessageTranscriptionRepository();
         var colorStateRepo = Repositories.getColorRoleStateRepository();
+        var colorItemRepo = Repositories.getColorRoleItemRepository();
         var rolesRepo = Repositories.getFormerMemberRoleRepository();
         var pnshRepo = Repositories.getMemberPunishmentRepository();
         var usprefRepo = Repositories.getUserPreferenceRepository();
@@ -221,6 +223,7 @@ public final class EntityInitializerManager {
         var userRepo = Repositories.getUserRepository();
 
         api.addEventListener(
+                new AddColorRoleCommand.ColorRoleListAutocompletionHandler(colorItemRepo),
                 new AutoModerator(blckWordsRepo, pnshRepo, modActRepo, ticketRepo),
                 new AutoModLogger(),
                 new BlockDumbCommands(),
