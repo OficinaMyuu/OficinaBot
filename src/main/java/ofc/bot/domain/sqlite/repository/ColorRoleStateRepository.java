@@ -22,11 +22,6 @@ public class ColorRoleStateRepository extends Repository<ColorRoleState> {
         return COLOR_ROLES_STATE;
     }
 
-    public ColorRoleState findByUserAndRoleId(long userId, long roleId, ColorRoleState fallback) {
-        ColorRoleState base = findByUserAndRoleId(userId, roleId);
-        return base == null ? fallback : base;
-    }
-
     public ColorRoleState findByUserAndRoleId(long userId, long roleId) {
         return ctx.selectFrom(COLOR_ROLES_STATE)
                 .where(COLOR_ROLES_STATE.USER_ID.eq(userId))
