@@ -6,9 +6,7 @@ import net.dv8tion.jda.api.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.modals.Modal;
@@ -292,6 +290,26 @@ public final class EntityContextFactory {
             }
         }
         return buttons;
+    }
+
+    public static List<Button> createColorRoleButtons(ColorRoleItem color, Role role, User user) {
+        ButtonContext payOfc = ButtonContext.success("Pagar com Oficina", CurrencyType.OFICINA.getEmoji())
+                .setScope(Scopes.Shop.ADD_COLOR_ROLE)
+                .addUser(user.getIdLong())
+                .put("currency", CurrencyType.OFICINA)
+                .put("user", user)
+                .put("color", color)
+                .put("role", role);
+
+        ButtonContext payUnb = ButtonContext.secondary("Pagar com UnbelievaBoat", CurrencyType.UNBELIEVABOAT.getEmoji())
+                .setScope(Scopes.Shop.ADD_COLOR_ROLE)
+                .put("currency", CurrencyType.UNBELIEVABOAT)
+                .put("user", user)
+                .put("color", color)
+                .put("role", role);
+
+        INTERACTION_MANAGER.save(payOfc, payUnb);
+        return List.of(payOfc.getEntity(), payUnb.getEntity());
     }
 
     public static Button createGroupChannelConfirm(OficinaGroup group, ChannelType channelType, int price) {
