@@ -9,6 +9,9 @@ import ofc.bot.commands.impl.slash.*;
 import ofc.bot.commands.impl.slash.additionals.AdditionalRolesCommand;
 import ofc.bot.commands.impl.slash.bets.BetTicTacToeCommand;
 import ofc.bot.commands.impl.slash.birthday.*;
+import ofc.bot.commands.impl.slash.colors.AddColorRoleCommand;
+import ofc.bot.commands.impl.slash.colors.ListColorsRolesCommand;
+import ofc.bot.commands.impl.slash.colors.RemoveColorRoleCommand;
 import ofc.bot.commands.impl.slash.economy.*;
 import ofc.bot.commands.impl.slash.groups.*;
 import ofc.bot.commands.impl.slash.groups.channel.CreateGroupChannelCommand;
@@ -44,25 +47,27 @@ public final class CommandsInitializer {
      */
     public static void initializeSlashCommands() {
         SlashCommandsRegistryManager registry = SlashCommandsRegistryManager.getManager();
-        var bckpRepo      = Repositories.getFormerMemberRoleRepository();
-        var pnshRepo      = Repositories.getMemberPunishmentRepository();
-        var mreqRepo      = Repositories.getMarriageRequestRepository();
-        var csinfoRepo    = Repositories.getCustomUserinfoRepository();
-        var msgVrsRepo    = Repositories.getMessageVersionRepository();
-        var namesRepo     = Repositories.getUserNameUpdateRepository();
-        var modActRepo    = Repositories.getAutomodActionRepository();
-        var policyRepo    = Repositories.getEntityPolicyRepository();
-        var grpRepo       = Repositories.getOficinaGroupRepository();
-        var emjRepo       = Repositories.getMemberEmojiRepository();
-        var ecoRepo       = Repositories.getUserEconomyRepository();
-        var lvlRoleRepo   = Repositories.getLevelRoleRepository();
-        var bdayRepo      = Repositories.getBirthdayRepository();
-        var grpBotRepo    = Repositories.getGroupBotRepository();
-        var marrRepo      = Repositories.getMarriageRepository();
-        var remRepo       = Repositories.getReminderRepository();
-        var tmpBanRepo    = Repositories.getTempBanRepository();
-        var xpRepo        = Repositories.getUserXPRepository();
-        var userRepo      = Repositories.getUserRepository();
+        var colorStateRepo = Repositories.getColorRoleStateRepository();
+        var colorItemRepo = Repositories.getColorRoleItemRepository();
+        var bckpRepo = Repositories.getFormerMemberRoleRepository();
+        var pnshRepo = Repositories.getMemberPunishmentRepository();
+        var csinfoRepo = Repositories.getCustomUserinfoRepository();
+        var msgVrsRepo = Repositories.getMessageVersionRepository();
+        var namesRepo = Repositories.getUserNameUpdateRepository();
+        var modActRepo = Repositories.getAutomodActionRepository();
+        var mreqRepo = Repositories.getMarriageRequestRepository();
+        var policyRepo = Repositories.getEntityPolicyRepository();
+        var lvlRoleRepo = Repositories.getLevelRoleRepository();
+        var grpRepo = Repositories.getOficinaGroupRepository();
+        var emjRepo = Repositories.getMemberEmojiRepository();
+        var ecoRepo = Repositories.getUserEconomyRepository();
+        var grpBotRepo = Repositories.getGroupBotRepository();
+        var tmpBanRepo = Repositories.getTempBanRepository();
+        var bdayRepo = Repositories.getBirthdayRepository();
+        var marrRepo = Repositories.getMarriageRepository();
+        var remRepo = Repositories.getReminderRepository();
+        var xpRepo = Repositories.getUserXPRepository();
+        var userRepo = Repositories.getUserRepository();
 
         // Additionals
         SlashCommand additionals = new EmptySlashCommand("additionals", "Gerencia recursos adicionais/misc do bot.", Permission.MANAGE_SERVER)
@@ -75,6 +80,12 @@ public final class CommandsInitializer {
         SlashCommand birthday = new EmptySlashCommand("birthday", "Gerencia os aniversários.", Permission.MANAGE_SERVER)
                 .addSubcommand(new BirthdayAddCommand(bdayRepo, policyRepo))
                 .addSubcommand(new BirthdayRemoveCommand(bdayRepo));
+
+        // Colors
+        SlashCommand colors = new EmptySlashCommand("color", "Auxilia nos cargos de cor do servidor.")
+                .addSubcommand(new AddColorRoleCommand(colorItemRepo))
+                .addSubcommand(new RemoveColorRoleCommand(colorStateRepo, colorItemRepo))
+                .addSubcommand(new ListColorsRolesCommand(colorItemRepo));
 
         // Policies
         SlashCommand policies = new EmptySlashCommand("policies", "Gerencia as regras dos módulos do bot.", Permission.MANAGE_SERVER)
@@ -191,6 +202,7 @@ public final class CommandsInitializer {
         registry.register(additionals);
         registry.register(bets);
         registry.register(birthday);
+        registry.register(colors);
         registry.register(policies);
         registry.register(marriage);
         registry.register(remind);
