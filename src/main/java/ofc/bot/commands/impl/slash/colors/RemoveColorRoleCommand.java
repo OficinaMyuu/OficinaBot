@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.AutoCompleteQuery;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -98,21 +99,24 @@ public class RemoveColorRoleCommand extends SlashSubcommand {
             String fullName = e.getFullCommandName();
             Guild guild = e.getGuild();
             User user = e.getUser();
-            String focused = e.getFocusedOption().getName();
+            AutoCompleteQuery focused = e.getFocusedOption();
+            String focusName = focused.getName();
             long userId = user.getIdLong();
 
-            if (!fullName.equals("color remove") || !focused.equals("color")) return;
+            if (!fullName.equals("color remove") || !focusName.equals("color")) return;
 
+            String search = focused.getName().strip().toLowerCase();
             List<ColorRoleState> roles = colorStateRepo.findByUserId(userId);
-            List<Command.Choice> choices = toChoices(guild, roles);
+            List<Command.Choice> choices = toChoices(search, guild, roles);
 
             e.replyChoices(choices).queue();
         }
 
-        private List<Command.Choice> toChoices(Guild guild, List<ColorRoleState> roles) {
+        private List<Command.Choice> toChoices(String search, Guild guild, List<ColorRoleState> roles) {
             return roles.stream()
                     .map(crs -> guild.getRoleById(crs.getRoleId()))
                     .filter(Objects::nonNull)
+                    .filter(r -> r.getName().toLowerCase().contains(search))
                     .map(r -> new Command.Choice(r.getName(), r.getId()))
                     .toList();
         }

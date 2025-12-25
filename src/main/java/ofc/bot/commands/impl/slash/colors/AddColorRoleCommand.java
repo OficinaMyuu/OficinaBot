@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.AutoCompleteQuery;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -88,21 +89,23 @@ public class AddColorRoleCommand extends SlashSubcommand {
         public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent e) {
             String fullName = e.getFullCommandName();
             Guild guild = e.getGuild();
-            User user = e.getUser();
-            String focused = e.getFocusedOption().getName();
+            AutoCompleteQuery focused = e.getFocusedOption();
+            String focusName = focused.getName();
 
-            if (!fullName.equals("color add") || !focused.equals("color")) return;
+            if (!fullName.equals("color add") || !focusName.equals("color")) return;
 
+            String search = focused.getValue().strip().toLowerCase();
             List<ColorRoleItem> colors = colorItemRepo.findAll();
-            List<Command.Choice> choices = toChoices(guild, colors);
+            List<Command.Choice> choices = toChoices(search, guild, colors);
 
             e.replyChoices(choices).queue();
         }
 
-        private List<Command.Choice> toChoices(Guild guild, List<ColorRoleItem> colors) {
+        private List<Command.Choice> toChoices(String search, Guild guild, List<ColorRoleItem> colors) {
             return colors.stream()
                     .map(cri -> guild.getRoleById(cri.getRoleId()))
                     .filter(Objects::nonNull)
+                    .filter(r -> r.getName().toLowerCase().contains(search))
                     .map(r -> new Command.Choice(r.getName(), r.getId()))
                     .toList();
         }
