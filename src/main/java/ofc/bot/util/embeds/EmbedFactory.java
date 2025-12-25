@@ -113,6 +113,19 @@ public final class EmbedFactory {
                 .build();
     }
 
+    public static MessageEmbed embedColorRolesList(Guild guild, List<ColorRoleItem> roles) {
+        EmbedBuilder builder = new EmbedBuilder();
+        String prettyRoles = prettifyRoles(roles);
+        String desc = String.format("Abaixo estão todos os cargos de cor disponíveis.\n\n%s", prettyRoles);
+
+        return builder
+                .setTitle("Cargos de Cor")
+                .setDescription(desc)
+                .setColor(Bot.Colors.DEFAULT)
+                .setFooter(guild.getName(), guild.getIconUrl())
+                .build();
+    }
+
     public static MessageEmbed embedReminder(User user, Reminder rem) {
         OficinaEmbed builder = new OficinaEmbed();
 
@@ -334,6 +347,22 @@ public final class EmbedFactory {
                 .setAuthor(head, null, penalized.getEffectiveAvatarUrl())
                 .appendDescf("⚠️ Penalizado em %s por inatividade.", Bot.fmtMoney(amount))
                 .setColor(DANGER_RED)
+                .build();
+    }
+
+    public static MessageEmbed embedColorRolePurchase(ColorRoleItem color, Role role, User user) {
+        EmbedBuilder builder = new EmbedBuilder();
+        Guild guild = role.getGuild();
+        int price = color.getPrice();
+
+        return builder
+                .setTitle("Confirmação de Compra")
+                .setDescription("Deseja confirmar a compra desta cor?")
+                .setThumbnail(user.getEffectiveAvatarUrl())
+                .setColor(role.getColorRaw())
+                .addField("💰 Valor", Bot.fmtMoney(price), true)
+                .addField("🎨 Cor", role.getAsMention(), true)
+                .setFooter(guild.getName(), guild.getIconUrl())
                 .build();
     }
 
@@ -701,6 +730,19 @@ public final class EmbedFactory {
                     itemPos, user.displayIdentifier(), Bot.humanizeNum(user.level())
             );
             builder.append(row).append("\n");
+        }
+        return builder.toString().strip();
+    }
+
+    private static String prettifyRoles(List<ColorRoleItem> roles) {
+        StringBuilder builder = new StringBuilder();
+
+        for (ColorRoleItem cri : roles) {
+            int price = cri.getPrice();
+            long roleId = cri.getRoleId();
+            String row = String.format("`%s`**・**<@&%d>\n", Bot.fmtMoney(price), roleId);
+
+            builder.append(row);
         }
         return builder.toString().strip();
     }
