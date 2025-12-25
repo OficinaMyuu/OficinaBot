@@ -21,6 +21,6 @@ public class ErikPingReactionHelper extends ListenerAdapter {
 
         if (!msg.getMentions().mentionsEveryone()) return;
 
-        msg.addReaction(Emoji.fromUnicode("🎄")).queue();
+        msg.addReaction(Emoji.fromUnicode("\uD83C\uDF89")).queue();
     }
 }
