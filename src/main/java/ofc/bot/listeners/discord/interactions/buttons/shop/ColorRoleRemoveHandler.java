@@ -15,11 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @InteractionHandler(scope = Scopes.Shop.REMOVE_COLOR_ROLE, autoResponseType = AutoResponseType.DEFER_EDIT)
-public class ColorRoleRemotionHandler implements InteractionListener<ButtonClickContext> {
+public class ColorRoleRemoveHandler implements InteractionListener<ButtonClickContext> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ColorRolePurchaseHandler.class);
     private final ColorRoleStateRepository colorStateRepo;
 
-    public ColorRoleRemotionHandler(ColorRoleStateRepository colorStateRepo) {
+    public ColorRoleRemoveHandler(ColorRoleStateRepository colorStateRepo) {
         this.colorStateRepo = colorStateRepo;
     }
 
