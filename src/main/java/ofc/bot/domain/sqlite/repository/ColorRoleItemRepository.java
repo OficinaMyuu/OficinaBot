@@ -21,4 +21,10 @@ public class ColorRoleItemRepository extends Repository<ColorRoleItem> {
     public InitializableTable<ColorRoleItem> getTable() {
         return COLOR_ROLE_ITEMS;
     }
+
+    public ColorRoleItem findById(int id) {
+        return ctx.selectFrom(COLOR_ROLE_ITEMS)
+                .where(COLOR_ROLE_ITEMS.ID.eq(id))
+                .fetchOne();
+    }
 }
