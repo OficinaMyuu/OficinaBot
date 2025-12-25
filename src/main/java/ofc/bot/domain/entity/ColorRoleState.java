@@ -1,7 +1,7 @@
 package ofc.bot.domain.entity;
 
 import ofc.bot.domain.tables.ColorRolesStateTable;
-import ofc.bot.util.Bot;
+import ofc.bot.handlers.economy.CurrencyType;
 import org.jetbrains.annotations.NotNull;
 
 public class ColorRoleState extends OficinaRecord<ColorRoleState> {
@@ -11,8 +11,14 @@ public class ColorRoleState extends OficinaRecord<ColorRoleState> {
         super(COLOR_ROLES_STATES);
     }
 
-    public ColorRoleState(long userId, long guildId, long roleId, long createdAt, long updatedAt) {
+    public ColorRoleState(
+            int valuePaid, CurrencyType currency,
+            long userId, long guildId, long roleId,
+            long createdAt, long updatedAt)
+    {
         this();
+        set(COLOR_ROLES_STATES.VALUE_PAID, valuePaid);
+        set(COLOR_ROLES_STATES.CURRENCY, currency.name());
         set(COLOR_ROLES_STATES.USER_ID, userId);
         set(COLOR_ROLES_STATES.GUILD_ID, guildId);
         set(COLOR_ROLES_STATES.ROLE_ID, roleId);
@@ -20,9 +26,17 @@ public class ColorRoleState extends OficinaRecord<ColorRoleState> {
         set(COLOR_ROLES_STATES.UPDATED_AT, updatedAt);
     }
 
-    public static ColorRoleState fromBase(long userId, long guildId, long roleId) {
-        long now = Bot.unixNow();
-        return new ColorRoleState(userId, guildId, roleId, now, now);
+    public int getId() {
+        return get(COLOR_ROLES_STATES.ID);
+    }
+
+    public int getValuePaid() {
+        return get(COLOR_ROLES_STATES.VALUE_PAID);
+    }
+
+    public CurrencyType getCurrency() {
+        String type = get(COLOR_ROLES_STATES.CURRENCY);
+        return CurrencyType.valueOf(type);
     }
 
     public long getUserId() {
