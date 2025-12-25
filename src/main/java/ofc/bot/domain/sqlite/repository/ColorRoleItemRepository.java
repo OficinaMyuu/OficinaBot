@@ -22,12 +22,6 @@ public class ColorRoleItemRepository extends Repository<ColorRoleItem> {
         return COLOR_ROLE_ITEMS;
     }
 
-    public ColorRoleItem findById(int id) {
-        return ctx.selectFrom(COLOR_ROLE_ITEMS)
-                .where(COLOR_ROLE_ITEMS.ID.eq(id))
-                .fetchOne();
-    }
-
     public ColorRoleItem findByRoleId(long roleId) {
         return ctx.selectFrom(COLOR_ROLE_ITEMS)
                 .where(COLOR_ROLE_ITEMS.ROLE_ID.eq(roleId))
