@@ -83,7 +83,7 @@ public class RemoveColorRoleCommand extends SlashSubcommand {
 
     private boolean shouldRefund(ColorRoleState state) {
         long now = Bot.unixNow();
-        return state != null && now - state.getTimeCreated() < REFUND_PERIOD_MILLIS;
+        return state != null && now - state.getTimeCreated() < (REFUND_PERIOD_MILLIS / 1000);
     }
 
     @DiscordEventHandler
