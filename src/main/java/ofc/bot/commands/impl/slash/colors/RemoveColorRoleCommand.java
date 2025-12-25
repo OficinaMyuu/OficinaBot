@@ -3,6 +3,8 @@ package ofc.bot.commands.impl.slash.colors;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.ColorRoleItem;
 import ofc.bot.domain.entity.ColorRoleState;
 import ofc.bot.domain.sqlite.repository.ColorRoleItemRepository;
@@ -64,6 +66,14 @@ public class RemoveColorRoleCommand extends SlashSubcommand {
     @Override
     public String getDescription() {
         return "Remove um cargo de cor de você";
+    }
+
+    @NotNull
+    @Override
+    public List<OptionData> getOptions() {
+        return List.of(
+                new OptionData(OptionType.INTEGER, "color", "A cor a ser adicionada", true, true)
+        );
     }
 
     private boolean shouldRefund(ColorRoleState state) {
