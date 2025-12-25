@@ -44,6 +44,16 @@ public class ButtonClickContext extends InteractionSubmitContext<ButtonContext, 
         msg.editMessageComponents(updated).queue();
     }
 
+    public void disableAll() {
+        ButtonInteraction source = getSource();
+        Message msg = getMessage();
+        MessageComponentTree components = msg.getComponentTree();
+        ComponentReplacer replacer = ComponentReplacer.of(Button.class, (b) -> true, Button::asDisabled);
+
+        MessageComponentTree updated = components.replace(replacer);
+        msg.editMessageComponents(updated).queue();
+    }
+
     public MessageEditAction editMessage(String content) {
         return getMessage().editMessage(content);
     }
