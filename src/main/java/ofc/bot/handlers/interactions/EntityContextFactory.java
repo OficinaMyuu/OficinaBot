@@ -318,7 +318,7 @@ public final class EntityContextFactory {
                 .put("color", color)
                 .put("role", role);
 
-        ButtonContext payUnb = ButtonContext.secondary("Pagar com UnbelievaBoat", CurrencyType.UNBELIEVABOAT.getEmoji())
+        ButtonContext payUnb = ButtonContext.success("Pagar com UnbelievaBoat", CurrencyType.UNBELIEVABOAT.getEmoji())
                 .setScope(Scopes.Shop.ADD_COLOR_ROLE)
                 .put("currency", CurrencyType.UNBELIEVABOAT)
                 .put("user", user)
