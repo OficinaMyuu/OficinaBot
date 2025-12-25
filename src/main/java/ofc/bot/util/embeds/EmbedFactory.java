@@ -350,6 +350,23 @@ public final class EmbedFactory {
                 .build();
     }
 
+    public static MessageEmbed embedColorRoleRemotion(User user, Role role, int refund) {
+        EmbedBuilder builder = new EmbedBuilder();
+        String suffix = refund > 0 ? "✅ Você será reembolsado." : "⚠️ Você **NÃO** será reembolsado.";
+        String desc = String.format("Deseja remover o cargo de cor?\n\n> %s", suffix);
+        Guild guild = role.getGuild();
+
+        return builder
+                .setThumbnail("Confirmação de Remoção")
+                .setDescription(desc)
+                .setThumbnail(user.getEffectiveAvatarUrl())
+                .setColor(DANGER_RED)
+                .addField("💵 Reembolso", Bot.fmtMoney(refund), true)
+                .addField("🎨 Cor", role.getAsMention(), true)
+                .setFooter(guild.getName(), guild.getIconUrl())
+                .build();
+    }
+
     public static MessageEmbed embedColorRolePurchase(ColorRoleItem color, Role role, User user) {
         EmbedBuilder builder = new EmbedBuilder();
         Guild guild = role.getGuild();
