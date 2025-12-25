@@ -32,6 +32,7 @@ public final class EntityContextFactory {
     private static final InteractionMemoryManager INTERACTION_MANAGER = InteractionMemoryManager.getManager();
     private static final String ZERO_WIDTH_SPACE = "\u200E";
     private static final Emoji GAME_EMOJI = Emoji.fromUnicode("🎮");
+    private static final Emoji TRASH_EMOJI = Emoji.fromUnicode("🗑");
 
     private EntityContextFactory() {}
 
@@ -290,6 +291,22 @@ public final class EntityContextFactory {
             }
         }
         return buttons;
+    }
+
+    public static List<Button> createRemoveColorRoleButtons(
+            ColorRoleState state, Role role, User user, boolean hasRefund
+    ) {
+        int refund = hasRefund ? state.getValuePaid() : 0;
+        ButtonContext confirm = ButtonContext.danger("Confirmar Remoção", TRASH_EMOJI)
+                .setScope(Scopes.Shop.REMOVE_COLOR_ROLE)
+                .addUser(user.getIdLong())
+                .put("currency", state.getCurrency())
+                .put("user", user)
+                .put("refund", refund)
+                .put("role", role);
+
+        INTERACTION_MANAGER.save(confirm);
+        return List.of(confirm.getEntity());
     }
 
     public static List<Button> createColorRoleButtons(ColorRoleItem color, Role role, User user) {

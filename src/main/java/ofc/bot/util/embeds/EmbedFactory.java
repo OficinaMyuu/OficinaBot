@@ -386,6 +386,25 @@ public final class EmbedFactory {
                 .build();
     }
 
+    public static MessageEmbed embedColorRoleRemoved(User user, Role role) {
+        return embedColorRoleAction(user, role, DANGER_RED, "removido");
+    }
+
+    public static MessageEmbed embedColorRoleAdded(User user, Role role) {
+        return embedColorRoleAction(user, role, role.getColor(), "adicionado");
+    }
+
+    public static MessageEmbed embedColorRoleAction(User user, Role role, Color color, String action) {
+        EmbedBuilder builder = new EmbedBuilder();
+        String desc = String.format("✅ Cargo %s %s com sucesso.", role.getAsMention(), action);
+
+        return builder
+                .setAuthor(user.getName(), null, user.getEffectiveAvatarUrl())
+                .setColor(color)
+                .setDescription(desc)
+                .build();
+    }
+
     public static MessageEmbed embedTicTacToeDeleted(User author, Guild guild) {
         OficinaEmbed builder = new OficinaEmbed();
 
