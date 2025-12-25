@@ -28,6 +28,11 @@ public final class Scopes {
         public static final String VIEW_TRANSACTIONS = "VIEW_TRANSACTIONS";
     }
 
+    public static class Shop {
+        public static final String ADD_COLOR_ROLE = "ADD_COLOR_ROLE";
+        public static final String REMOVE_COLOR_ROLE = "REMOVE_COLOR_ROLE";
+    }
+
     public static class Bets {
         public static final String TICTACTOE_GAME   = "TICTACTOE_GAME";
         public static final String CREATE_TICTACTOE = "CREATE_TICTACTOE";
