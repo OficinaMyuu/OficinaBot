@@ -74,7 +74,6 @@ public final class DB {
                 UsersEconomyTable.USERS_ECONOMY,
                 UsersPreferencesTable.USERS_PREFERENCES,
                 UsersTable.USERS,
-                UsersSubscriptionsTable.USERS_SUBSCRIPTIONS,
                 UsersXPTable.USERS_XP,
                 VoiceHeartbeatsTable.VOICE_HEARTBEATS
         );
