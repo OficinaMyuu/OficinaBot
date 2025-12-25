@@ -49,6 +49,7 @@ public class ColorRolePurchaseHandler implements InteractionListener<ButtonClick
 
             MessageEmbed embed = EmbedFactory.embedColorRoleAdded(user, role);
             ctx.replyEmbeds(embed);
+            ctx.disableAll();
         }, (err) -> {
             LOGGER.error("Failed to give color role {} to user {}", role.getId(), userId, err);
             ctx.reply(Status.COULD_NOT_EXECUTE_SUCH_OPERATION);

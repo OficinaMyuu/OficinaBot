@@ -45,6 +45,7 @@ public class ColorRoleRemoveHandler implements InteractionListener<ButtonClickCo
 
             MessageEmbed embed = EmbedFactory.embedColorRoleRemoved(user, role);
             ctx.replyEmbeds(embed);
+            ctx.disableAll();
         }, (err) -> {
             LOGGER.error("Failed to remove color role {} from user {}", roleId, userId, err);
             ctx.reply(Status.COULD_NOT_EXECUTE_SUCH_OPERATION);
