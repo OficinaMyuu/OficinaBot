@@ -1,8 +1,6 @@
 package ofc.bot.listeners.discord.interactions.buttons.shop;
 
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import ofc.bot.domain.entity.ColorRoleItem;
 import ofc.bot.domain.entity.ColorRoleState;
 import ofc.bot.domain.sqlite.repository.ColorRoleStateRepository;
@@ -15,6 +13,7 @@ import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.util.Bot;
 import ofc.bot.util.Scopes;
 import ofc.bot.util.content.annotations.listeners.InteractionHandler;
+import ofc.bot.util.embeds.EmbedFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,16 +37,18 @@ public class ColorRolePurchaseHandler implements InteractionListener<ButtonClick
         long userId = user.getIdLong();
         long guildId = guild.getIdLong();
         long now = Bot.unixNow();
-        BankAction act = payment.charge(userId, guildId, 0, color.getPrice(), "Color role purchase");
+        int price = color.getPrice();
+        BankAction act = payment.charge(userId, guildId, 0, price, "Color role purchase");
 
         if (!act.isOk())
             return Status.INSUFFICIENT_BALANCE;
 
         guild.addRoleToMember(user, role).queue(s -> {
-            ColorRoleState state = new ColorRoleState(userId, guildId, role.getIdLong(), now, now);
-
+            ColorRoleState state = new ColorRoleState(price, currency, userId, guildId, role.getIdLong(), now, now);
             colorStateRepo.save(state);
-            ctx.reply(Status.COLOR_ROLE_SUCCESSFULLY_ADDED.args(role.getAsMention()));
+
+            MessageEmbed embed = EmbedFactory.embedColorRoleAdded(user, role);
+            ctx.replyEmbeds(embed);
         }, (err) -> {
             LOGGER.error("Failed to give color role {} to user {}", role.getId(), userId, err);
             ctx.reply(Status.COULD_NOT_EXECUTE_SUCH_OPERATION);
