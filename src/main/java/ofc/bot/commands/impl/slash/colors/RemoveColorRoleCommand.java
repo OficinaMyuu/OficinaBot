@@ -105,7 +105,7 @@ public class RemoveColorRoleCommand extends SlashSubcommand {
 
             if (!fullName.equals("color remove") || !focusName.equals("color")) return;
 
-            String search = focused.getName().strip().toLowerCase();
+            String search = focused.getValue().strip().toLowerCase();
             List<ColorRoleState> roles = colorStateRepo.findByUserId(userId);
             List<Command.Choice> choices = toChoices(search, guild, roles);
 
