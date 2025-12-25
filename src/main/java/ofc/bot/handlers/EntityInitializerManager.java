@@ -2,6 +2,7 @@ package ofc.bot.handlers;
 
 import net.dv8tion.jda.api.JDA;
 import ofc.bot.Main;
+import ofc.bot.commands.impl.slash.colors.RemoveColorRoleCommand;
 import ofc.bot.commands.impl.slash.groups.LeaveGroupCommand;
 import ofc.bot.domain.sqlite.repository.*;
 import ofc.bot.events.eventbus.EventBus;
@@ -200,6 +201,7 @@ public final class EntityInitializerManager {
     private static void registerDiscordListeners() {
         JDA api = Main.getApi();
         var msgTrscptRepo = Repositories.getMessageTranscriptionRepository();
+        var colorStateRepo = Repositories.getColorRoleStateRepository();
         var rolesRepo = Repositories.getFormerMemberRoleRepository();
         var pnshRepo = Repositories.getMemberPunishmentRepository();
         var usprefRepo = Repositories.getUserPreferenceRepository();
@@ -248,6 +250,7 @@ public final class EntityInitializerManager {
                 new MessageUpdatedLogger(msgVrsRepo),
                 new OficinaGroupAutocompletion(grpRepo),
                 new OutageCommandsDisclaimer(),
+                new RemoveColorRoleCommand.ColorRoleAutocompletionHandler(colorStateRepo),
                 new ResourceAutocompletion(userRepo),
                 new SlashCommandsGateway(cmdRepo, appBanRepo),
                 new SoloChannelsHandler(),

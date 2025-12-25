@@ -2,6 +2,9 @@ package ofc.bot.commands.impl.slash.colors;
 
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -16,10 +19,12 @@ import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashSubcommand;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
+import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 import ofc.bot.util.embeds.EmbedFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 
 @DiscordCommand(name = "color remove")
 public class RemoveColorRoleCommand extends SlashSubcommand {
@@ -34,11 +39,10 @@ public class RemoveColorRoleCommand extends SlashSubcommand {
 
     @Override
     public InteractionResult onCommand(@NotNull SlashCommandContext ctx) {
-        int colorId = ctx.getSafeOption("color", OptionMapping::getAsInt);
-        Member member = ctx.getIssuer();
+        long roleId = ctx.getSafeOption("color", OptionMapping::getAsLong);
         User user = ctx.getUser();
         Guild guild = ctx.getGuild();
-        ColorRoleItem color = colorItemRepo.findById(colorId);
+        ColorRoleItem color = colorItemRepo.findByRoleId(roleId);
         long userId = user.getIdLong();
 
         if (color == null)
@@ -79,5 +83,38 @@ public class RemoveColorRoleCommand extends SlashSubcommand {
     private boolean shouldRefund(ColorRoleState state) {
         long now = Bot.unixNow();
         return state != null && now - state.getTimeCreated() < REFUND_PERIOD_MILLIS;
+    }
+
+    @DiscordEventHandler
+    public static class ColorRoleAutocompletionHandler extends ListenerAdapter {
+        private final ColorRoleStateRepository colorStateRepo;
+
+        public ColorRoleAutocompletionHandler(ColorRoleStateRepository colorStateRepo) {
+            this.colorStateRepo = colorStateRepo;
+        }
+
+        @Override
+        public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent e) {
+            String fullName = e.getFullCommandName();
+            Guild guild = e.getGuild();
+            User user = e.getUser();
+            String focused = e.getFocusedOption().getName();
+            long userId = user.getIdLong();
+
+            if (!fullName.equals("color remove") || !focused.equals("color")) return;
+
+            List<ColorRoleState> roles = colorStateRepo.findByUserId(userId);
+            List<Command.Choice> choices = toChoices(guild, roles);
+
+            e.replyChoices(choices).queue();
+        }
+
+        private List<Command.Choice> toChoices(Guild guild, List<ColorRoleState> roles) {
+            return roles.stream()
+                    .map(crs -> guild.getRoleById(crs.getRoleId()))
+                    .filter(Objects::nonNull)
+                    .map(r -> new Command.Choice(r.getName(), r.getIdLong()))
+                    .toList();
+        }
     }
 }
