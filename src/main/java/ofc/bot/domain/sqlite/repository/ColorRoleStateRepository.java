@@ -22,6 +22,13 @@ public class ColorRoleStateRepository extends Repository<ColorRoleState> {
         return COLOR_ROLES_STATE;
     }
 
+    public void deleteByUserAndRoleId(long userId, long roleId) {
+        ctx.deleteFrom(COLOR_ROLES_STATE)
+                .where(COLOR_ROLES_STATE.USER_ID.eq(userId))
+                .and(COLOR_ROLES_STATE.ROLE_ID.eq(roleId))
+                .execute();
+    }
+
     public ColorRoleState findByUserAndRoleId(long userId, long roleId) {
         return ctx.selectFrom(COLOR_ROLES_STATE)
                 .where(COLOR_ROLES_STATE.USER_ID.eq(userId))
