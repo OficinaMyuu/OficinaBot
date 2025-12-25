@@ -350,17 +350,20 @@ public final class EmbedFactory {
                 .build();
     }
 
-    public static MessageEmbed embedColorRoleRemotion(User user, Role role, int refund) {
-        EmbedBuilder builder = new EmbedBuilder();
-        String suffix = refund > 0 ? "✅ Você será reembolsado." : "⚠️ Você **NÃO** será reembolsado.";
+    public static MessageEmbed embedColorRoleRemotion(User user, ColorRoleState state, Role role, boolean hasRefund) {
+        OficinaEmbed builder = new OficinaEmbed();
+        String suffix = hasRefund ? "✅ Você será reembolsado." : "⚠️ Você **NÃO** será reembolsado.";
         String desc = String.format("Deseja remover o cargo de cor?\n\n> %s", suffix);
         Guild guild = role.getGuild();
+        CurrencyType currency = state.getCurrency();
+        int refund = hasRefund ? state.getValuePaid() : 0;
 
         return builder
                 .setThumbnail("Confirmação de Remoção")
-                .setDescription(desc)
+                .setDesc(desc)
                 .setThumbnail(user.getEffectiveAvatarUrl())
                 .setColor(DANGER_RED)
+                .addFieldIf(hasRefund, "💳 Economia", currency.getName())
                 .addField("💵 Reembolso", Bot.fmtMoney(refund), true)
                 .addField("🎨 Cor", role.getAsMention(), true)
                 .setFooter(guild.getName(), guild.getIconUrl())
