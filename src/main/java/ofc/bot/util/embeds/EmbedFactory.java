@@ -359,7 +359,7 @@ public final class EmbedFactory {
         int refund = hasRefund ? state.getValuePaid() : 0;
 
         return builder
-                .setThumbnail("Confirmação de Remoção")
+                .setTitle("Confirmação de Remoção")
                 .setDesc(desc)
                 .setThumbnail(user.getEffectiveAvatarUrl())
                 .setColor(DANGER_RED)
