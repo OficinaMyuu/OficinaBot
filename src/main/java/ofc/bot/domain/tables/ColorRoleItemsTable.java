@@ -24,7 +24,8 @@ public class ColorRoleItemsTable extends InitializableTable<ColorRoleItem> {
     public Query getSchema(@NotNull DSLContext ctx) {
         return ctx.createTableIfNotExists(this)
                 .primaryKey(ID)
-                .columns(fields());
+                .columns(fields())
+                .unique(ROLE_ID);
     }
 
     @NotNull
