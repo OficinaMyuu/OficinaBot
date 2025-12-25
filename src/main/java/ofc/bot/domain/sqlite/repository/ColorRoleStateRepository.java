@@ -6,6 +6,8 @@ import ofc.bot.domain.tables.ColorRolesStateTable;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 
+import java.util.List;
+
 /**
  * Repository for {@link ColorRoleState} entity.
  */
@@ -27,6 +29,12 @@ public class ColorRoleStateRepository extends Repository<ColorRoleState> {
                 .where(COLOR_ROLES_STATE.USER_ID.eq(userId))
                 .and(COLOR_ROLES_STATE.ROLE_ID.eq(roleId))
                 .execute();
+    }
+
+    public List<ColorRoleState> findByUserId(long userId) {
+        return ctx.selectFrom(COLOR_ROLES_STATE)
+                .where(COLOR_ROLES_STATE.USER_ID.eq(userId))
+                .fetch();
     }
 
     public ColorRoleState findByUserAndRoleId(long userId, long roleId) {
