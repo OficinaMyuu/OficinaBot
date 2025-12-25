@@ -352,8 +352,8 @@ public final class EmbedFactory {
 
     public static MessageEmbed embedColorRoleRemotion(User user, ColorRoleState state, Role role, boolean hasRefund) {
         OficinaEmbed builder = new OficinaEmbed();
-        String suffix = hasRefund ? "✅ Você será reembolsado." : "⚠️ Você **NÃO** será reembolsado.";
-        String desc = String.format("Deseja remover o cargo de cor?\n\n> %s", suffix);
+        String prefix = hasRefund ? "✅" : "⚠️";
+        String desc = String.format("> %s Deseja remover o cargo de cor?", prefix);
         Guild guild = role.getGuild();
         CurrencyType currency = state.getCurrency();
         int refund = hasRefund ? state.getValuePaid() : 0;
