@@ -11,7 +11,7 @@ import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
-import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashCommand;
+import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashSubcommand;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
 import ofc.bot.util.embeds.EmbedFactory;
@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 @DiscordCommand(name = "color remove")
-public class RemoveColorRoleCommand extends SlashCommand {
+public class RemoveColorRoleCommand extends SlashSubcommand {
     private static final int REFUND_PERIOD_MILLIS = 5 * 60 * 1000; // 5 minutes
     private final ColorRoleStateRepository colorStateRepo;
     private final ColorRoleItemRepository colorItemRepo;

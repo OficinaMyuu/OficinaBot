@@ -7,7 +7,7 @@ import ofc.bot.domain.sqlite.repository.ColorRoleItemRepository;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
-import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashCommand;
+import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashSubcommand;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
 import ofc.bot.util.embeds.EmbedFactory;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 @DiscordCommand(name = "color list")
-public class ListColorsRolesCommand extends SlashCommand {
+public class ListColorsRolesCommand extends SlashSubcommand {
     private final ColorRoleItemRepository colorItemRepo;
 
     public ListColorsRolesCommand(ColorRoleItemRepository colorItemRepo) {
