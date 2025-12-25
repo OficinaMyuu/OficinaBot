@@ -5,13 +5,8 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import ofc.bot.domain.entity.BankTransaction;
 import ofc.bot.domain.entity.UserEconomy;
-import ofc.bot.domain.entity.enums.TransactionType;
 import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
-import ofc.bot.events.eventbus.EventBus;
-import ofc.bot.events.impl.BankTransactionEvent;
-import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
@@ -61,7 +56,6 @@ public class UpdateMoneyCommand extends SlashCommand {
             ecoRepo.upsert(eco);
 
             long total = eco.getTotal();
-            dispatchBalanceUpdateEvent(issuerId, targetId, total);
             return Status.ECONOMY_SUCCESSFULLY_UPDATED_BALANCE.args(target.getAsMention(), Bot.fmtNum(total));
         } catch (DataAccessException e) {
             LOGGER.error("Could not access balance of '{}'", targetId, e);
@@ -87,10 +81,5 @@ public class UpdateMoneyCommand extends SlashCommand {
 
                 new OptionData(OptionType.USER, "target", "O alvo a atualizar o saldo.")
         );
-    }
-
-    private void dispatchBalanceUpdateEvent(long userId, long targetId, long amount) {
-        BankTransaction tr = new BankTransaction(userId, targetId, amount, CurrencyType.OFICINA, TransactionType.BALANCE_UPDATED);
-        EventBus.dispatchEvent(new BankTransactionEvent(tr));
     }
 }

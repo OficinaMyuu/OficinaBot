@@ -63,7 +63,6 @@ public class GroupPinsHandler implements InteractionListener<ButtonClickContext>
         getAction(msg, shouldPin).queue(v -> {
             if (shouldPin) {
                 ctx.reply(Status.MESSAGE_SUCCESSFULLY_PINNED);
-                GroupHelper.registerMessagePinned(group, price);
             } else
                 ctx.reply(Status.MESSAGE_SUCCESSFULLY_UNPINNED);
         }, err -> {

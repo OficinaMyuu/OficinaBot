@@ -46,7 +46,6 @@ public final class DB {
         return List.of(
                 AppUsersBanTable.APP_USERS_BAN,
                 AutomodActionsTable.AUTOMOD_ACTIONS,
-                BankTransactionsTable.BANK_TRANSACTIONS,
                 BetGamesTable.BET_GAMES,
                 BirthdaysTable.BIRTHDAYS,
                 BlockedWordsTable.BLOCKED_WORDS,

@@ -5,8 +5,7 @@ import ofc.bot.Main;
 import ofc.bot.commands.impl.slash.colors.AddColorRoleCommand;
 import ofc.bot.commands.impl.slash.colors.RemoveColorRoleCommand;
 import ofc.bot.commands.impl.slash.groups.LeaveGroupCommand;
-import ofc.bot.domain.sqlite.repository.*;
-import ofc.bot.events.eventbus.EventBus;
+import ofc.bot.domain.sqlite.repository.Repositories;
 import ofc.bot.handlers.cache.PolicyService;
 import ofc.bot.handlers.interactions.InteractionMemoryManager;
 import ofc.bot.handlers.interactions.buttons.ButtonInteractionGateway;
@@ -56,7 +55,6 @@ import ofc.bot.listeners.discord.logs.names.MemberNickUpdateLogger;
 import ofc.bot.listeners.discord.logs.names.UserGlobalNameUpdateLogger;
 import ofc.bot.listeners.discord.logs.names.UserNameUpdateLogger;
 import ofc.bot.listeners.discord.moderation.AutoModerator;
-import ofc.bot.listeners.oficina.DefaultBankTransactionLogger;
 import ofc.bot.util.GroupHelper;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
@@ -156,7 +154,6 @@ public final class EntityInitializerManager {
                 new NamesPageUpdate(namesRepo),
                 new ProposalListPagination(mreqRepo),
                 new TicketsPagination(msgVrsRepo),
-                new TransactionsPagination(),
 
                 // Shop
                 new ColorRolePurchaseHandler(colorStateRepo),
@@ -187,16 +184,6 @@ public final class EntityInitializerManager {
 
     public static void registerListeners() {
         registerDiscordListeners();
-        registerApplicationListeners();
-    }
-
-    private static void registerApplicationListeners() {
-        BankTransactionRepository bankTrRepo = Repositories.getBankTransactionRepository();
-        EventBus eventBus = EventBus.getEventBus();
-
-        eventBus.register(
-                new DefaultBankTransactionLogger(bankTrRepo)
-        );
     }
 
     private static void registerDiscordListeners() {

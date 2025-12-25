@@ -13,7 +13,6 @@ import ofc.bot.handlers.interactions.InteractionListener;
 import ofc.bot.handlers.interactions.buttons.contexts.ButtonClickContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
-import ofc.bot.util.GroupHelper;
 import ofc.bot.util.Scopes;
 import ofc.bot.util.content.annotations.listeners.InteractionHandler;
 import org.slf4j.Logger;
@@ -49,8 +48,6 @@ public class GroupMemberAddHandler implements InteractionListener<ButtonClickCon
 
         guild.addRoleToMember(newMember, groupRole).queue(v -> {
             ctx.reply(Status.MEMBER_SUCCESSFULLY_ADDED_TO_GROUP.args(newMember.getAsMention()));
-
-            GroupHelper.registerMemberAdded(group, price);
         }, (err) -> {
             LOGGER.error("Could not add role &{} to member @{}", roleId, newMember.getId());
 

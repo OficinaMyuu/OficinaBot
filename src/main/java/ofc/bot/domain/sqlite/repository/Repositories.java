@@ -6,7 +6,6 @@ import org.jooq.DSLContext;
 public final class Repositories {
     private static AppUserBanRepository appUserBanRepository;
     private static AutomodActionRepository automodActionRepository;
-    private static BankTransactionRepository bankTransactionRepository;
     private static BetGameRepository gameRepository;
     private static BirthdayRepository birthdayRepository;
     private static BlockedWordRepository blockedWordRepository;
@@ -49,11 +48,6 @@ public final class Repositories {
     public static AutomodActionRepository getAutomodActionRepository() {
         if (automodActionRepository == null) automodActionRepository = new AutomodActionRepository(getDSLContext());
         return automodActionRepository;
-    }
-
-    public static BankTransactionRepository getBankTransactionRepository() {
-        if (bankTransactionRepository == null) bankTransactionRepository = new BankTransactionRepository(getDSLContext());
-        return bankTransactionRepository;
     }
 
     public static BetGameRepository getBetGameRepository() {

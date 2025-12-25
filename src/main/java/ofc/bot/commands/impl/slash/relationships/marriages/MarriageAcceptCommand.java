@@ -7,14 +7,12 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.commands.impl.slash.relationships.MarryCommand;
-import ofc.bot.domain.entity.*;
-import ofc.bot.domain.entity.enums.TransactionType;
+import ofc.bot.domain.entity.Marriage;
+import ofc.bot.domain.entity.MarriageRequest;
+import ofc.bot.domain.entity.UserEconomy;
 import ofc.bot.domain.sqlite.repository.MarriageRepository;
 import ofc.bot.domain.sqlite.repository.MarriageRequestRepository;
 import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
-import ofc.bot.events.eventbus.EventBus;
-import ofc.bot.events.impl.BankTransactionEvent;
-import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
@@ -106,10 +104,7 @@ public class MarriageAcceptCommand extends SlashSubcommand {
         sender.modifyBalance(-price, 0).tickUpdate();
         target.modifyBalance(-price, 0).tickUpdate();
 
-        ecoRepo.transactionUpserts(List.of(sender, target), (s) -> {
-            dispatchMarriageCreateEvent(sender.getUserId(), price);
-            dispatchMarriageCreateEvent(target.getUserId(), price);
-        }, (err) -> LOGGER.error("Could not send marriages to the database", err));
+        ecoRepo.transactionUpserts(List.of(sender, target), (s) -> {}, (err) -> LOGGER.error("Could not send marriages to the database", err));
     }
 
     private void accept(MarriageRequest req) {
@@ -129,10 +124,5 @@ public class MarriageAcceptCommand extends SlashSubcommand {
 
     private boolean isPermissionPrivileged(Member member) {
         return member != null && member.hasPermission(Permission.MANAGE_SERVER);
-    }
-
-    private void dispatchMarriageCreateEvent(long userId, int amount) {
-        BankTransaction tr = new BankTransaction(userId, -amount, CurrencyType.OFICINA, TransactionType.MARRIAGE_CREATED);
-        EventBus.dispatchEvent(new BankTransactionEvent(tr));
     }
 }

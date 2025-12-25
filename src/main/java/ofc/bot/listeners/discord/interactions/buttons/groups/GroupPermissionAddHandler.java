@@ -13,7 +13,6 @@ import ofc.bot.handlers.interactions.InteractionListener;
 import ofc.bot.handlers.interactions.buttons.contexts.ButtonClickContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
-import ofc.bot.util.GroupHelper;
 import ofc.bot.util.Scopes;
 import ofc.bot.util.content.annotations.listeners.InteractionHandler;
 
@@ -57,7 +56,6 @@ public class GroupPermissionAddHandler implements InteractionListener<ButtonClic
             policyService.invalidate();
         }
 
-        GroupHelper.registerPermissionAdded(group, price);
         ctx.disable();
         return Status.GROUP_PERMISSION_GRANTED_SUCESSFULLY.args(perm.getDisplay());
     }

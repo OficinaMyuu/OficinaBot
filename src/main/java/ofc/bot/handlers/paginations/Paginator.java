@@ -2,11 +2,11 @@ package ofc.bot.handlers.paginations;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.internal.utils.Checks;
-import ofc.bot.domain.entity.*;
-import ofc.bot.domain.entity.enums.TransactionType;
+import ofc.bot.domain.entity.MemberPunishment;
+import ofc.bot.domain.entity.Reminder;
+import ofc.bot.domain.entity.SupportTicket;
 import ofc.bot.domain.sqlite.repository.*;
 import ofc.bot.domain.viewmodels.LevelView;
-import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.util.Bot;
 
 import java.util.List;
@@ -30,18 +30,6 @@ public final class Paginator<T> {
 
     public static <T> Paginator<T> of(Function<Integer, List<T>> supplier, Supplier<Integer> counter, int limit) {
         return new Paginator<>(supplier, counter, limit);
-    }
-
-    public static PageItem<BankTransaction> viewTransactions(long userId, int pageIndex, int pageSize,
-                                                             List<CurrencyType> currencies,
-                                                             List<TransactionType> types) {
-        final BankTransactionRepository bankTrRepo = Repositories.getBankTransactionRepository();
-        int offset = pageIndex * pageSize;
-        int rowCount = bankTrRepo.countUserTransactions(userId, currencies, types);
-        int maxPages = Bot.calcMaxPages(rowCount, pageSize);
-        List<BankTransaction> transactions = bankTrRepo.findUserTransactions(userId, currencies, types, pageSize, offset);
-
-        return new PageItem<>(transactions, pageIndex, offset, maxPages, rowCount);
     }
 
     public static PageItem<MemberPunishment> viewInfractions(long targetId, long guildId,

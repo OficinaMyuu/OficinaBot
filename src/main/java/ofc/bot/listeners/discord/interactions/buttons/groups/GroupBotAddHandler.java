@@ -53,7 +53,6 @@ public class GroupBotAddHandler implements InteractionListener<ButtonClickContex
 
         modifyChannelPermissions(textChan, bot.getBotId()).queue(v -> {
             ctx.reply(Status.GROUP_BOT_SUCCESSFULLY_ADDED.args(bot.getBotMention()));
-            GroupHelper.registerBotAdded(group, price);
         }, (err) -> {
             LOGGER.error("Could not add bot to group {}", group.getId(), err);
             ctx.reply(Status.COULD_NOT_EXECUTE_SUCH_OPERATION);

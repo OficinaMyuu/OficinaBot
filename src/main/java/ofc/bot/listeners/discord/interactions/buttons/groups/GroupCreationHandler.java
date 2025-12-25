@@ -65,7 +65,6 @@ public class GroupCreationHandler implements InteractionListener<ButtonClickCont
                     .setLastUpdated(timestamp);
             grpRepo.upsert(group);
 
-            GroupHelper.registerGroupCreated(group, price);
             return Status.GROUP_SUCCESSFULLY_CREATED.args(groupRole.getAsMention()).setEphm(true);
         } catch (ErrorResponseException e) {
             LOGGER.error("Could not create group for member with id {}", ownerId, e);

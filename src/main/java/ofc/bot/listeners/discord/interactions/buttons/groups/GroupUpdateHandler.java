@@ -64,7 +64,6 @@ public class GroupUpdateHandler implements InteractionListener<ButtonClickContex
             }
 
             grpRepo.upsert(group.tickUpdate());
-            GroupHelper.registerGroupUpdated(group, price);
 
             ctx.disable();
             return Status.GROUP_SUCCESSFULLY_UPDATED;

@@ -13,7 +13,6 @@ import net.dv8tion.jda.api.modals.Modal;
 import ofc.bot.domain.entity.*;
 import ofc.bot.domain.entity.enums.GroupPermission;
 import ofc.bot.domain.entity.enums.NameScope;
-import ofc.bot.domain.entity.enums.TransactionType;
 import ofc.bot.domain.viewmodels.LeaderboardUser;
 import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.games.betting.tictactoe.GameGrid;
@@ -55,31 +54,6 @@ public final class EntityContextFactory {
 
         INTERACTION_MANAGER.save(prevButton, nextButton);
         return List.of(prevButton.getEntity(), nextButton.getEntity());
-    }
-
-    public static List<Button> createTransactionsButtons(long userId, List<CurrencyType> currencies,
-                                                         List<TransactionType> actions,
-                                                         int pageIndex, boolean hasNext) {
-        boolean hasPrevious = pageIndex > 0;
-
-        ButtonContext prev = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_LEFT)
-                .setScope(Scopes.Economy.VIEW_TRANSACTIONS)
-                .put("page_index", pageIndex - 1)
-                .put("user_id", userId)
-                .put("currencies", currencies)
-                .put("actions", actions)
-                .setEnabled(hasPrevious);
-
-        ButtonContext next = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_RIGHT)
-                .setScope(Scopes.Economy.VIEW_TRANSACTIONS)
-                .put("page_index", pageIndex + 1)
-                .put("user_id", userId)
-                .put("currencies", currencies)
-                .put("actions", actions)
-                .setEnabled(hasNext);
-
-        INTERACTION_MANAGER.save(prev, next);
-        return List.of(prev.getEntity(), next.getEntity());
     }
 
     public static List<Button> createInfractionsButtons(int infrId, boolean isActive,

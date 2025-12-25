@@ -1,13 +1,8 @@
 package ofc.bot.commands.impl.slash.economy;
 
 import net.dv8tion.jda.api.entities.Member;
-import ofc.bot.domain.entity.BankTransaction;
 import ofc.bot.domain.entity.UserEconomy;
-import ofc.bot.domain.entity.enums.TransactionType;
 import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
-import ofc.bot.events.eventbus.EventBus;
-import ofc.bot.events.impl.BankTransactionEvent;
-import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
@@ -56,7 +51,6 @@ public class DailyCommand extends SlashCommand {
             String prettyDifference = Bot.fmtNum(value - randomInt);
 
             applyDaily(userId, value);
-            dispatchDailyCollectEvent(userId, value);
 
             if (boosting)
                 return Status.DAILY_SUCCESSFULLY_COLLECTED_BOOSTING.args(prettyValue, prettyDifference);
@@ -100,10 +94,5 @@ public class DailyCommand extends SlashCommand {
         return lastDaily == 0
                 ? null
                 : Instant.ofEpochSecond(lastDaily);
-    }
-
-    private void dispatchDailyCollectEvent(long userId, int amount) {
-        BankTransaction tr = new BankTransaction(userId, amount, CurrencyType.OFICINA, TransactionType.DAILY_COLLECTED);
-        EventBus.dispatchEvent(new BankTransactionEvent(tr));
     }
 }

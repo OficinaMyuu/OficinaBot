@@ -9,7 +9,6 @@ import ofc.bot.handlers.interactions.InteractionListener;
 import ofc.bot.handlers.interactions.buttons.contexts.ButtonClickContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
-import ofc.bot.util.GroupHelper;
 import ofc.bot.util.Scopes;
 import ofc.bot.util.content.annotations.listeners.InteractionHandler;
 import org.slf4j.Logger;
@@ -33,8 +32,6 @@ public class GroupMemberRemoveHandler implements InteractionListener<ButtonClick
         guild.removeRoleFromMember(UserSnowflake.fromId(targetId), groupRole).queue(v -> {
             ctx.reply(Status.MEMBER_SUCCESSFULLY_REMOVED_FROM_GROUP.args(targetId));
             handleDisconnect(guild, group, targetId);
-
-            GroupHelper.registerMemberRemoved(group);
         }, (err) -> {
             LOGGER.error("Could not remove role &{} from member @{}", groupRoleId, targetId);
             ctx.reply(Status.COULD_NOT_EXECUTE_SUCH_OPERATION);

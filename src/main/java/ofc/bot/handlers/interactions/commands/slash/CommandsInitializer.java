@@ -149,7 +149,6 @@ public final class CommandsInitializer {
         registry.register(new PayCommand(ecoRepo));
         registry.register(new RobCommand(ecoRepo));
         registry.register(new SetMoneyCommand(ecoRepo));
-        registry.register(new TransactionsCommand());
         registry.register(new UpdateMoneyCommand(ecoRepo));
         registry.register(new WithdrawCommand(ecoRepo));
         registry.register(new WorkCommand(ecoRepo));

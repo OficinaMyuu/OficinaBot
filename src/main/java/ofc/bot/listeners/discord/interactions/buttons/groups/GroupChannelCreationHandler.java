@@ -19,7 +19,6 @@ import ofc.bot.handlers.interactions.InteractionListener;
 import ofc.bot.handlers.interactions.buttons.contexts.ButtonClickContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
-import ofc.bot.util.GroupHelper;
 import ofc.bot.util.Scopes;
 import ofc.bot.util.content.annotations.listeners.InteractionHandler;
 import org.slf4j.Logger;
@@ -67,7 +66,6 @@ public class GroupChannelCreationHandler implements InteractionListener<ButtonCl
             group.setChannelId(chanType, channel.getIdLong()).tickUpdate();
             grpRepo.upsert(group);
 
-            GroupHelper.registerChannelCreated(group, chanType, price);
             return Status.GROUP_CHANNEL_SUCCESSFULLY_CREATED.args(channel.getAsMention()).setEphm(true);
         } catch (ErrorResponseException e) {
             LOGGER.error("Could not create channel for group with id {}", group.getId(), e);

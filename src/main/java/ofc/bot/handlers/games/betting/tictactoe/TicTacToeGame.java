@@ -13,15 +13,12 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.internal.utils.Checks;
 import ofc.bot.domain.entity.*;
-import ofc.bot.domain.entity.enums.TransactionType;
 import ofc.bot.domain.sqlite.repository.*;
-import ofc.bot.events.eventbus.EventBus;
-import ofc.bot.events.impl.BankTransactionEvent;
-import ofc.bot.handlers.economy.CurrencyType;
+import ofc.bot.handlers.games.GameArgs;
 import ofc.bot.handlers.games.GameStatus;
 import ofc.bot.handlers.games.GameType;
-import ofc.bot.handlers.games.GameArgs;
-import ofc.bot.handlers.games.betting.*;
+import ofc.bot.handlers.games.betting.Bet;
+import ofc.bot.handlers.games.betting.BetManager;
 import ofc.bot.handlers.games.betting.exceptions.BetGameCreationException;
 import ofc.bot.handlers.interactions.*;
 import ofc.bot.handlers.interactions.buttons.contexts.ButtonClickContext;
@@ -182,7 +179,6 @@ public class TicTacToeGame implements Bet<Character> {
                     .queue();
 
             persist(this.status, timeEnded);
-            dispatchTimeoutEvent(penaltyAmount, targetId);
         } catch (DataAccessException e) {
             LOGGER.error("Could not handle tictactoe timeout database operations", e);
         } catch (ErrorResponseException e) {
@@ -270,27 +266,6 @@ public class TicTacToeGame implements Bet<Character> {
         long loserId = loser.getIdLong();
 
         ecoRepo.transferBank(loserId, winnerId, prizeValue);
-        dispatchBetWinEvent(winner, loser);
-    }
-
-    private void dispatchBetWinEvent(User winner, User loser) {
-        long loserId = loser.getIdLong();
-        String winnerComment = String.format("Venceu de %s no Jogo da velha.", loser.getName());
-        String loserComment = String.format("Perdeu para %s no Jogo da velha.", winner.getName());
-
-        BankTransaction trWin = new BankTransaction(winnerId, prizeValue, winnerComment, CurrencyType.OFICINA, TransactionType.BET_RESULT);
-        BankTransaction trLose = new BankTransaction(loserId, -prizeValue, loserComment, CurrencyType.OFICINA, TransactionType.BET_RESULT);
-
-        EventBus.dispatchEvent(new BankTransactionEvent(trWin));
-        EventBus.dispatchEvent(new BankTransactionEvent(trLose));
-    }
-
-    private void dispatchTimeoutEvent(int amount, long idleId) {
-        int percent = Math.round(TIMEOUT_PENALTY_RATE * 100);
-        String comment = String.format("Timeout no Jogo da velha, perdeu %d%% de %s.", percent, Bot.fmtNum(this.prizeValue));
-
-        BankTransaction tr = new BankTransaction(idleId, -amount, comment, CurrencyType.OFICINA, TransactionType.BET_PENALTY);
-        EventBus.dispatchEvent(new BankTransactionEvent(tr));
     }
 
     private void finalizeGame(GameStatus exitStatus, long timeEnded) {

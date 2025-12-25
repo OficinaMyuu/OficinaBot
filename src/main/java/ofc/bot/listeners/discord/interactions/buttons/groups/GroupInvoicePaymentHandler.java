@@ -47,7 +47,6 @@ public class GroupInvoicePaymentHandler implements InteractionListener<ButtonCli
 
         try {
             grpRepo.upsert(group);
-            GroupHelper.registerInvoicePaid(group, value);
             ctx.disable();
 
             return Status.INVOICE_SUCCESSFULLY_PAID.args(Bot.fmtMoney(value));

@@ -4,12 +4,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import ofc.bot.domain.entity.BankTransaction;
-import ofc.bot.domain.entity.enums.TransactionType;
 import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
-import ofc.bot.events.eventbus.EventBus;
-import ofc.bot.events.impl.BankTransactionEvent;
-import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.games.betting.BetManager;
 import ofc.bot.handlers.interactions.commands.Cooldown;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
@@ -69,8 +64,6 @@ public class PayCommand extends SlashCommand {
         try {
             ecoRepo.transferWallet(issuerId, targetId, amountToSend, total);
 
-            dispatchSendMoneyEvent(issuerId, targetId, total);
-
             return Status.TRANSACTION_SUCCESSFUL.args(
                     Bot.fmtNum(amountToSend),
                     target.getAsMention()
@@ -100,10 +93,5 @@ public class PayCommand extends SlashCommand {
                 new OptionData(OptionType.USER, "user", "O usuário para enviar o dinheiro.", true),
                 new OptionData(OptionType.STRING, "amount", "A quantia a ser enviada (forneça \"all\" sem aspas para transferir tudo).", true)
         );
-    }
-
-    private void dispatchSendMoneyEvent(long senderId, long targetId, long amount) {
-        BankTransaction tr = new BankTransaction(senderId, targetId, amount, CurrencyType.OFICINA, TransactionType.MONEY_TRANSFERRED);
-        EventBus.dispatchEvent(new BankTransactionEvent(tr));
     }
 }

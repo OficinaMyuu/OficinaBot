@@ -5,13 +5,8 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import ofc.bot.domain.entity.BankTransaction;
 import ofc.bot.domain.entity.UserEconomy;
-import ofc.bot.domain.entity.enums.TransactionType;
 import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
-import ofc.bot.events.eventbus.EventBus;
-import ofc.bot.events.impl.BankTransactionEvent;
-import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.games.betting.BetManager;
 import ofc.bot.handlers.interactions.commands.Cooldown;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
@@ -81,7 +76,6 @@ public class RobCommand extends SlashCommand {
 
                 issuerEco.modifyBalance(0, -fineAmount).tickUpdate();
                 ecoRepo.upsert(issuerEco);
-                dispatchFineEvent(target, issuerId, fineAmount);
 
                 MessageEmbed embed = embedFail(issuer, target, fineAmount);
                 return ctx.replyEmbeds(Status.FAILED_TO_ROB_USER, embed);
@@ -91,7 +85,6 @@ public class RobCommand extends SlashCommand {
                 // Here, we can just handle the operation as if it was a normal user-actioned transaction,
                 // this way, we simplify the code and also uses ACID operations.
                 ecoRepo.transferWallet(targetId, issuerId, moneyStolen);
-                dispatchRobEvent(issuer, target, moneyStolen);
 
                 MessageEmbed embed = embedSuccess(issuer, target, moneyStolen);
                 return ctx.replyEmbeds(embed);
@@ -141,19 +134,5 @@ public class RobCommand extends SlashCommand {
                         target.getName(), Bot.fmtNum(amount))
                 .setColor(EmbedFactory.DANGER_RED)
                 .build();
-    }
-
-    private void dispatchRobEvent(User robber, User victim, int amount) {
-        String comment = String.format("%s roubou %s de %s", robber.getName(), Bot.fmtNum(amount), victim.getName());
-        long robberId = robber.getIdLong();
-        long victimId = victim.getIdLong();
-        BankTransaction tr = new BankTransaction(robberId, victimId, comment, CurrencyType.OFICINA, TransactionType.AMOUNT_ROBBED);
-        EventBus.dispatchEvent(new BankTransactionEvent(tr));
-    }
-
-    private void dispatchFineEvent(User victim, long userId, int fineAmount) {
-        String comment = String.format("Tentou roubar %s", victim.getName());
-        BankTransaction tr = new BankTransaction(userId, fineAmount, comment, CurrencyType.OFICINA, TransactionType.AMOUNT_FINED);
-        EventBus.dispatchEvent(new BankTransactionEvent(tr));
     }
 }

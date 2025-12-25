@@ -3,13 +3,8 @@ package ofc.bot.commands.impl.slash.economy;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import ofc.bot.domain.entity.BankTransaction;
 import ofc.bot.domain.entity.UserEconomy;
-import ofc.bot.domain.entity.enums.TransactionType;
 import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
-import ofc.bot.events.eventbus.EventBus;
-import ofc.bot.events.impl.BankTransactionEvent;
-import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
@@ -61,7 +56,6 @@ public class WorkCommand extends SlashCommand {
             String prettyDifference = Bot.fmtNum(value - randomInt);
 
             applyWork(userId, value);
-            dispatchWorkExecutedEvent(userId, value);
 
             if (boosting)
                 return Status.WORK_SUCCESSFUL_BOOSTING.args(prettyValue, prettyDifference);
@@ -97,10 +91,5 @@ public class WorkCommand extends SlashCommand {
     private long getNextWork(long userId) {
         long lastWork = ecoRepo.fetchLastWorkByUserId(userId);
         return lastWork + COOLDOWN;
-    }
-
-    private void dispatchWorkExecutedEvent(long userId, int amount) {
-        BankTransaction tr = new BankTransaction(userId, amount, CurrencyType.OFICINA, TransactionType.WORK_EXECUTED);
-        EventBus.dispatchEvent(new BankTransactionEvent(tr));
     }
 }

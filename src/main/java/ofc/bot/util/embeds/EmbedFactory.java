@@ -7,7 +7,9 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.redhogs.cronparser.CronExpressionDescriptor;
 import ofc.bot.commands.impl.slash.economy.LeaderboardCommand;
 import ofc.bot.domain.entity.*;
-import ofc.bot.domain.entity.enums.*;
+import ofc.bot.domain.entity.enums.GroupPermission;
+import ofc.bot.domain.entity.enums.PunishmentType;
+import ofc.bot.domain.entity.enums.ReminderType;
 import ofc.bot.domain.viewmodels.*;
 import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.paginations.PageItem;
@@ -16,8 +18,9 @@ import ofc.bot.util.OficinaEmbed;
 
 import java.awt.*;
 import java.text.ParseException;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
+import java.time.Month;
+import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.*;
@@ -30,7 +33,6 @@ import java.util.stream.Collectors;
  * system, then the {@code embed()} method will remain in the same class.
  */
 public final class EmbedFactory {
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     public static final Color DANGER_RED = new Color(255, 50, 50);
     public static final Color OK_GREEN = new Color(80, 255, 80);
 
@@ -70,21 +72,6 @@ public final class EmbedFactory {
                 .setDesc(desc)
                 .setColor(embedColor)
                 .setImageIf(filename != null, "attachment://" + filename)
-                .build();
-    }
-
-    public static MessageEmbed embedTransactions(User user, Guild guild, PageItem<BankTransaction> trs) {
-        OficinaEmbed builder = new OficinaEmbed();
-        String title = String.format("Transações de %s", user.getEffectiveName());
-        String resultsFound = String.format("Resultados encontrados: `%s`.", Bot.fmtNum(trs.getRowCount()));
-        String pages = String.format("Pág. %s/%s", Bot.fmtNum(trs.getPage()), Bot.fmtNum(trs.getPageCount()));
-
-        return builder
-                .setAuthor(title, null, user.getEffectiveAvatarUrl())
-                .setColor(Bot.Colors.DEFAULT)
-                .setDesc(resultsFound)
-                .appendDescription(formatTransactions(trs.getEntities()))
-                .setFooter(pages, guild.getIconUrl())
                 .build();
     }
 
@@ -666,55 +653,6 @@ public final class EmbedFactory {
         return builder.build();
     }
 
-    private static String formatTransactions(List<BankTransaction> trs) {
-        TransactionEntryBuilder builder = new TransactionEntryBuilder();
-
-        builder.addSeparator();
-        for (BankTransaction tr : trs) {
-            long amount = tr.getAmount();
-            CurrencyType currency = tr.getCurrencyType();
-            TransactionType action = tr.getAction();
-            AppUser user = tr.retrieveUser();
-            AppUser receiver = tr.retrieveReceiver();
-            LocalDateTime timestamp = LocalDateTime.ofEpochSecond(tr.getTimeCreated(), 0, ZoneOffset.ofHours(-3));
-            String fmtTimestamp = timestamp.format(DATE_TIME_FORMATTER);
-            String recName = receiver == null ? null : receiver.getName();
-            String comment = Bot.ifNull(tr.getComment(), "--");
-            StoreItemType product = tr.getProduct();
-            String productName = product == null ? null : product.getName();
-
-            builder.addF("ID: #%d | %s (GMT -3)", tr.getId(), fmtTimestamp)
-                    .addF("Tipo: %s", action.getName())
-                    .addFIf(product != null, "Item: %s", productName)
-                    .addF("%s: %s", resolveUserAlias(action), user.getName())
-                    .addFIf(receiver != null, "Recebente: %s", recName)
-                    .addF("Nota: %s", comment)
-                    .addF("Valor: %s (%s)", Bot.fmtMoney(amount), currency.getName())
-                    .addSeparator();
-        }
-        return builder.build();
-    }
-
-    private static String resolveUserAlias(TransactionType action) {
-        return switch (action) {
-            case FEE_PAID,
-                 INVOICE_PAID -> "Pagador";
-            case CHAT_MONEY,
-                 WORK_EXECUTED,
-                 BET_RESULT,
-                 BET_PENALTY,
-                 MARRIAGE_CREATED,
-                 DAILY_COLLECTED -> "Membro";
-            case AMOUNT_ROBBED -> "Assaltante";
-            case AMOUNT_FINED -> "Multado";
-            case BALANCE_SET,
-                 BALANCE_UPDATED -> "Moderador";
-            case ITEM_BOUGHT -> "Comprador";
-            case ITEM_SOLD -> "Vendedor";
-            case MONEY_TRANSFERRED -> "Remetente";
-        };
-    }
-
     private static String formatProposals(List<MarriageRequest> requests, String type) {
         return Bot.format(requests, (req) -> {
             long timestamp = req.getTimeCreated();
@@ -823,30 +761,6 @@ public final class EmbedFactory {
             return CronExpressionDescriptor.getDescription(exp, Bot.defaultLocale()) + '.';
         } catch (ParseException e) {
             return null;
-        }
-    }
-
-    private static final class TransactionEntryBuilder {
-        private final List<String> fields = new ArrayList<>();
-
-        TransactionEntryBuilder addSeparator() {
-            return addF("---------------------------------------------");
-        }
-
-        TransactionEntryBuilder addF(String format, Object... args) {
-            this.fields.add(String.format(format, args));
-            return this;
-        }
-
-        TransactionEntryBuilder addFIf(boolean cond, String format, Object... args) {
-            if (cond) {
-                addF(format, args);
-            }
-            return this;
-        }
-
-        String build() {
-            return String.format("```yml\n%s\n```", String.join("\n", fields)).strip();
         }
     }
 }
