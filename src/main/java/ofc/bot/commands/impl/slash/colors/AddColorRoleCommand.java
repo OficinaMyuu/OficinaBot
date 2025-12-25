@@ -33,11 +33,11 @@ public class AddColorRoleCommand extends SlashSubcommand {
 
     @Override
     public InteractionResult onCommand(@NotNull SlashCommandContext ctx) {
-        long roleId = ctx.getSafeOption("color", OptionMapping::getAsLong);
+        String roleId = ctx.getSafeOption("color", OptionMapping::getAsString);
         Member member = ctx.getIssuer();
         User user = member.getUser();
         Guild guild = ctx.getGuild();
-        ColorRoleItem color = colorItemRepo.findByRoleId(roleId);
+        ColorRoleItem color = colorItemRepo.findByRoleId(Long.parseLong(roleId));
 
         if (color == null)
             return Status.COLOR_ROLE_NOT_FOUND;
@@ -68,7 +68,7 @@ public class AddColorRoleCommand extends SlashSubcommand {
     @Override
     public List<OptionData> getOptions() {
         return List.of(
-                new OptionData(OptionType.INTEGER, "color", "A cor a ser adicionada", true, true)
+                new OptionData(OptionType.STRING, "color", "A cor a ser adicionada", true, true)
         );
     }
 
@@ -103,7 +103,7 @@ public class AddColorRoleCommand extends SlashSubcommand {
             return colors.stream()
                     .map(cri -> guild.getRoleById(cri.getRoleId()))
                     .filter(Objects::nonNull)
-                    .map(r -> new Command.Choice(r.getName(), r.getIdLong()))
+                    .map(r -> new Command.Choice(r.getName(), r.getId()))
                     .toList();
         }
     }

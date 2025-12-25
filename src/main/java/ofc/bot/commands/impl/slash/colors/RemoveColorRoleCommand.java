@@ -39,10 +39,10 @@ public class RemoveColorRoleCommand extends SlashSubcommand {
 
     @Override
     public InteractionResult onCommand(@NotNull SlashCommandContext ctx) {
-        long roleId = ctx.getSafeOption("color", OptionMapping::getAsLong);
+        String roleId = ctx.getSafeOption("color", OptionMapping::getAsString);
         User user = ctx.getUser();
         Guild guild = ctx.getGuild();
-        ColorRoleItem color = colorItemRepo.findByRoleId(roleId);
+        ColorRoleItem color = colorItemRepo.findByRoleId(Long.parseLong(roleId));
         long userId = user.getIdLong();
 
         if (color == null)
@@ -76,7 +76,7 @@ public class RemoveColorRoleCommand extends SlashSubcommand {
     @Override
     public List<OptionData> getOptions() {
         return List.of(
-                new OptionData(OptionType.INTEGER, "color", "A cor a ser adicionada", true, true)
+                new OptionData(OptionType.STRING, "color", "A cor a ser adicionada", true, true)
         );
     }
 
@@ -113,7 +113,7 @@ public class RemoveColorRoleCommand extends SlashSubcommand {
             return roles.stream()
                     .map(crs -> guild.getRoleById(crs.getRoleId()))
                     .filter(Objects::nonNull)
-                    .map(r -> new Command.Choice(r.getName(), r.getIdLong()))
+                    .map(r -> new Command.Choice(r.getName(), r.getId()))
                     .toList();
         }
     }
