@@ -9,9 +9,7 @@ import ofc.bot.commands.impl.slash.*;
 import ofc.bot.commands.impl.slash.additionals.AdditionalRolesCommand;
 import ofc.bot.commands.impl.slash.bets.BetTicTacToeCommand;
 import ofc.bot.commands.impl.slash.birthday.*;
-import ofc.bot.commands.impl.slash.colors.AddColorRoleCommand;
-import ofc.bot.commands.impl.slash.colors.ListColorsRolesCommand;
-import ofc.bot.commands.impl.slash.colors.RemoveColorRoleCommand;
+import ofc.bot.commands.impl.slash.colors.*;
 import ofc.bot.commands.impl.slash.economy.*;
 import ofc.bot.commands.impl.slash.groups.*;
 import ofc.bot.commands.impl.slash.groups.channel.CreateGroupChannelCommand;
@@ -84,6 +82,7 @@ public final class CommandsInitializer {
         // Colors
         SlashCommand colors = new EmptySlashCommand("color", "Auxilia nos cargos de cor do servidor.")
                 .addSubcommand(new AddColorRoleCommand(colorItemRepo))
+                .addSubcommand(new ColorRoleStatusCommand(colorStateRepo))
                 .addSubcommand(new RemoveColorRoleCommand(colorStateRepo, colorItemRepo))
                 .addSubcommand(new ListColorsRolesCommand(colorItemRepo));
 

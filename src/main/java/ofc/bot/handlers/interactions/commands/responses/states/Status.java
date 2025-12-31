@@ -44,6 +44,7 @@ public enum Status implements InteractionResult {
     USERINFO_RESET_SUCCESSFULLY(                State.OK, true, "Customizações do userinfo resetadas."),
     CONFIRMATION_CODE_SENT_SUCCESSFULLY_TIP(    State.OK, true, "Um código de confirmação foi enviado no seu privado! Utilize este código %s."),
     USERINFO_COLOR_SUCCESSFULLY_UPDATED(        State.OK, true, "Cor do userinfo atualizada com sucesso."),
+    NO_COLOR_ROLES_STATE(                       State.OK, true, "Nenhum cargo de cor presente."),
     CREATING_GROUP(                             State.OK, true, "<a:loading:1293036166387601469> criando grupo..."),
     MESSAGE_ALREADY_PINNED(                     State.OK, true, "Esta mensagem já está fixada."),
     MESSAGE_ALREADY_UNPINNED(                   State.OK, true, "Esta mensagem já não está fixada."),

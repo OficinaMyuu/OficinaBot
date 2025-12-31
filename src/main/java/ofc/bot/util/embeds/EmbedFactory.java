@@ -24,6 +24,7 @@ import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -222,7 +223,7 @@ public final class EmbedFactory {
         int page = levels.getPage();
         String fmtPages = String.format("Pág %s/%s", Bot.fmtNum(page), Bot.fmtNum(levels.getPageCount()));
         String userRow = String.format(UserXP.LEADERBOARD_ROW_FORMAT, user.rank(), user.displayIdentifier(), Bot.humanizeNum(user.level()));
-        
+
         return builder
                 .setAuthor("Levels Leaderboard - Global", null, guild.getIconUrl())
                 .setDescription("📊 Placar global de níveis.\n\n" + formatLevelUsers(levels))
@@ -369,6 +370,21 @@ public final class EmbedFactory {
                 .setColor(role.getColorRaw())
                 .addField("💰 Valor", Bot.fmtMoney(price), true)
                 .addField("🎨 Cor", role.getAsMention(), true)
+                .setFooter(guild.getName(), guild.getIconUrl())
+                .build();
+    }
+
+    public static MessageEmbed embedColorRoleStates(Guild guild, User user, List<ColorRoleState> states) {
+        EmbedBuilder builder = new EmbedBuilder();
+        Color color = toRoleStatusColor(guild, states);
+        String fmtStates = formatColorRoleStates(states);
+        String desc = String.format("Data de remoção de seus cargos de cor:\n\n%s", fmtStates);
+
+        return builder
+                .setTitle("Seus Cargos de Cor")
+                .setDescription(desc)
+                .setThumbnail(user.getEffectiveAvatarUrl())
+                .setColor(color)
                 .setFooter(guild.getName(), guild.getIconUrl())
                 .build();
     }
@@ -762,5 +778,26 @@ public final class EmbedFactory {
         } catch (ParseException e) {
             return null;
         }
+    }
+
+    private static Color toRoleStatusColor(Guild guild, List<ColorRoleState> states) {
+        if (states.size() != 1)
+            return Bot.Colors.DEFAULT;
+
+        long roleId = states.getFirst().getRoleId();
+        Role role = guild.getRoleById(roleId);
+
+        return role == null ? Bot.Colors.DEFAULT : role.getColor();
+    }
+
+    private static String formatColorRoleStates(List<ColorRoleState> states) {
+        StringBuilder builder = new StringBuilder();
+
+        for (ColorRoleState crs : states) {
+            long expiresAt = crs.getLastUpdated() + TimeUnit.DAYS.toSeconds(60);
+            String row = String.format("<t:%d:R>**・**<@&%d>\n", expiresAt, crs.getRoleId());
+            builder.append(row);
+        }
+        return builder.toString().strip();
     }
 }
