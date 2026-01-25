@@ -9,6 +9,7 @@ import ofc.bot.domain.entity.LevelRole;
 import ofc.bot.domain.entity.UserXP;
 import ofc.bot.domain.entity.enums.PolicyType;
 import ofc.bot.domain.sqlite.repository.*;
+import ofc.bot.util.Bot;
 import ofc.bot.util.content.Channels;
 import org.jetbrains.annotations.NotNull;
 
@@ -76,6 +77,53 @@ public final class LevelManager {
             // but its not necessary, removing the old role is enough.
             guild.removeRoleFromMember(member, oldLvlRole.toRole()).queue();
         }
+    }
+
+    /**
+     * Merges multiple UserXP instances into a single result.
+     * Useful for combining accounts or stats.
+     * @param xps One or more UserXP objects to merge.
+     * @return A new UserXP object (without ID) containing the combined progress.
+     */
+    public UserXP merge(@NotNull UserXP... xps) {
+        if (xps == null || xps.length == 0) {
+            return new UserXP(0, 0, 0L, Bot.unixNow(), Bot.unixNow());
+        }
+
+        long grandTotalXp = 0;
+        for (UserXP userXp : xps) {
+            if (userXp == null) continue;
+            grandTotalXp += getAbsoluteXp(userXp);
+        }
+
+        // We create a fresh object. ID is 0 because this is a merged result.
+        UserXP result = new UserXP(0, 0, 0L, Bot.unixNow(), Bot.unixNow());
+
+        // We cap at Integer.MAX_VALUE because your UserXP class uses 'int' for XP.
+        // If you expect massive merges, you might need to migrate UserXP to 'long'.
+        int cappedTotal = (int) Math.min(grandTotalXp, Integer.MAX_VALUE);
+
+        // We reuse your existing compute logic.
+        // passing '0' as currentLevel forces it to calculate from scratch.
+        UserXP.compute(cappedTotal, 0, (newXp, newLevel) -> {
+            result.setXp(newXp);
+            result.setLevel(newLevel);
+        });
+
+        return result;
+    }
+
+    /**
+     * Helper to calculate the total XP a user has earned since Level 0.
+     */
+    public long getAbsoluteXp(UserXP userXp) {
+        long total = userXp.getXp(); // Start with current partial XP
+
+        // Sum the XP required for every level the user has already passed
+        for (int i = 0; i < userXp.getLevel(); i++) {
+            total += UserXP.calcNextXp(i);
+        }
+        return total;
     }
 
     private boolean isExcluded(Member member, long chanId) {
