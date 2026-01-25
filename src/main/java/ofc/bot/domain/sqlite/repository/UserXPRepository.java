@@ -55,6 +55,12 @@ public class UserXPRepository extends Repository<UserXP> {
                 .fetchOne();
     }
 
+    public List<UserXP> findAllOrdered() {
+        return ctx.selectFrom(USERS_XP)
+                .orderBy(USERS_XP.LEVEL.desc(), USERS_XP.XP.desc(), USERS_XP.USER_ID.asc())
+                .fetch();
+    }
+
     public int findLevelByUserId(long userId) {
         return ctx.select(USERS_XP.LEVEL)
                 .from(USERS_XP)
