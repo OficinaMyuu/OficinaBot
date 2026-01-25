@@ -9,12 +9,18 @@ public class VoiceHeartbeat extends OficinaRecord<VoiceHeartbeat> {
         super(VOICE_HEARTBEATS);
     }
 
-    public VoiceHeartbeat(long userId, long channelId, boolean isMuted, boolean isDeafened, long timestamp) {
+    public VoiceHeartbeat(
+            long userId, long channelId, boolean isMuted,
+            boolean isDeafened, boolean isVideo,
+            boolean isStream, long timestamp
+    ) {
         this();
         set(VOICE_HEARTBEATS.USER_ID, userId);
         set(VOICE_HEARTBEATS.CHANNEL_ID, channelId);
         set(VOICE_HEARTBEATS.IS_MUTED, isMuted);
         set(VOICE_HEARTBEATS.IS_DEAFENED, isDeafened);
+        set(VOICE_HEARTBEATS.IS_VIDEO, isVideo);
+        set(VOICE_HEARTBEATS.IS_STREAM, isStream);
         set(VOICE_HEARTBEATS.CREATED_AT, timestamp);
     }
 
@@ -36,6 +42,14 @@ public class VoiceHeartbeat extends OficinaRecord<VoiceHeartbeat> {
 
     public boolean isDeafened() {
         return get(VOICE_HEARTBEATS.IS_DEAFENED);
+    }
+
+    public boolean isVideo() {
+        return get(VOICE_HEARTBEATS.IS_VIDEO);
+    }
+
+    public boolean isStream() {
+        return get(VOICE_HEARTBEATS.IS_STREAM);
     }
 
     public long getTimeCreated() {

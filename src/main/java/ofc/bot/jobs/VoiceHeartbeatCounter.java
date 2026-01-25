@@ -28,11 +28,13 @@ public class VoiceHeartbeatCounter implements Job {
             GuildVoiceState state = m.getVoiceState();
             boolean isMuted = state != null && state.isMuted();
             boolean isDeafened = state != null && state.isDeafened();
+            boolean isVideo = state != null && state.isSendingVideo();
+            boolean isStreaming = state != null && state.isStream();
             long userId = m.getIdLong();
             long chanId = vc.getIdLong();
             long now = Bot.nowMillis();
 
-            return new VoiceHeartbeat(userId, chanId, isMuted, isDeafened, now);
+            return new VoiceHeartbeat(userId, chanId, isMuted, isDeafened, isVideo, isStreaming, now);
         })).toList();
 
         vcHeartbeatRepo.bulkSave(heartbeats);

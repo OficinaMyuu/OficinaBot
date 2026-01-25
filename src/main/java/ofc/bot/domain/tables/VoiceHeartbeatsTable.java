@@ -17,6 +17,8 @@ public class VoiceHeartbeatsTable extends InitializableTable<VoiceHeartbeat> {
     public final Field<Long> CHANNEL_ID     = newField("channel_id",  BIGINT.notNull());
     public final Field<Boolean> IS_MUTED    = newField("is_muted",    BOOL.notNull());
     public final Field<Boolean> IS_DEAFENED = newField("is_deafened", BOOL.notNull());
+    public final Field<Boolean> IS_VIDEO    = newField("is_video",    BOOL.notNull());
+    public final Field<Boolean> IS_STREAM   = newField("is_stream",   BOOL.notNull());
     public final Field<Long> CREATED_AT     = newField("created_at",  BIGINT.notNull());
 
     public VoiceHeartbeatsTable() {
