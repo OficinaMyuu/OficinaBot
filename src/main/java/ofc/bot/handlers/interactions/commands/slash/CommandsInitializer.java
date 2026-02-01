@@ -118,7 +118,6 @@ public final class CommandsInitializer {
                 .addSubcommand(new CreateGroupCommand(grpRepo))
                 .addSubcommand(new GroupBotsCommand(grpBotRepo, grpRepo))
                 .addSubcommand(new GroupInfoCommand(grpRepo))
-                .addSubcommand(new GroupPayInvoiceCommand(grpRepo))
                 .addSubcommand(new GroupPermissionCommand(grpRepo, policyRepo))
                 .addSubcommand(new GroupPinsCommand(grpRepo))
                 .addSubcommand(new HelpGroupCommand())

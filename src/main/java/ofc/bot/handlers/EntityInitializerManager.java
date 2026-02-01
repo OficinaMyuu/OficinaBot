@@ -13,7 +13,6 @@ import ofc.bot.handlers.interactions.commands.SlashCommandsGateway;
 import ofc.bot.handlers.interactions.commands.slash.CommandsInitializer;
 import ofc.bot.handlers.interactions.modals.ModalInteractionGateway;
 import ofc.bot.jobs.*;
-import ofc.bot.jobs.groups.GroupsInvoiceHandler;
 import ofc.bot.jobs.groups.LateGroupsChecker;
 import ofc.bot.jobs.income.VoiceChatMoneyHandler;
 import ofc.bot.jobs.income.VoiceXPHandler;
@@ -101,7 +100,6 @@ public final class EntityInitializerManager {
                     new VoiceXPHandler(),
 
                     // Groups
-                    new GroupsInvoiceHandler(),
                     new LateGroupsChecker(),
 
                     // Nicks
@@ -164,7 +162,6 @@ public final class EntityInitializerManager {
                 new GroupBotAddHandler(),
                 new GroupChannelCreationHandler(grpRepo),
                 new GroupCreationHandler(grpRepo),
-                new GroupInvoicePaymentHandler(grpRepo),
                 new GroupMemberAddHandler(perkRepo),
                 new GroupMemberRemoveHandler(),
                 new GroupPermissionAddHandler(policyRepo),
