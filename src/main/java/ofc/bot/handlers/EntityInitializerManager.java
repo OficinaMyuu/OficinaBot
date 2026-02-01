@@ -133,6 +133,7 @@ public final class EntityInitializerManager {
         var appBanRepo = Repositories.getAppUserBanRepository();
         var grpRepo = Repositories.getOficinaGroupRepository();
         var ecoRepo = Repositories.getUserEconomyRepository();
+        var perkRepo = Repositories.getGroupPerkRepository();
         var bdayRepo = Repositories.getBirthdayRepository();
         var remRepo = Repositories.getReminderRepository();
         var betRepo = Repositories.getBetGameRepository();
@@ -164,7 +165,7 @@ public final class EntityInitializerManager {
                 new GroupChannelCreationHandler(grpRepo),
                 new GroupCreationHandler(grpRepo),
                 new GroupInvoicePaymentHandler(grpRepo),
-                new GroupMemberAddHandler(),
+                new GroupMemberAddHandler(perkRepo),
                 new GroupMemberRemoveHandler(),
                 new GroupPermissionAddHandler(policyRepo),
                 new GroupPinsHandler(),

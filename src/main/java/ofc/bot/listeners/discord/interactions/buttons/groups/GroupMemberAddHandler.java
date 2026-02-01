@@ -3,16 +3,18 @@ package ofc.bot.listeners.discord.interactions.buttons.groups;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import ofc.bot.domain.entity.GroupPerk;
 import ofc.bot.domain.entity.OficinaGroup;
-import ofc.bot.handlers.economy.BankAction;
-import ofc.bot.handlers.economy.PaymentManager;
-import ofc.bot.handlers.economy.PaymentManagerProvider;
+import ofc.bot.domain.entity.enums.StoreItemType;
+import ofc.bot.domain.sqlite.repository.GroupPerkRepository;
+import ofc.bot.handlers.economy.*;
 import ofc.bot.handlers.games.betting.BetManager;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.InteractionListener;
 import ofc.bot.handlers.interactions.buttons.contexts.ButtonClickContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
+import ofc.bot.util.Bot;
 import ofc.bot.util.Scopes;
 import ofc.bot.util.content.annotations.listeners.InteractionHandler;
 import org.slf4j.Logger;
@@ -22,6 +24,11 @@ import org.slf4j.LoggerFactory;
 public class GroupMemberAddHandler implements InteractionListener<ButtonClickContext> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupMemberAddHandler.class);
     private static final BetManager betManager = BetManager.getManager();
+    private final GroupPerkRepository perksRepo;
+
+    public GroupMemberAddHandler(GroupPerkRepository perksRepo) {
+        this.perksRepo = perksRepo;
+    }
 
     @Override
     public InteractionResult onExecute(ButtonClickContext ctx) {
@@ -32,7 +39,8 @@ public class GroupMemberAddHandler implements InteractionListener<ButtonClickCon
         long roleId = group.getRoleId();
         long ownerId = group.getOwnerId();
         long guildId = guild.getIdLong();
-        PaymentManager bank = PaymentManagerProvider.fromType(group.getCurrency());
+        CurrencyType currency = group.getCurrency();
+        PaymentManager bank = PaymentManagerProvider.fromType(currency);
         Role groupRole = guild.getRoleById(roleId);
 
         if (betManager.isBetting(ownerId))
@@ -48,6 +56,7 @@ public class GroupMemberAddHandler implements InteractionListener<ButtonClickCon
 
         guild.addRoleToMember(newMember, groupRole).queue(v -> {
             ctx.reply(Status.MEMBER_SUCCESSFULLY_ADDED_TO_GROUP.args(newMember.getAsMention()));
+            regiserPurchase(group.getId(), ownerId, price, currency);
         }, (err) -> {
             LOGGER.error("Could not add role &{} to member @{}", roleId, newMember.getId());
 
@@ -56,5 +65,10 @@ public class GroupMemberAddHandler implements InteractionListener<ButtonClickCon
         });
         ctx.disable();
         return Status.OK;
+    }
+
+    private void regiserPurchase(int groupId, long userId, int paid, CurrencyType currency) {
+        GroupPerk perk = new GroupPerk(groupId, userId, StoreItemType.GROUP_SLOT, paid, currency, Bot.unixNow());
+        perksRepo.save(perk);
     }
 }
