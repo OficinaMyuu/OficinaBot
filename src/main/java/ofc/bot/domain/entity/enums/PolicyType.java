@@ -12,13 +12,13 @@ public enum PolicyType {
     EXEMPT_MARRIAGE_FEE(        of(USER), "Insentar das Taxas de Casamento."),
     HIDE_BIRTHDAY_AGE(          of(USER), "Ocultar a data de Nascimento."),
     HIDE_FROM_STAFF_LIST(       of(USER), "Ocultar da Lista de Staffs."),
-    BLOCK_XP_GAINS(             of(ROLE, CHANNEL), "Bloqueie os ganhos de XP."),
-    BYPASS_WORD_BLOCKER(        of(ROLE, CHANNEL), "Ignorar na moderação de palavras bloqueadas."),
-    BYPASS_MASS_EMOJI_BLOCKER(  of(ROLE, CHANNEL), "Ignorar na moderação de excesso de emojis."),
-    BYPASS_MASS_MENTION_BLOCKER(of(ROLE, CHANNEL), "Ignorar na moderação de marcações em excesso."),
-    BYPASS_LINKS_BLOCKER(       of(ROLE, CHANNEL), "Ignorar na moderação de links."),
-    BYPASS_REPEATS_BLOCKER(     of(ROLE, CHANNEL), "Ignorar na moderação de repetições de texto."),
-    BYPASS_INVITES_BLOCKER(     of(ROLE, CHANNEL), "Ignorar na moderação do envio de convites."),
+    BLOCK_XP_GAINS(             of(USER, ROLE, CHANNEL), "Bloqueie os ganhos de XP."),
+    BYPASS_WORD_BLOCKER(        of(USER, ROLE, CHANNEL), "Ignorar na moderação de palavras bloqueadas."),
+    BYPASS_MASS_EMOJI_BLOCKER(  of(USER, ROLE, CHANNEL), "Ignorar na moderação de excesso de emojis."),
+    BYPASS_MASS_MENTION_BLOCKER(of(USER, ROLE, CHANNEL), "Ignorar na moderação de marcações em excesso."),
+    BYPASS_LINKS_BLOCKER(       of(USER, ROLE, CHANNEL), "Ignorar na moderação de links."),
+    BYPASS_REPEATS_BLOCKER(     of(USER, ROLE, CHANNEL), "Ignorar na moderação de repetições de texto."),
+    BYPASS_INVITES_BLOCKER(     of(USER, ROLE, CHANNEL), "Ignorar na moderação do envio de convites."),
     ALLOW_DOMAIN(               of(LINK), "Links permitidos.");
 
     private final List<ResourceType> supportedTypes;

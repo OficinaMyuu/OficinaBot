@@ -225,7 +225,7 @@ public class AutoModerator extends ListenerAdapter {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isExcluded(PolicyType type, Member member, long chanId) {
         Set<Long> ids = policyCache.get(type, Long::parseLong);
-        return ids.contains(chanId) || member.getRoles()
+        return ids.contains(chanId) || ids.contains(member.getIdLong()) || member.getRoles()
                 .stream()
                 .anyMatch(r -> ids.contains(r.getIdLong()));
     }
