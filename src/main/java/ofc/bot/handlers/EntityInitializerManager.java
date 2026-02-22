@@ -100,10 +100,10 @@ public final class EntityInitializerManager {
                     new VoiceXPHandler(),
 
                     // Groups
-                    new LateGroupsChecker(),
+                    new LateGroupsChecker()
 
                     // Nicks
-                    new NickTimeUpdate()
+                    // new NickTimeUpdate()
             );
             SchedulerRegistryManager.start();
         } catch (SchedulerException e) {
