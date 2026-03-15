@@ -217,6 +217,7 @@ public final class EntityInitializerManager {
                 new ChatMoneyHandler(ecoRepo),
                 new ChoosableRolesListener(),
                 new CloseTicketHandler(),
+                new CoinflipInferenceHandler(),
                 new DirectMessageReceived(),
                 new ErikPingReactionHelper(),
                 new GenericInteractionLocaleUpsert(usprefRepo),
