@@ -76,6 +76,11 @@ public class SupportTicket extends OficinaRecord<SupportTicket> {
         return id == null ? 0 : id;
     }
 
+    public int getMergedInto() {
+        Integer id = get(SUPPORT_TICKETS.MERGED_INTO);
+        return id == null ? 0 : id;
+    }
+
     public boolean isClosed() {
         return getClosedAuthorId() > 0;
     }
@@ -121,6 +126,11 @@ public class SupportTicket extends OficinaRecord<SupportTicket> {
 
     public SupportTicket setClosedAuthorId(long userId) {
         set(SUPPORT_TICKETS.CLOSED_BY_ID, userId);
+        return this;
+    }
+
+    public SupportTicket setMergedInto(int ticketId) {
+        set(SUPPORT_TICKETS.MERGED_INTO, ticketId);
         return this;
     }
 
