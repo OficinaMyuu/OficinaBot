@@ -77,7 +77,7 @@ public class SupportTicketRepository extends Repository<SupportTicket> {
 
     public List<SupportTicket> searchOpenTickets(String search) {
         return ctx.selectFrom(SUPPORT_TICKETS)
-                .where(SUPPORT_TICKETS.CLOSED_BY_ID.isNotNull())
+                .where(SUPPORT_TICKETS.CLOSED_BY_ID.isNull())
                 .and(SUPPORT_TICKETS.ID.cast(String.class).likeIgnoreCase("%" + search + "%")
                         .or(SUPPORT_TICKETS.TITLE.likeIgnoreCase("%" + search + "%")))
                 .limit(25)
