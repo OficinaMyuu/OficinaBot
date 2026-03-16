@@ -8,7 +8,9 @@ import ofc.bot.Main;
 import ofc.bot.commands.impl.slash.*;
 import ofc.bot.commands.impl.slash.additionals.AdditionalRolesCommand;
 import ofc.bot.commands.impl.slash.bets.BetTicTacToeCommand;
-import ofc.bot.commands.impl.slash.birthday.*;
+import ofc.bot.commands.impl.slash.birthday.BirthdayAddCommand;
+import ofc.bot.commands.impl.slash.birthday.BirthdayRemoveCommand;
+import ofc.bot.commands.impl.slash.birthday.BirthdaysCommand;
 import ofc.bot.commands.impl.slash.colors.*;
 import ofc.bot.commands.impl.slash.economy.*;
 import ofc.bot.commands.impl.slash.groups.*;
@@ -21,11 +23,15 @@ import ofc.bot.commands.impl.slash.levels.RankCommand;
 import ofc.bot.commands.impl.slash.moderation.*;
 import ofc.bot.commands.impl.slash.policies.AddPolicyCommand;
 import ofc.bot.commands.impl.slash.policies.RemovePolicyCommand;
-import ofc.bot.commands.impl.slash.relationships.*;
+import ofc.bot.commands.impl.slash.relationships.DivorceCommand;
+import ofc.bot.commands.impl.slash.relationships.MarryCommand;
+import ofc.bot.commands.impl.slash.relationships.UpdateMarriageCreationCommand;
 import ofc.bot.commands.impl.slash.relationships.marriages.*;
 import ofc.bot.commands.impl.slash.reminders.*;
+import ofc.bot.commands.impl.slash.stafflist.RefreshStaffListMessageCommand;
+import ofc.bot.commands.impl.slash.stafflist.StaffListMessagesRegenerateCommand;
+import ofc.bot.commands.impl.slash.tickets.ViewTicketCommand;
 import ofc.bot.commands.impl.slash.userinfo.UserinfoCommand;
-import ofc.bot.commands.impl.slash.stafflist.*;
 import ofc.bot.commands.impl.slash.userinfo.custom.*;
 import ofc.bot.domain.sqlite.repository.Repositories;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.ICommand;
@@ -132,6 +138,10 @@ public final class CommandsInitializer {
                 .addSubcommand(new CreatePeriodicReminderCommand(remRepo))
                 .addSubcommand(new ListRemindersCommand());
 
+        // Tickets
+        SlashCommand tickets = new EmptySlashCommand("tickets", "Gerencie os tickets", Permission.MANAGE_SERVER)
+                .addSubcommand(new ViewTicketCommand(msgVrsRepo));
+
         // Administration
         registry.register(new DisconnectAllCommand());
         registry.register(new MoveAllCommand());
@@ -193,7 +203,6 @@ public final class CommandsInitializer {
         registry.register(new RoleInfoCommand());
         registry.register(new RoleMembersCommand());
         registry.register(new ToggleEventsCommand());
-        registry.register(new ViewTicketCommand(msgVrsRepo));
 
         // Compound Commands
         registry.register(additionals);
@@ -204,6 +213,7 @@ public final class CommandsInitializer {
         registry.register(marriage);
         registry.register(remind);
         registry.register(group);
+        registry.register(tickets);
         registry.register(customizeUserinfo);
 
         // Send them to Discord and clear the temporary cache

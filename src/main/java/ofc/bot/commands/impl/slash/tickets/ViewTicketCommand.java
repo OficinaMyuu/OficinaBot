@@ -1,7 +1,6 @@
-package ofc.bot.commands.impl.slash;
+package ofc.bot.commands.impl.slash.tickets;
 
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -14,7 +13,7 @@ import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
-import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashCommand;
+import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashSubcommand;
 import ofc.bot.handlers.paginations.PageItem;
 import ofc.bot.handlers.paginations.Paginator;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
@@ -26,8 +25,8 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Set;
 
-@DiscordCommand(name = "view-tickets", permissions = Permission.MANAGE_SERVER)
-public class ViewTicketCommand extends SlashCommand {
+@DiscordCommand(name = "tickets view")
+public class ViewTicketCommand extends SlashSubcommand {
     private static final Logger LOGGER = LoggerFactory.getLogger(ViewTicketCommand.class);
     private final MessageVersionRepository msgVrsRepo;
 
