@@ -76,6 +76,10 @@ public class SupportTicket extends OficinaRecord<SupportTicket> {
         return id == null ? 0 : id;
     }
 
+    public boolean isClosed() {
+        return getClosedAuthorId() > 0;
+    }
+
     public long getTimeCreated() {
         return get(SUPPORT_TICKETS.CREATED_AT);
     }
