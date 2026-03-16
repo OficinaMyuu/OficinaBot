@@ -601,9 +601,11 @@ public final class EmbedFactory {
         Instant timestamp = Instant.ofEpochSecond(ticket.getTimeCreated());
         TextChannel ticketChan = guild.getTextChannelById(ticketChanId);
         boolean isOpen = ticketChan != null;
+        boolean wasMerged = ticket.getMergedInto() != 0;
         String fmtClosureAuthor = String.format("<@%d>", ticket.getClosedAuthorId());
         String fmtStatus = isOpen ? "Aberto" : "Fechado";
         String fmtUsers = users.stream().map(l -> String.format("- <@%d>", l)).collect(Collectors.joining("\n"));
+        String fmtMerged = String.format("#%02d", ticket.getMergedInto());
 
         return builder
                 .setAuthor(ticket.getTitle())
@@ -615,6 +617,7 @@ public final class EmbedFactory {
                 .addFieldIf(!isOpen, "🚩 Quem Fechou", fmtClosureAuthor)
                 .addFieldIf(!isOpen, "📜 Por Que Fechou", ticket.getCloseReason())
                 .addFieldIf(isOpen, "📚 Canal", String.format("<#%d>", ticketChanId))
+                .addFieldIf(wasMerged, "\uD83D\uDD00 Mesclado Ao", fmtMerged)
                 .addField("👥 Envolvidos", fmtUsers, false)
                 .setFooter(guild.getName(), guild.getIconUrl())
                 .setTimestamp(timestamp)
