@@ -20,6 +20,7 @@ public class SupportTicketsTable extends InitializableTable<SupportTicket> {
     public final Field<Long> INITIATOR_ID   = newField("initiator_id", BIGINT.notNull());
     public final Field<String> CLOSE_REASON = newField("close_reason", CHAR);
     public final Field<Long> CLOSED_BY_ID   = newField("closed_by_id", BIGINT);
+    public final Field<Integer> MERGED_INTO = newField("merged_into",  INT);
     public final Field<Long> CREATED_AT     = newField("created_at",   BIGINT.notNull());
     public final Field<Long> UPDATED_AT     = newField("updated_at",   BIGINT.notNull());
 
@@ -35,7 +36,8 @@ public class SupportTicketsTable extends InitializableTable<SupportTicket> {
                 .unique(CHANNEL_ID)
                 .constraints(
                         foreignKey(INITIATOR_ID).references(USERS, USERS.ID),
-                        foreignKey(CLOSED_BY_ID).references(USERS, USERS.ID)
+                        foreignKey(CLOSED_BY_ID).references(USERS, USERS.ID),
+                        foreignKey(MERGED_INTO).references(this, ID)
                 );
     }
 
