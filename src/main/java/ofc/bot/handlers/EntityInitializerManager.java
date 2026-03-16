@@ -5,6 +5,7 @@ import ofc.bot.Main;
 import ofc.bot.commands.impl.slash.colors.AddColorRoleCommand;
 import ofc.bot.commands.impl.slash.colors.RemoveColorRoleCommand;
 import ofc.bot.commands.impl.slash.groups.LeaveGroupCommand;
+import ofc.bot.commands.impl.slash.tickets.MergeTicketCommand;
 import ofc.bot.domain.sqlite.repository.Repositories;
 import ofc.bot.handlers.cache.PolicyService;
 import ofc.bot.handlers.interactions.InteractionMemoryManager;
@@ -230,6 +231,7 @@ public final class EntityInitializerManager {
                 new MemberJoinUpsert(),
                 new MemberNickUpdateLogger(namesRepo, userRepo),
                 new MemberRolesBackup(rolesRepo, xpRepo),
+                new MergeTicketCommand.TicketMergeAutocompletionHandler(ticketRepo),
                 new ModalInteractionGateway(),
                 new MessageBulkDeleteLogger(msgVrsRepo),
                 new MessageCreatedLogger(msgVrsRepo),

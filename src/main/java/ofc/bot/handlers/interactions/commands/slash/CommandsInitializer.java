@@ -30,6 +30,7 @@ import ofc.bot.commands.impl.slash.relationships.marriages.*;
 import ofc.bot.commands.impl.slash.reminders.*;
 import ofc.bot.commands.impl.slash.stafflist.RefreshStaffListMessageCommand;
 import ofc.bot.commands.impl.slash.stafflist.StaffListMessagesRegenerateCommand;
+import ofc.bot.commands.impl.slash.tickets.MergeTicketCommand;
 import ofc.bot.commands.impl.slash.tickets.ViewTicketCommand;
 import ofc.bot.commands.impl.slash.userinfo.UserinfoCommand;
 import ofc.bot.commands.impl.slash.userinfo.custom.*;
@@ -59,6 +60,7 @@ public final class CommandsInitializer {
         var msgVrsRepo = Repositories.getMessageVersionRepository();
         var namesRepo = Repositories.getUserNameUpdateRepository();
         var modActRepo = Repositories.getAutomodActionRepository();
+        var ticketRepo = Repositories.getSupportTicketRepository();
         var mreqRepo = Repositories.getMarriageRequestRepository();
         var policyRepo = Repositories.getEntityPolicyRepository();
         var lvlRoleRepo = Repositories.getLevelRoleRepository();
@@ -140,7 +142,8 @@ public final class CommandsInitializer {
 
         // Tickets
         SlashCommand tickets = new EmptySlashCommand("tickets", "Gerencie os tickets", Permission.MANAGE_SERVER)
-                .addSubcommand(new ViewTicketCommand(msgVrsRepo));
+                .addSubcommand(new ViewTicketCommand(msgVrsRepo))
+                .addSubcommand(new MergeTicketCommand(ticketRepo));
 
         // Administration
         registry.register(new DisconnectAllCommand());
