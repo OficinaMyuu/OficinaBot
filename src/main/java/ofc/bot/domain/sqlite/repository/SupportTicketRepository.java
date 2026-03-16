@@ -75,6 +75,15 @@ public class SupportTicketRepository extends Repository<SupportTicket> {
         return ctx.fetchExists(SUPPORT_TICKETS, SUPPORT_TICKETS.CHANNEL_ID.eq(channelId));
     }
 
+    public List<SupportTicket> searchOpenTickets(String search) {
+        return ctx.selectFrom(SUPPORT_TICKETS)
+                .where(SUPPORT_TICKETS.CLOSED_BY_ID.isNotNull())
+                .and(SUPPORT_TICKETS.ID.cast(String.class).likeIgnoreCase("%" + search + "%")
+                        .or(SUPPORT_TICKETS.TITLE.likeIgnoreCase("%" + search + "%")))
+                .limit(25)
+                .fetch();
+    }
+
     /**
      * Searches tickets given the provided filters.
      *
