@@ -161,8 +161,8 @@ public class DownloadTicketMessagesHandler implements InteractionListener<Button
         return state.isEdited ? "(edited) " + content : content;
     }
 
-    private String resolveReplyPrefix(Long refMessageId, Map<Long, MessageState> allStates) {
-        if (refMessageId == null) return "";
+    private String resolveReplyPrefix(long refMessageId, Map<Long, MessageState> allStates) {
+        if (refMessageId == 0) return "";
 
         MessageState refState = allStates.get(refMessageId);
         String sequenceTag = (refState != null) ? "#" + refState.sequence : "#?";
@@ -172,7 +172,7 @@ public class DownloadTicketMessagesHandler implements InteractionListener<Button
     private static class MessageState {
         long messageId;
         long authorId;
-        Long refMessageId;
+        long refMessageId;
         String content;
         boolean isEdited;
         boolean isDeleted;
