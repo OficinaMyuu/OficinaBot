@@ -42,6 +42,7 @@ import ofc.bot.listeners.discord.interactions.buttons.pagination.reminders.Remin
 import ofc.bot.listeners.discord.interactions.buttons.shop.ColorRolePurchaseHandler;
 import ofc.bot.listeners.discord.interactions.buttons.shop.ColorRoleRemoveHandler;
 import ofc.bot.listeners.discord.interactions.buttons.tickets.CloseTicketHandler;
+import ofc.bot.listeners.discord.interactions.buttons.tickets.DownloadTicketMessagesHandler;
 import ofc.bot.listeners.discord.interactions.dm.DirectMessageReceived;
 import ofc.bot.listeners.discord.interactions.menus.ChoosableRolesListener;
 import ofc.bot.listeners.discord.interactions.modals.ChoosableRolesHandler;
@@ -136,6 +137,7 @@ public final class EntityInitializerManager {
         var bdayRepo = Repositories.getBirthdayRepository();
         var remRepo = Repositories.getReminderRepository();
         var betRepo = Repositories.getBetGameRepository();
+        var userRepo = Repositories.getUserRepository();
         var xpRepo = Repositories.getUserXPRepository();
 
         InteractionMemoryManager.getManager().registerListeners(
@@ -175,6 +177,7 @@ public final class EntityInitializerManager {
                 // Tickets
                 new TicketCreationHandler(ticketRepo),
                 new TicketClosureHandler(ticketRepo),
+                new DownloadTicketMessagesHandler(msgVrsRepo, userRepo),
 
                 // Generic
                 new ChoosableRolesHandler()

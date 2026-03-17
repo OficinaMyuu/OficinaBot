@@ -178,7 +178,7 @@ public final class EntityContextFactory {
                 .put("ticket", ticket)
                 .setEnabled(hasNext);
 
-        INTERACTION_MANAGER.save(prev, next);
+        INTERACTION_MANAGER.save(getMessages, prev, next);
         return List.of(getMessages.getEntity(), prev.getEntity(), next.getEntity());
     }
 
