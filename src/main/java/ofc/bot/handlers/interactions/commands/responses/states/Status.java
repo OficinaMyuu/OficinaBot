@@ -87,6 +87,7 @@ public enum Status implements InteractionResult {
     ROLE_HAS_NO_MEMBERS(                        State.OK, true, "Não tem nenhum membro no cargo fornecido"),
     GUILD_HAS_NO_ICON(                          State.OK, true, "O servidor atual não tem nenhum ícone."),
     INVOICE_SUCCESSFULLY_PAID(                  State.OK, true, "Fatura de `%s` paga com sucesso!"),
+    NO_MESSAGES_FOUND(                          State.OK, true, "> Nenhuma mensagem encontrada."),
     MEMBER_ALREADY_HAS_ROLE(                    State.OK, true, "O membro já tem o cargo `%s`."),
     NO_GIF_WAS_FOUND(                           State.OK, true, "Nenhum GIF encontrado."),
     MEMBER_SUCCESSFULLY_TIMED_OUT_FOR(          State.OK, true, "Membro %s silenciado com sucesso por `%s`!"),

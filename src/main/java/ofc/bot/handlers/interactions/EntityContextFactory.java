@@ -160,7 +160,7 @@ public final class EntityContextFactory {
     ) {
         boolean hasPrev = pageIndex > 0;
 
-        ButtonContext getMessages = ButtonContext.success("Baixar", Bot.Emojis.DOWNLOAD)
+        ButtonContext getMessages = ButtonContext.success("Baixar Mensagens", Bot.Emojis.DOWNLOAD)
                 .setScope(Scopes.Tickets.DOWNLOAD_MESSAGES)
                 .put("ticket", ticket);
 
