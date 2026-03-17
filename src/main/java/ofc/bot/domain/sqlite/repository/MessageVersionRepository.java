@@ -39,6 +39,13 @@ public class MessageVersionRepository extends Repository<MessageVersion> {
                 .fetchSet(MESSAGES_VERSIONS.AUTHOR_ID);
     }
 
+    public List<MessageVersion> findByChannelIdAsc(long channelId) {
+        return ctx.selectFrom(MESSAGES_VERSIONS)
+                .where(MESSAGES_VERSIONS.CHANNEL_ID.eq(channelId))
+                .orderBy(MESSAGES_VERSIONS.CREATED_AT.asc())
+                .fetch();
+    }
+
     public List<MessageVersion> findLastValid(long chanId) {
         return ctx.selectFrom(MESSAGES_VERSIONS)
                 .where(MESSAGES_VERSIONS.CHANNEL_ID.eq(chanId))
