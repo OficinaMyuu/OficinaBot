@@ -35,7 +35,7 @@ public class MessageVersionRepository extends Repository<MessageVersion> {
         return ctx.selectDistinct(MESSAGES_VERSIONS.AUTHOR_ID)
                 .from(MESSAGES_VERSIONS)
                 .where(MESSAGES_VERSIONS.CHANNEL_ID.eq(chanId))
-                .and(MESSAGES_VERSIONS.AUTHOR_ID.isNotNull())
+                .and(MESSAGES_VERSIONS.AUTHOR_ID.notEqual(0L))
                 .fetchSet(MESSAGES_VERSIONS.AUTHOR_ID);
     }
 
