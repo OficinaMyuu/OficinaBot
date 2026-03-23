@@ -495,5 +495,8 @@ public final class Bot {
         public static final Emoji INV = Emoji.fromFormatted("<:inv:1347081576298844180>");
         public static final Emoji LOADING = Emoji.fromFormatted("<a:loading:1293036166387601469>");
         public static final Emoji DOWNLOAD = Emoji.fromUnicode("\uD83D\uDCBE");
+        public static final Emoji WOLF = Emoji.fromUnicode("\uD83D\uDC3A");
+        public static final Emoji PLAY = Emoji.fromUnicode("▶");
+        public static final Emoji MAFIA_ROLE = Emoji.fromUnicode("\uD83C\uDFAD");
     }
 }
