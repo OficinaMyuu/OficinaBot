@@ -408,6 +408,103 @@ public final class EmbedFactory {
                 .build();
     }
 
+    public static MessageEmbed embedMafiaLobby(User host, int currentPlayers, int minPlayers) {
+        int remaining = Math.max(0, minPlayers - currentPlayers);
+        String status = remaining > 0
+                ? String.format("Faltam **%d** jogadores para iniciar.", remaining)
+                : "Jogadores suficientes! O host já pode iniciar a partida.";
+
+        return new EmbedBuilder()
+                .setTitle("🌙 Oficina Dorme - Inscrições Abertas!")
+                .setDescription("Um novo jogo de Cidade Dorme está sendo organizado. Clique no botão abaixo para entrar ou sair da partida.\n\n" + status)
+                .setColor(0x2b2d31) // Discord dark theme color
+                .addField("Host", host.getAsMention(), true)
+                .addField("Jogadores Atuais", currentPlayers + " confirmados", true)
+                .setFooter("O jogo só pode ser iniciado pelo Host ou pela Staff.")
+                .build();
+    }
+
+    public static MessageEmbed embedMafiaRoleReveal(ofc.bot.handlers.games.mafia.enums.Role role) {
+        EmbedBuilder builder = new EmbedBuilder();
+
+        builder.setTitle("Sua Função: " + role.getDisplayName());
+
+        switch (role) {
+            case ASSASSIN -> builder.setColor(0xed4245)
+                    .setDescription("""
+                            🔪 **Você é um Assassino!**
+
+                            **Objetivo:** Eliminar a aldeia.
+                            **Noite:** Converse com os outros assassinos no seu canal secreto e escolham uma vítima.
+                            **Dia:** Finja ser um aldeão e vote para enforcar inocentes.""");
+            case DOCTOR -> builder.setColor(0x57f287)
+                    .setDescription("""
+                            💊 **Você é um Médico!**
+
+                            **Objetivo:** Proteger a aldeia.
+                            **Noite:** Escolha alguém para proteger de ataques ou de investigações. Você *não* pode se proteger, nem proteger a mesma pessoa duas vezes seguidas.
+                            **Dia:** Ajude a aldeia a encontrar os assassinos.""");
+            case DETECTIVE -> builder.setColor(0x5865f2)
+                    .setDescription("""
+                            🔍 **Você é um Detetive!**
+
+                            **Objetivo:** Descobrir quem são os assassinos.
+                            **Noite:** Escolha alguém para investigar. Se a pessoa não for protegida ou morta, eu revelarei a função dela para você.
+                            **Dia:** Use suas informações com sabedoria para guiar os votos da aldeia sem ser descoberto!""");
+            case VILLAGER -> builder.setColor(0x95a5a6)
+                    .setDescription("""
+                            🧑‍🌾 **Você é um Aldeão!**
+
+                            **Objetivo:** Sobreviver e eliminar os assassinos.
+                            **Noite:** Você apenas dorme. Zzz...
+                            **Dia:** Preste atenção nas conversas, deduza quem está mentindo e vote para enforcá-los!""");
+        }
+
+        return builder.build();
+    }
+
+    public static MessageEmbed embedMafiaNightPhase(int nightNumber, int aliveCount) {
+        EmbedBuilder builder = new EmbedBuilder();
+
+        return builder
+                .setTitle(String.format("🌃 A noite #%d caiu...", nightNumber))
+                .setDescription("""
+                        A cidade inteira vai dormir.
+
+                        🤫 **Aldeões:** Silêncio! Vocês não podem falar agora.
+                        🎭 **Funções Especiais:** Dirijam-se aos seus canais privados e tomem suas decisões. Vocês têm um tempo limitado antes do amanhecer.""")
+                .setColor(0x0)
+                .setFooter(aliveCount + " jogadores continuam vivos.")
+                .build();
+    }
+
+    public static MessageEmbed embedMafiaDayPhase(int dayNumber) {
+        return new EmbedBuilder()
+                .setTitle(String.format("☀️ O dia #%d amanheceu!", dayNumber))
+                .setDescription("A cidade acorda. Aguardem os apresentadores anunciarem o que aconteceu durante a madrugada!\n\n" +
+                        "🗣️ Vocês já podem conversar novamente.\n" +
+                        "⚖️ Usem o menu abaixo para votar em quem vocês acreditam ser um assassino.")
+                .setColor(0xfee75c)
+                .build();
+    }
+
+    public static MessageEmbed embedMafiaGameOver(boolean assassinsWon) {
+        EmbedBuilder builder = new EmbedBuilder();
+
+        if (assassinsWon) {
+            builder.setTitle("🔪 Fim de Jogo: Os Assassinos Venceram!")
+                    .setColor(0xed4245)
+                    .setDescription("O número de assassinos se igualou ao número de aldeões. A aldeia foi dominada!");
+        } else {
+            builder.setTitle("🧑‍🌾 Fim de Jogo: A Aldeia Venceu!")
+                    .setColor(0x57f287)
+                    .setDescription("Todos os assassinos foram eliminados. A paz voltou à Oficina!");
+        }
+
+        return builder.setFooter("Obrigado por jogar! Os canais secretos serão mantidos para leitura e poderão ser apagados pela staff.")
+                .build();
+    }
+
     public static MessageEmbed embedTicTacToeDeleted(User author, Guild guild) {
         OficinaEmbed builder = new OficinaEmbed();
 
