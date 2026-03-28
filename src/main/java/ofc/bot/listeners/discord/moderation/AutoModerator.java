@@ -20,6 +20,8 @@ import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -75,6 +77,17 @@ public class AutoModerator extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent e) {
         if (e.getAuthor().isBot() || e.isWebhookMessage() || !e.isFromGuild()) return;
+
+        /*
+         * Prevents "ghost moderation" of ancient messages.
+         * Discord frequently fires MessageUpdateEvents for old messages when
+         * background metadata changes (like when an old link's embed refreshes).
+         * If we don't ignore old messages, the bot will evaluate messages from years ago
+         * against today's automod rules, resulting in confusing warnings/deletions for
+         * things users said in the past.
+         */
+        if (isOld(e.getMessage())) return;
+
         runChecks(e.getMessage());
     }
 
@@ -265,6 +278,15 @@ public class AutoModerator extends ListenerAdapter {
             blockedMap.put(guildId, blockedList);
         }
         return blockedMap;
+    }
+
+    private boolean isOld(Message msg) {
+        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime messageTime = msg.getTimeCreated();
+
+        long hoursOld = ChronoUnit.HOURS.between(messageTime, now);
+
+        return hoursOld > 24;
     }
 
     // Thank you ChatGPT for providing such useful REGEXes ^^
