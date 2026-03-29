@@ -3,6 +3,7 @@ package ofc.bot.listeners.discord.interactions.modals.tickets;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import ofc.bot.domain.entity.SupportTicket;
 import ofc.bot.domain.sqlite.repository.SupportTicketRepository;
+import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.InteractionListener;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
@@ -12,7 +13,7 @@ import ofc.bot.util.content.annotations.listeners.InteractionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@InteractionHandler(scope = Scopes.Tickets.DELETE_TICKET)
+@InteractionHandler(scope = Scopes.Tickets.DELETE_TICKET, autoResponseType = AutoResponseType.DEFER_EDIT)
 public class TicketClosureHandler implements InteractionListener<ModalSubmitContext> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TicketClosureHandler.class);
     private final SupportTicketRepository ticketRepo;
@@ -39,7 +40,7 @@ public class TicketClosureHandler implements InteractionListener<ModalSubmitCont
             ticketRepo.upsert(ticket);
 
             channel.delete().queue();
-            return Status.TICKET_CLOSED_SUCCESSFULLY.args(ticket.getId());
+            return Status.OK;
         } catch (Exception e) {
             LOGGER.error("Failed to mark ticket as deleted");
             return Status.COULD_NOT_EXECUTE_SUCH_OPERATION;
