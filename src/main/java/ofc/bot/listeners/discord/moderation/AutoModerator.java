@@ -19,6 +19,8 @@ import ofc.bot.handlers.moderation.Reason;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -34,8 +36,8 @@ public class AutoModerator extends ListenerAdapter {
     private static final LocalTime NIGHT_LIMIT = LocalTime.of(6, 0);
 
     /* REGEX patterns */
-    private static final Pattern URL_PATTERN = Pattern.compile("https?://([\\w.-]+(?:\\.[\\w.-]+)+)[/\\w\\-.?=&%]*");
-    private static final Pattern REPEATED_WORD_PATTERN = Pattern.compile("\\b(\\w+)\\b(?:\\s+\\1\\b){5,}");
+    private static final Pattern URL_PATTERN = Pattern.compile("https?://\\S+");
+    private static final Pattern REPEATED_WORD_PATTERN = Pattern.compile("(\\S+)(?:\\s+\\1){5,}");
     private static final Pattern REPEATED_CHAR_PATTERN = Pattern.compile("(.)\\1{59,}");
     private static final Pattern MENTION_PATTERN = Pattern.compile("<@!?(\\d+)>");
     private static final Pattern DISCORD_EMOJI_PATTERN = Pattern.compile("<a?:\\w+:[0-9]+>|:[a-zA-Z0-9_]+:");
@@ -207,11 +209,19 @@ public class AutoModerator extends ListenerAdapter {
     }
 
     private boolean hasLinks(String content) {
-        String normalized = content.toLowerCase();
-        Matcher matcher = URL_PATTERN.matcher(normalized);
+        Matcher matcher = URL_PATTERN.matcher(content.toLowerCase());
+
         while (matcher.find()) {
-            String domain = matcher.group(1);
-            if (!isAllowedDomain(domain)) return true;
+            String urlString = matcher.group();
+
+            try {
+                URI uri = new URI(urlString);
+                String domain = uri.getHost();
+
+                if (domain == null || !isAllowedDomain(domain)) return true;
+            } catch (URISyntaxException e) {
+                return true;
+            }
         }
         return false;
     }
@@ -289,28 +299,28 @@ public class AutoModerator extends ListenerAdapter {
         return hoursOld > 24;
     }
 
-    // Thank you ChatGPT for providing such useful REGEXes ^^
     static {
-        //noinspection RegExpRedundantNestedCharacterClass,UnnecessaryUnicodeEscape
         UNICODE_EMOJI_PATTERN = Pattern.compile(
                 "[" +
-                        "\u203C-\u3299" +             // Various symbols
-                        "\uD83C\uDC04" +              // Some specific emojis
-                        "\uD83C\uDCCF" +
-                        "\uD83C\uDDE6-\uD83C\uDDFF" + // Regional indicator symbols
-                        "\uD83C\uDE01-\uD83C\uDE4F" + // Enclosed characters, etc.
-                        "\uD83C\uDE50-\uD83C\uDEFF" +
-                        "\uD83D\uDC00-\uD83D\uDE4F" + // Emoticons
-                        "\uD83D\uDE80-\uD83D\uDEF6" + // Transport & map symbols
-                        "\uD83E\uDD00-\uD83E\uDDFF" + // Supplemental Symbols and Pictographs
-                        "\uD83D\uDD00-\uD83D\uDDFF" + // Additional ranges sometimes needed
-                        "\uD83F\uDC00-\uD83F\uDFFF" + // Hypothetical future range (if needed)
-                        "\uD83C\uDF00-\uD83C\uDFFF" + // Some extra pictographs
-                        "\uD83F\uDF00-\uD83F\uDFFF" + // Some extra symbols (if needed)
-                        "\uD83D\uDF00-\uD83D\uDFFF" + // Just in case
-                        "\uD83E\uDF00-\uD83E\uDFFF" + // Another extra block
-                        "\uD83D[\uDFE0-\uDFEF]" +     // Range for colored circle emojis (U+1F7E0 to U+1F7FF)
-                "]+"
+                        "\\x{1F300}-\\x{1F5FF}" + // Misc Symbols and Pictographs
+                        "\\x{1F600}-\\x{1F64F}" + // Emoticons
+                        "\\x{1F680}-\\x{1F6FF}" + // Transport and Map
+                        "\\x{1F700}-\\x{1F77F}" + // Alchemical Symbols
+                        "\\x{1F780}-\\x{1F7FF}" + // Geometric Shapes Extended
+                        "\\x{1F800}-\\x{1F8FF}" + // Supplemental Arrows-C
+                        "\\x{1F900}-\\x{1F9FF}" + // Supplemental Symbols and Pictographs
+                        "\\x{1FA00}-\\x{1FA6F}" + // Chess Symbols
+                        "\\x{1FA70}-\\x{1FAFF}" + // Symbols and Pictographs Extended-A
+                        "\\x{2600}-\\x{26FF}" +   // Misc symbols
+                        "\\x{2700}-\\x{27BF}" +   // Dingbats
+                        "\\x{2300}-\\x{23FF}" +   // Misc Technical
+                        "\\x{2B50}\\x{2B55}"    + // Star and O
+                        "\\x{2934}-\\x{2935}"   + // Arrow turning
+                        "\\x{2B05}-\\x{2B07}"   + // Directional arrows
+                        "\\x{2B1B}-\\x{2B1C}"   + // Black/White large squares
+                        "\\x{00A9}\\x{00AE}"    + // Copyright / Registered
+                        "\\x{2122}"             + // Trademark
+                        "]"
         );
     }
 }
