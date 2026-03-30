@@ -56,8 +56,7 @@ public class ModalInteractionGateway extends ListenerAdapter {
     private void handleAutoResponse(AutoResponseType type, ModalSubmitContext ctx) {
         switch (type) {
             case THINKING, THINKING_EPHEMERAL -> ctx.ack(type.isEphemeral());
-            case DEFER_EDIT -> throw new UnsupportedOperationException(
-                    "Cannot send a defer edit response to Modal interactions");
+            case DEFER_EDIT -> ctx.ackEdit();
         }
     }
 }

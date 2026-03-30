@@ -30,6 +30,11 @@ public class ModalSubmitContext extends InteractionSubmitContext<ModalContext, M
         return value;
     }
 
+    public void ackEdit() {
+        if (!isAcknowledged())
+            getSource().deferEdit().queue();
+    }
+
     public String getField(@NotNull String id, String defaultValue) {
         String value = findField(id);
         return value == null || value.isBlank() ? defaultValue : value;
