@@ -206,6 +206,7 @@ public final class CommandsInitializer {
         registry.register(new RoleInfoCommand());
         registry.register(new RoleMembersCommand());
         registry.register(new ToggleEventsCommand());
+        registry.register(new WakeupCommand());
 
         // Compound Commands
         registry.register(additionals);
