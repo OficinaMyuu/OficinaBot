@@ -184,6 +184,15 @@ public final class Bot {
         );
     }
 
+    public static long extractNumbers(String input) {
+        String val =  input.replaceAll("\\D+", "");
+        try {
+            return Long.parseLong(val);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
     public static boolean isZero(Number val) {
         return val == null || val.doubleValue() == 0;
     }

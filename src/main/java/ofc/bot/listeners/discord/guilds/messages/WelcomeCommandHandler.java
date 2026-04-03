@@ -49,7 +49,7 @@ public class WelcomeCommandHandler extends ListenerAdapter {
 
         long userId = author.getIdLong();
         long guildId = msg.getGuildIdLong();
-        long targetId = extractNumbers(args[1]);
+        long targetId = Bot.extractNumbers(args[1]);
         String commentInput = getComment(args).strip();
         String comment = commentInput.isBlank() ? null : commentInput;
 
@@ -88,15 +88,6 @@ public class WelcomeCommandHandler extends ListenerAdapter {
     private void scheduleDelete(Message... msgs) {
         for (Message msg : msgs) {
             msg.delete().queueAfter(10, TimeUnit.SECONDS, null, MSG_ERROR_HANDLER);
-        }
-    }
-
-    private long extractNumbers(String input) {
-        String val =  input.replaceAll("\\D+", "");
-        try {
-            return Long.parseLong(val);
-        } catch (NumberFormatException e) {
-            return 0;
         }
     }
 
