@@ -75,7 +75,8 @@ public final class DB {
                 UsersPreferencesTable.USERS_PREFERENCES,
                 UsersTable.USERS,
                 UsersXPTable.USERS_XP,
-                VoiceHeartbeatsTable.VOICE_HEARTBEATS
+                VoiceHeartbeatsTable.VOICE_HEARTBEATS,
+                WelcomedUsersTable.WELCOMED_USERS
         );
     }
 
