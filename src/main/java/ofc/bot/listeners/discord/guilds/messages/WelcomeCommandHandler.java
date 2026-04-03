@@ -58,6 +58,11 @@ public class WelcomeCommandHandler extends ListenerAdapter {
             return;
         }
 
+        if (targetId == userId) {
+            sendError(msg, "Você não pode ter recepcionado você mesmo.");
+            return;
+        }
+
         jda.retrieveUserById(targetId).queue(user -> {
             try {
                 long now = Bot.nowMillis();
