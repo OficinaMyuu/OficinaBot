@@ -24,7 +24,8 @@ public class WelcomedUsersTable extends InitializableTable<WelcomedUser> {
     @Override
     public Query getSchema(@NotNull DSLContext ctx) {
         return ctx.createTableIfNotExists(this)
-                .primaryKey(ID);
+                .primaryKey(ID)
+                .columns(fields());
     }
 
     @NotNull
