@@ -50,7 +50,8 @@ public class WelcomeCommandHandler extends ListenerAdapter {
         long userId = author.getIdLong();
         long guildId = msg.getGuildIdLong();
         long targetId = extractNumbers(args[1]);
-        String comment = getComment(args);
+        String commentInput = getComment(args).strip();
+        String comment = commentInput.isBlank() ? null : commentInput;
 
         if (targetId == 0) {
             sendError(msg, "ID inválido informado.");
