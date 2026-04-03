@@ -199,6 +199,7 @@ public final class EntityInitializerManager {
         var mentionLogRepo = Repositories.getMentionLogRepository();
         var blckWordsRepo = Repositories.getBlockedWordRepository();
         var msgVrsRepo = Repositories.getMessageVersionRepository();
+        var welcomedRepo = Repositories.getWelcomedUserRepository();
         var namesRepo = Repositories.getUserNameUpdateRepository();
         var modActRepo = Repositories.getAutomodActionRepository();
         var ticketRepo = Repositories.getSupportTicketRepository();
@@ -256,6 +257,7 @@ public final class EntityInitializerManager {
                 new UsersXPHandler(),
                 new VoiceActivity(),
                 new VoiceDisconnector(),
+                new WelcomeCommandHandler(welcomedRepo),
                 new WorkReminderHandler()
         );
     }
