@@ -103,6 +103,7 @@ public class WasWelcomedCommandHandler extends ListenerAdapter {
             GuildMessageChannel chan = msg.getGuildChannel();
             List<String> ids = resolveIds(msg);
 
+            e.deferEdit().queue();
             chan.purgeMessagesById(ids);
         }
 
