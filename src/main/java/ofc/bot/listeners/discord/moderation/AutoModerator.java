@@ -294,9 +294,9 @@ public class AutoModerator extends ListenerAdapter {
         OffsetDateTime now = OffsetDateTime.now();
         OffsetDateTime messageTime = msg.getTimeCreated();
 
-        long hoursOld = ChronoUnit.HOURS.between(messageTime, now);
+        long distanceMins = ChronoUnit.MINUTES.between(messageTime, now);
 
-        return hoursOld > 24;
+        return distanceMins > 10;
     }
 
     static {
