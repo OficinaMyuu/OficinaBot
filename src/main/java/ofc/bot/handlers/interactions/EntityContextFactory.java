@@ -56,6 +56,10 @@ public final class EntityContextFactory {
         return List.of(prevButton.getEntity(), nextButton.getEntity());
     }
 
+    public static Button createStatelessWelcomeListButton() {
+        return Button.of(ButtonStyle.SECONDARY, "wwd_clear", "Excluir", Bot.Emojis.TRASH);
+    }
+
     public static List<Button> createStatelessMafiaInitButtons() {
         Button joinLeave = Button.of(ButtonStyle.PRIMARY, "mafia_lobby_toggle", "Entrar / Sair", Bot.Emojis.WOLF);
         Button start = Button.of(ButtonStyle.SUCCESS, "mafia_lobby_start", "Iniciar Partida", Bot.Emojis.PLAY);

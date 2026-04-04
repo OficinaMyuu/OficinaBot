@@ -202,6 +202,29 @@ public final class EmbedFactory {
                 .build();
     }
 
+    public static MessageEmbed embedEmptyWelcome(String username) {
+        EmbedBuilder builder = new EmbedBuilder();
+
+        return builder
+                .setAuthor(username + " nunca foi recepcionado")
+                .setColor(DANGER_RED)
+                .build();
+    }
+
+    public static MessageEmbed embedWelcomedUser(String username, Guild guild, List<WelcomedUser> actions) {
+        EmbedBuilder builder = new EmbedBuilder();
+        int count = actions.size();
+        String timesWord = count == 1 ? "vez" : "vezes";
+        String title = String.format("%s foi recepcionado %d %s", username, count, timesWord);
+
+        return builder
+                .setAuthor(title)
+                .setColor(OK_GREEN)
+                .setDescription(formatWelcomedUsers(actions))
+                .setFooter(guild.getName(), guild.getIconUrl())
+                .build();
+    }
+
     public static MessageEmbed embedLeaderboard(Guild guild, PageItem<LeaderboardUser> lb) {
         EmbedBuilder builder = new EmbedBuilder();
 
@@ -878,6 +901,17 @@ public final class EmbedFactory {
         } catch (ParseException e) {
             return null;
         }
+    }
+
+    private static String formatWelcomedUsers(List<WelcomedUser> actions) {
+        return actions.stream()
+                .map(EmbedFactory::formatWelcomedUserRow)
+                .collect(Collectors.joining("\n\n"));
+    }
+
+    private static String formatWelcomedUserRow(WelcomedUser act) {
+        long creation = act.getTimeCreated() / 1000; // Discord uses seconds
+        return String.format("<@%d> <t:%d>\n> %s", act.getModeratorId(), creation, act.getComment());
     }
 
     private static Color toRoleStatusColor(Guild guild, List<ColorRoleState> states) {

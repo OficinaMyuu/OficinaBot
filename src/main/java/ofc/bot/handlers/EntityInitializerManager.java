@@ -257,6 +257,8 @@ public final class EntityInitializerManager {
                 new UsersXPHandler(),
                 new VoiceActivity(),
                 new VoiceDisconnector(),
+                new WasWelcomedCommandHandler(welcomedRepo, userRepo),
+                new WasWelcomedCommandHandler.WasWelcomedCleanupHandler(),
                 new WelcomeCommandHandler(welcomedRepo),
                 new WorkReminderHandler()
         );
