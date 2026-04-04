@@ -18,6 +18,8 @@ import ofc.bot.handlers.moderation.PunishmentManager;
 import ofc.bot.handlers.moderation.Reason;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -32,6 +34,7 @@ import static ofc.bot.domain.entity.enums.PolicyType.*;
 
 @DiscordEventHandler
 public class AutoModerator extends ListenerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AutoModerator.class);
     private static final ErrorHandler DEFAULT_ERROR_HANDLER = new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER);
     private static final LocalTime NIGHT_LIMIT = LocalTime.of(6, 0);
 
@@ -159,6 +162,7 @@ public class AutoModerator extends ListenerAdapter {
 
         // Checking for links
         if (!isExcluded(BYPASS_LINKS_BLOCKER, member, chanId) && hasLinks(content)) {
+            LOGGER.warn("Deleting message '{}' sent by {} for sending links", content, member.getId());
             delReasons.add(REASON_SEND_LINKS);
         }
 
