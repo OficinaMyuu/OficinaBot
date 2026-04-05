@@ -24,7 +24,8 @@ public class UsersEmojisPermissionsTable extends InitializableTable<UserEmojiPer
     public Query getSchema(@NotNull DSLContext ctx) {
         return ctx.createTableIfNotExists(this)
                 .primaryKey(ID)
-                .columns(fields());
+                .columns(fields())
+                .unique(USER_ID, EMOJI);
     }
 
     @NotNull
