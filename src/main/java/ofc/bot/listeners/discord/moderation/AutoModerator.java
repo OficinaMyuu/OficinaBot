@@ -76,12 +76,6 @@ public class AutoModerator extends ListenerAdapter {
     @Override
     public void onMessageUpdate(MessageUpdateEvent e) {
         if (e.getAuthor().isBot() || !e.isFromGuild()) return;
-        runChecks(e.getMessage());
-    }
-
-    @Override
-    public void onMessageReceived(MessageReceivedEvent e) {
-        if (e.getAuthor().isBot() || e.isWebhookMessage() || !e.isFromGuild()) return;
 
         /*
          * Prevents "ghost moderation" of ancient messages.
@@ -92,6 +86,13 @@ public class AutoModerator extends ListenerAdapter {
          * things users said in the past.
          */
         if (isOld(e.getMessage())) return;
+
+        runChecks(e.getMessage());
+    }
+
+    @Override
+    public void onMessageReceived(MessageReceivedEvent e) {
+        if (e.getAuthor().isBot() || e.isWebhookMessage() || !e.isFromGuild()) return;
 
         runChecks(e.getMessage());
     }
