@@ -21,4 +21,24 @@ public class UserEmojiPermissionRepository extends Repository<UserEmojiPermissio
     public InitializableTable<UserEmojiPermission> getTable() {
         return USERS_EMOJIS_PERMS;
     }
+
+    public boolean existsByUserAndEmoji(long userId, String emoji) {
+        return ctx.fetchExists(USERS_EMOJIS_PERMS,
+                USERS_EMOJIS_PERMS.USER_ID.eq(userId)
+                        .and(USERS_EMOJIS_PERMS.EMOJI.eq(emoji))
+        );
+    }
+
+    public UserEmojiPermission findByUserAndEmoji(long userId, String emoji) {
+        return ctx.selectFrom(USERS_EMOJIS_PERMS)
+                .where(USERS_EMOJIS_PERMS.USER_ID.eq(userId))
+                .and(USERS_EMOJIS_PERMS.EMOJI.eq(emoji))
+                .fetchOne();
+    }
+
+    public void delete(UserEmojiPermission perm) {
+        ctx.deleteFrom(USERS_EMOJIS_PERMS)
+                .where(USERS_EMOJIS_PERMS.ID.eq(perm.getId()))
+                .execute();
+    }
 }
