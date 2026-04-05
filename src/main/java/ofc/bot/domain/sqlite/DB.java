@@ -72,6 +72,7 @@ public final class DB {
                 TempBansTable.TEMP_BANS,
                 UserNamesUpdatesTable.USERNAMES_UPDATES,
                 UsersEconomyTable.USERS_ECONOMY,
+                UsersEmojisPermissionsTable.USERS_EMOJIS_PERMS,
                 UsersPreferencesTable.USERS_PREFERENCES,
                 UsersTable.USERS,
                 UsersXPTable.USERS_XP,

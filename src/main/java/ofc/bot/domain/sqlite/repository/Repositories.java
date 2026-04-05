@@ -31,6 +31,7 @@ public final class Repositories {
     private static SupportTicketRepository supportTicketRepository;
     private static TempBanRepository tempBanRepository;
     private static UserEconomyRepository userEconomyRepository;
+    private static UserEmojiPermissionRepository userEmojiPermissionRepository;
     private static UserNameUpdateRepository userNameUpdateRepository;
     private static UserPreferenceRepository userPreferenceRepository;
     private static UserRepository userRepository;
@@ -173,6 +174,11 @@ public final class Repositories {
     public static UserEconomyRepository getUserEconomyRepository() {
         if (userEconomyRepository == null) userEconomyRepository = new UserEconomyRepository(getDSLContext());
         return userEconomyRepository;
+    }
+
+    public static UserEmojiPermissionRepository getUserEmojiPermissionRepository() {
+        if (userEmojiPermissionRepository == null) userEmojiPermissionRepository = new UserEmojiPermissionRepository(getDSLContext());
+        return userEmojiPermissionRepository;
     }
 
     public static UserNameUpdateRepository getUserNameUpdateRepository() {
