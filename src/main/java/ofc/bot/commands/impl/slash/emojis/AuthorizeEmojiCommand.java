@@ -43,6 +43,9 @@ public class AuthorizeEmojiCommand extends SlashSubcommand {
         if (emoji == null)
             return Status.YOU_DO_NOT_OWN_AN_EMOJI.args(target.getAsMention());
 
+        if (actor == target)
+            return Status.CANNOT_AUTHORIZE_EMOJIS_FOR_YOURSELF;
+
         boolean isAuthorized = emojiPermRepo.existsByUserAndEmoji(targetId, emoji.getEmoji());
         if (isAuthorized)
             return Status.EMOJI_ALREADY_AUTHORIZED_TO_USER.args(target.getAsMention());

@@ -163,6 +163,7 @@ public enum Status implements InteractionResult {
     DAILY_ALREADY_COLLECTED(                    State.FAILURE, true,  "> ❌ Você já coletou seu daily hoje! Aguarde <t:946692000:t> para usar novamente."),
     YOU_DO_NOT_OWN_A_GROUP(                     State.FAILURE, true,  "Você não possui nenhum grupo."),
     YOU_DO_NOT_OWN_AN_EMOJI(                    State.FAILURE, true,  "> ❌ Você não tem nenhum emoji em sua titularidade."),
+    CANNOT_AUTHORIZE_EMOJIS_FOR_YOURSELF(       State.FAILURE, true,  "> ❌ Você não pode gerenciar permissões de emojis de você mesmo."),
     EMOJI_ALREADY_AUTHORIZED_TO_USER(           State.FAILURE, true,  "O usuário %s já tem permissão de usar este emoji."),
     EMOJI_NOT_AUTHORIZED_TO_USER(               State.FAILURE, true,  "O usuário %s já não possui permissão de usar este emoji."),
     YOU_CAN_NO_LONGER_PAY_THIS_INVOICE(         State.FAILURE, true,  "Você não pode mais pagar esta fatura."),
