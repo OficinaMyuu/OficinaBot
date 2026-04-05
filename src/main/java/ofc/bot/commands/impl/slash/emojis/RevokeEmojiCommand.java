@@ -48,7 +48,9 @@ public class RevokeEmojiCommand extends SlashSubcommand {
 
         try {
             emojiPermRepo.delete(perm);
-            return Status.EMOJI_PERMISSION_SUCCESSFULLY_REVOKED.args(emoji.getEmoji(), target.getAsMention());
+            return Status.EMOJI_PERMISSION_SUCCESSFULLY_REVOKED
+                    .args(emoji.getEmoji(), target.getAsMention())
+                    .setEphm(true);
         } catch (DataAccessException e) {
             LOGGER.error("Failed to revoke emoji permission to user {}", targetId, e);
             return Status.COULD_NOT_EXECUTE_SUCH_OPERATION;

@@ -55,7 +55,9 @@ public class AuthorizeEmojiCommand extends SlashSubcommand {
             UserEmojiPermission perm = new UserEmojiPermission(actorId, targetId, emoji.getEmoji(), now);
 
             emojiPermRepo.save(perm);
-            return Status.EMOJI_PERMISSION_SUCCESSFULLY_GRANTED.args(emoji.getEmoji(), target.getAsMention());
+            return Status.EMOJI_PERMISSION_SUCCESSFULLY_GRANTED
+                    .args(emoji.getEmoji(), target.getAsMention())
+                    .setEphm(true);
         } catch (DataAccessException e) {
             LOGGER.error("Failed to save emoji authorization to {}", targetId, e);
             return Status.COULD_NOT_EXECUTE_SUCH_OPERATION;
