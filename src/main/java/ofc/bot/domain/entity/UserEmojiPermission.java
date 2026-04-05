@@ -1,12 +1,21 @@
 package ofc.bot.domain.entity;
 
 import ofc.bot.domain.tables.UsersEmojisPermissionsTable;
+import org.jetbrains.annotations.NotNull;
 
 public class UserEmojiPermission extends OficinaRecord<UserEmojiPermission> {
     public static final UsersEmojisPermissionsTable USERS_EMOJIS_PERMS = UsersEmojisPermissionsTable.USERS_EMOJIS_PERMS;
 
     public UserEmojiPermission() {
         super(USERS_EMOJIS_PERMS);
+    }
+
+    public UserEmojiPermission(long authorId, long userId, @NotNull String emoji, long timeCreated) {
+        this();
+        setAuthorId(authorId);
+        setUserId(userId);
+        setEmoji(emoji);
+        setTimeCreated(timeCreated);
     }
 
     public int getId() {
