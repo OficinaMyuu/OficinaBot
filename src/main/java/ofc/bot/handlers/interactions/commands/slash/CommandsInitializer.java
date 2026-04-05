@@ -13,6 +13,8 @@ import ofc.bot.commands.impl.slash.birthday.BirthdayRemoveCommand;
 import ofc.bot.commands.impl.slash.birthday.BirthdaysCommand;
 import ofc.bot.commands.impl.slash.colors.*;
 import ofc.bot.commands.impl.slash.economy.*;
+import ofc.bot.commands.impl.slash.emojis.AuthorizeEmojiCommand;
+import ofc.bot.commands.impl.slash.emojis.RevokeEmojiCommand;
 import ofc.bot.commands.impl.slash.groups.*;
 import ofc.bot.commands.impl.slash.groups.channel.CreateGroupChannelCommand;
 import ofc.bot.commands.impl.slash.groups.member.AddGroupMemberCommand;
@@ -52,6 +54,7 @@ public final class CommandsInitializer {
      */
     public static void initializeSlashCommands() {
         SlashCommandsRegistryManager registry = SlashCommandsRegistryManager.getManager();
+        var emojiPermRepo = Repositories.getUserEmojiPermissionRepository();
         var colorStateRepo = Repositories.getColorRoleStateRepository();
         var colorItemRepo = Repositories.getColorRoleItemRepository();
         var bckpRepo = Repositories.getFormerMemberRoleRepository();
@@ -112,6 +115,11 @@ public final class CommandsInitializer {
                 .addSubcommand(new SetUserinfoColorCommand(csinfoRepo))
                 .addSubcommand(new SetDescriptionCommand(csinfoRepo))
                 .addSubcommand(new SetUserinfoFooterCommand(csinfoRepo));
+
+        // Emojis
+        SlashCommand emojis = new EmptySlashCommand("emojis", "Gerencie as permissões do emoji de sua titularidade.")
+                .addSubcommand(new AuthorizeEmojiCommand(emjRepo, emojiPermRepo))
+                .addSubcommand(new RevokeEmojiCommand(emjRepo, emojiPermRepo));
 
         // Groups
         SlashCommand group = new EmptySlashCommand("group", "Tenha o controle de tudo sobre o seu grupo.")
@@ -216,6 +224,7 @@ public final class CommandsInitializer {
         registry.register(policies);
         registry.register(marriage);
         registry.register(remind);
+        registry.register(emojis);
         registry.register(group);
         registry.register(tickets);
         registry.register(customizeUserinfo);
