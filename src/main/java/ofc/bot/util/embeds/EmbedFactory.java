@@ -28,10 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Utility class for embeds used in multiple classes.
- * <p>
- * If an embed is used in a single command, with no pagination or confirmation
- * system, then the {@code embed()} method will remain in the same class.
+ * Factory class for embeds used in multiple classes.
  */
 public final class EmbedFactory {
     public static final Color DANGER_RED = new Color(255, 50, 50);
