@@ -390,7 +390,7 @@ public final class EmbedFactory {
                 .setTitle("Confirmação de Compra")
                 .setDescription("Deseja confirmar a compra desta cor?")
                 .setThumbnail(user.getEffectiveAvatarUrl())
-                .setColor(role.getColorRaw())
+                .setColor(role.getColors().getPrimaryRaw())
                 .addField("💰 Valor", Bot.fmtMoney(price), true)
                 .addField("🎨 Cor", role.getAsMention(), true)
                 .setFooter(guild.getName(), guild.getIconUrl())
@@ -417,7 +417,7 @@ public final class EmbedFactory {
     }
 
     public static MessageEmbed embedColorRoleAdded(User user, Role role) {
-        return embedColorRoleAction(user, role, role.getColor(), "adicionado");
+        return embedColorRoleAction(user, role, role.getColors().getPrimary(), "adicionado");
     }
 
     public static MessageEmbed embedColorRoleAction(User user, Role role, Color color, String action) {
@@ -921,7 +921,7 @@ public final class EmbedFactory {
         long roleId = states.getFirst().getRoleId();
         Role role = guild.getRoleById(roleId);
 
-        return role == null ? Bot.Colors.DEFAULT : role.getColor();
+        return role == null ? Bot.Colors.DEFAULT : role.getColors().getPrimary();
     }
 
     private static String formatColorRoleStates(List<ColorRoleState> states) {
