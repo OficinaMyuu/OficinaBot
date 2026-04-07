@@ -21,12 +21,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executors;
 
 @DiscordEventHandler
 public class SlashCommandsGateway extends ListenerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SlashCommandsGateway.class);
-    private static final ExecutorService EXECUTOR = ForkJoinPool.commonPool();
+    private static final ExecutorService EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
     private static final SlashCommandsRegistryManager registry = SlashCommandsRegistryManager.getManager();
     private final CommandHistoryRepository cmdRepo;
     private final AppUserBanRepository appBanRepo;
