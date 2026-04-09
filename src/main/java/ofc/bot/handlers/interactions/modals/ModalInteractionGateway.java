@@ -13,11 +13,11 @@ import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executors;
 
 @DiscordEventHandler
 public class ModalInteractionGateway extends ListenerAdapter {
-    private static final ExecutorService EXECUTOR = ForkJoinPool.commonPool();
+    private static final ExecutorService EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
     private final InteractionMemoryManager mngr = InteractionMemoryManager.getManager();
 
     @Override
