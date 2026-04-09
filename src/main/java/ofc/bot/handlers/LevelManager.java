@@ -34,7 +34,7 @@ public final class LevelManager {
         return instance;
     }
 
-    public synchronized void addXp(@NotNull Member member, @NotNull GuildChannel channel, int xp) {
+    public void addXp(@NotNull Member member, @NotNull GuildChannel channel, int xp) {
         Checks.notNull(member, "Member");
         Checks.notNull(channel, "Channel");
         Checks.positive(xp, "Xp");

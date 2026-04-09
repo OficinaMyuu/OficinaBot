@@ -29,7 +29,7 @@ public final class PolicyService {
 
     @NotNull
     @SuppressWarnings("unchecked")
-    public synchronized <T> Set<T> get(@NotNull PolicyType type, Function<String, T> mapper) {
+    public <T> Set<T> get(@NotNull PolicyType type, Function<String, T> mapper) {
         Checks.notNull(type, "PolicyType");
         // We can distinguish between a missing value and an outdated cache entry
         // because we always update the `rules` map with an empty set when a database lookup returns no results.
@@ -38,7 +38,7 @@ public final class PolicyService {
         return (Set<T>) rules.computeIfAbsent(type, t -> (Set<Object>) fetch(t, mapper));
     }
 
-    public synchronized boolean isDomainAllowed(String domain) {
+    public boolean isDomainAllowed(String domain) {
         return get(PolicyType.ALLOW_DOMAIN, s -> s).contains(domain);
     }
 

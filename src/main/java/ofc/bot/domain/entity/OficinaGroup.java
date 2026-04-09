@@ -408,7 +408,7 @@ public class OficinaGroup extends OficinaRecord<OficinaGroup> {
         return getRentStatus() == RentStatus.PENDING && getDaysLate() > 0;
     }
 
-    public synchronized long calcRawRent(List<Member> members) {
+    public long calcRawRent(List<Member> members) {
         if (!isRentRecurring()) return 0;
 
         Role role = Main.getApi().getRoleById(getRoleId());

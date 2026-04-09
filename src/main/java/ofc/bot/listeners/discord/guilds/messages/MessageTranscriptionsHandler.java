@@ -69,7 +69,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
     }
 
     @Override
-    public synchronized void onMessageReactionAdd(MessageReactionAddEvent e) {
+    public void onMessageReactionAdd(MessageReactionAddEvent e) {
         OpenAIClient openAI = Main.getOpenAI();
         JDA api = Main.getApi();
         SelfUser self = api.getSelfUser();
