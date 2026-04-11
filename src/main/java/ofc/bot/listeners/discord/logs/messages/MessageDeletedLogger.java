@@ -9,12 +9,15 @@ import ofc.bot.domain.entity.MessageVersion;
 import ofc.bot.domain.sqlite.repository.MessageVersionRepository;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 @DiscordEventHandler
 public class MessageDeletedLogger extends ListenerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageDeletedLogger.class);
     private static final Executor EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
     private final MessageVersionRepository msgVrsRepo;
 
@@ -26,6 +29,7 @@ public class MessageDeletedLogger extends ListenerAdapter {
     public void onMessageDelete(MessageDeleteEvent e) {
         if (!e.isFromGuild()) return;
 
+        long start = System.currentTimeMillis();
         long now = Bot.nowMillis();
         long messageId = e.getMessageIdLong();
         long chanId = e.getChannel().getIdLong();
@@ -51,6 +55,10 @@ public class MessageDeletedLogger extends ListenerAdapter {
                         .setTimeCreated(now);
 
                 msgVrsRepo.save(version);
+
+                long end = System.currentTimeMillis();
+                long elapsed = end - start;
+                LOGGER.info("Received a message deletion for ID {}, took {}ms", messageId, elapsed);
             });
         });
     }
