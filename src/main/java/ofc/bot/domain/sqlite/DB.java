@@ -84,7 +84,12 @@ public final class DB {
     private static void initConfigs() {
         File dbFile = BotFiles.DATABASE;
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:sqlite:" + dbFile);
+        config.setJdbcUrl("jdbc:sqlite:" + dbFile + "?busy_timeout=5000");
+
+        // SQLite does not benefit from multiple connections; instead, they can
+        // cause lock contention and SQLITE_BUSY errors.
+        config.setMaximumPoolSize(1);
+        config.setMinimumIdle(1);
 
         dataSource = new HikariDataSource(config);
         LOGGER.info("Created datasource for database at {}", dbFile.getAbsolutePath());
