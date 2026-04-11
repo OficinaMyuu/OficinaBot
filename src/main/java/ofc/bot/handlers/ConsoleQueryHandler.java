@@ -52,7 +52,10 @@ public class ConsoleQueryHandler {
         boolean isPretty = sql.endsWith("--pretty");
 
         try {
+            long start = System.currentTimeMillis();
             Result<Record> res = CTX.fetch(sql);
+            long end = System.currentTimeMillis();
+            long elapsed = end - start;
             int size = res.size();
 
             if (size == 0) {
@@ -62,9 +65,9 @@ public class ConsoleQueryHandler {
 
             if (size == 1) {
                 Record rec = res.getFirst();
-                LOGGER.info("Result:\n{}", toJson(rec, isPretty));
+                LOGGER.info("Result ({}ms):\n{}", elapsed, toJson(rec, isPretty));
             } else {
-                LOGGER.info("Results:\n{}", toJson(res, isPretty));
+                LOGGER.info("Results ({}ms):\n{}", elapsed, toJson(res, isPretty));
             }
         } catch (Exception e) {
             LOGGER.error("Could not execute SQL command because: {}", e.getMessage());
