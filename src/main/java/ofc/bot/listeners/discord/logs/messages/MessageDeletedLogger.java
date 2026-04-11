@@ -10,8 +10,12 @@ import ofc.bot.domain.sqlite.repository.MessageVersionRepository;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 @DiscordEventHandler
 public class MessageDeletedLogger extends ListenerAdapter {
+    private static final Executor EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
     private final MessageVersionRepository msgVrsRepo;
 
     public MessageDeletedLogger(MessageVersionRepository msgVrsRepo) {
@@ -33,18 +37,21 @@ public class MessageDeletedLogger extends ListenerAdapter {
 
             long targetId = entry.getTargetIdLong();
             long issuerId = entry.getUserIdLong();
-            boolean isConsistent = msgVrsRepo.findsByMessageAndAuthorId(messageId, targetId);
-            Long deleter = isConsistent ? issuerId : null;
 
-            MessageVersion version = new MessageVersion()
-                    .setMessageId(messageId)
-                    .setAuthorId(0)
-                    .setChannelId(chanId)
-                    .setDeleted(true)
-                    .setDeletedById(deleter)
-                    .setTimeCreated(now);
+            EXECUTOR.execute(() -> {
+                boolean isConsistent = msgVrsRepo.findsByMessageAndAuthorId(messageId, targetId);
+                Long deleter = isConsistent ? issuerId : null;
 
-            msgVrsRepo.save(version);
+                MessageVersion version = new MessageVersion()
+                        .setMessageId(messageId)
+                        .setAuthorId(0)
+                        .setChannelId(chanId)
+                        .setDeleted(true)
+                        .setDeletedById(deleter)
+                        .setTimeCreated(now);
+
+                msgVrsRepo.save(version);
+            });
         });
     }
 }
