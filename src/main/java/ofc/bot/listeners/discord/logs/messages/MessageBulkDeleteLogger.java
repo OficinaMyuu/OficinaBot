@@ -9,11 +9,14 @@ import ofc.bot.domain.entity.MessageVersion;
 import ofc.bot.domain.sqlite.repository.MessageVersionRepository;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 @DiscordEventHandler
 public class MessageBulkDeleteLogger extends ListenerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageBulkDeleteLogger.class);
     private final MessageVersionRepository msgVrsRepo;
 
     public MessageBulkDeleteLogger(MessageVersionRepository msgVrsRepo) {
@@ -30,6 +33,7 @@ public class MessageBulkDeleteLogger extends ListenerAdapter {
                 .map(Long::parseLong)
                 .toList();
 
+        LOGGER.info("Received bulk delete action, trying to resolve deletion author");
         guild.retrieveAuditLogs().type(ActionType.MESSAGE_BULK_DELETE).limit(1).queue((entries) -> {
             AuditLogEntry entry = entries.isEmpty() ? null : entries.getFirst();
 
@@ -46,6 +50,7 @@ public class MessageBulkDeleteLogger extends ListenerAdapter {
                             .setTimeCreated(now))
                     .toList();
 
+            LOGGER.info("Bulk saving {} messages versions", versions.size());
             msgVrsRepo.bulkSave(versions);
         });
     }

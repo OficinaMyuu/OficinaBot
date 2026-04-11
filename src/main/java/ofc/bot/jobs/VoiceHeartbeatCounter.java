@@ -12,17 +12,23 @@ import ofc.bot.util.content.annotations.jobs.CronJob;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 @CronJob(expression = "0 * * ? * * *") // Every minute
 public class VoiceHeartbeatCounter implements Job {
+    private static final Logger LOGGER = LoggerFactory.getLogger(VoiceHeartbeatCounter.class);
     private final VoiceHeartbeatRepository vcHeartbeatRepo = Repositories.getVoiceHeartbeatRepository();
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         JDA api = Main.getApi();
+
+        LOGGER.info("Gathering populated voice channels to store voice heartbeats");
         List<VoiceChannel> channels = getPopulatedVoiceChannels(api);
+        LOGGER.info("Found {} populated voice channels", channels.size());
 
         List<VoiceHeartbeat> heartbeats = channels.stream().flatMap(vc -> vc.getMembers().stream().map(m -> {
             GuildVoiceState state = m.getVoiceState();
@@ -37,6 +43,7 @@ public class VoiceHeartbeatCounter implements Job {
             return new VoiceHeartbeat(userId, chanId, isMuted, isDeafened, isVideo, isStreaming, now);
         })).toList();
 
+        LOGGER.info("Bulk saving {} voice heartbeats", heartbeats.size());
         vcHeartbeatRepo.bulkSave(heartbeats);
     }
 

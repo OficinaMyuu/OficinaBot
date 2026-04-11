@@ -300,6 +300,7 @@ public class TicTacToeGame implements Bet<Character> {
                 .toList();
 
         try {
+            LOGGER.info("Finishing tictactoe game, saving state and {} participants", participants.size());
             betRepo.save(bet);
             betUsersRepo.bulkSave(participants);
         } catch (DataAccessException e) {
