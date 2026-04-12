@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.entities.messages.MessageSnapshot;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import ofc.bot.domain.entity.BlockedWord;
@@ -34,9 +35,12 @@ import static ofc.bot.domain.entity.enums.PolicyType.*;
 
 @DiscordEventHandler
 public class AutoModerator extends ListenerAdapter {
+    private static final int NO_MUTUAL_GUILDS_ERR_CODE = 50278;
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoModerator.class);
-    private static final ErrorHandler DEFAULT_ERROR_HANDLER = new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER);
     private static final LocalTime NIGHT_LIMIT = LocalTime.of(6, 0);
+    private static final ErrorHandler DEFAULT_ERROR_HANDLER = new ErrorHandler()
+            .ignore(ErrorResponse.CANNOT_SEND_TO_USER)
+            .ignore(AutoModerator::isNoMutualGuildError);
 
     /* REGEX patterns */
     private static final Pattern URL_PATTERN = Pattern.compile("https?://\\S+");
@@ -302,6 +306,11 @@ public class AutoModerator extends ListenerAdapter {
         long distanceMins = ChronoUnit.MINUTES.between(messageTime, now);
 
         return distanceMins > 10;
+    }
+
+    private static boolean isNoMutualGuildError(Throwable t) {
+        return t instanceof ErrorResponseException er
+                && er.getErrorCode() == NO_MUTUAL_GUILDS_ERR_CODE;
     }
 
     static {
