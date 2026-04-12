@@ -65,6 +65,10 @@ public class MessageVersionRepository extends Repository<MessageVersion> {
         );
     }
 
+    public boolean existsByMessageId(long msgId) {
+        return ctx.fetchExists(MESSAGES_VERSIONS, MESSAGES_VERSIONS.MESSAGE_ID.eq(msgId));
+    }
+
     public MessageVersion findLastById(long msgId) {
         return ctx.selectFrom(MESSAGES_VERSIONS)
                 .where(MESSAGES_VERSIONS.MESSAGE_ID.eq(msgId))
