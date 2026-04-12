@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.utils.TimeUtil;
 import ofc.bot.domain.entity.MessageVersion;
 import ofc.bot.domain.sqlite.repository.MessageVersionRepository;
 import ofc.bot.util.Bot;
@@ -11,6 +12,9 @@ import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,6 +23,7 @@ import java.util.concurrent.Executors;
 public class MessageDeletedLogger extends ListenerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageDeletedLogger.class);
     private static final ExecutorService EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
+    private static final int AUDIT_LOG_MAX_DAYS = 45;
 
     private final MessageVersionRepository msgVrsRepo;
 
@@ -45,8 +50,7 @@ public class MessageDeletedLogger extends ListenerAdapter {
 
         if (!msgVrsRepo.existsByMessageId(messageId)) return;
 
-        fetchLatestMessageDeleteAuditEntry(e)
-                .thenApply(entry -> resolveDeletedBy(messageId, entry))
+        resolveDeletedBy(e, messageId, now)
                 .exceptionally(err -> {
                     LOGGER.warn("Could not resolve audit log entry for deleted message {}", messageId, err);
                     return null;
@@ -58,6 +62,24 @@ public class MessageDeletedLogger extends ListenerAdapter {
                     LOGGER.info("Processed message deletion for ID {}, took {}ms", messageId, elapsed);
                 })
                 .join();
+    }
+
+    private CompletableFuture<Long> resolveDeletedBy(MessageDeleteEvent e, long messageId, long now) {
+        if (isOlderThanAuditLogWindow(messageId, now)) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        return fetchLatestMessageDeleteAuditEntry(e)
+                .thenApply(entry -> resolveDeletedByFromAuditEntry(messageId, entry));
+    }
+
+    private boolean isOlderThanAuditLogWindow(long messageId, long now) {
+        OffsetDateTime msgCreateTime = TimeUtil.getTimeCreated(messageId);
+        OffsetDateTime oldestRelevantAuditLogTime = Instant.ofEpochMilli(now)
+                .atOffset(ZoneOffset.UTC)
+                .minusDays(AUDIT_LOG_MAX_DAYS);
+
+        return msgCreateTime.isBefore(oldestRelevantAuditLogTime);
     }
 
     private CompletableFuture<AuditLogEntry> fetchLatestMessageDeleteAuditEntry(MessageDeleteEvent e) {
@@ -74,7 +96,7 @@ public class MessageDeletedLogger extends ListenerAdapter {
         return future;
     }
 
-    private Long resolveDeletedBy(long messageId, AuditLogEntry entry) {
+    private Long resolveDeletedByFromAuditEntry(long messageId, AuditLogEntry entry) {
         if (entry == null) return null;
 
         long targetId = entry.getTargetIdLong();
