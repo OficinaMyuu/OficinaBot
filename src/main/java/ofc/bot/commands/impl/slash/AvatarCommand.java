@@ -84,10 +84,10 @@ public class AvatarCommand extends SlashCommand {
         String description = String.format("Avatar de `%s`", target.getEffectiveName());
 
         return new EmbedBuilder()
-                .setTitle(title, avatarUrl + "?size=2048")
+                .setTitle(title, avatarUrl)
                 .setDescription(description)
                 .setColor(Bot.Colors.DISCORD)
-                .setImage(avatarUrl)
+                .setImage(avatarUrl + "?size=2048")
                 .setFooter(guild.getName(), guild.getIconUrl())
                 .build();
     }
