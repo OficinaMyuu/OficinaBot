@@ -1,0 +1,26 @@
+package ofc.bot.handlers.games.mafia.enums;
+
+/**
+ * Enumerates persisted audit events for Oficina Dorme.
+ */
+public enum MafiaEventType {
+    LOBBY_CREATED,
+    PLAYER_JOINED,
+    PLAYER_LEFT_LOBBY,
+    GAME_STARTED,
+    ROLE_ASSIGNED,
+    NIGHT_STARTED,
+    NIGHT_ACTION_SUBMITTED,
+    NIGHT_RESOLVED,
+    PLAYER_KILLED,
+    INVESTIGATION_RESOLVED,
+    DAY_DISCUSSION_STARTED,
+    DAY_VOTE_OPENED,
+    DAY_VOTE_SUBMITTED,
+    DAY_VOTE_RESOLVED,
+    PLAYER_ELIMINATED,
+    PLAYER_UNAVAILABLE,
+    CHANNEL_DELETED,
+    GAME_TERMINATED,
+    GAME_WON
+}

@@ -15,6 +15,7 @@ public final class Repositories {
     private static CustomUserinfoRepository customUserinfoRepository;
     private static EntityPolicyRepository entityPolicyRepository;
     private static FormerMemberRoleRepository formerMemberRoleRepository;
+    private static GameMafiaLogRepository gameMafiaLogRepository;
     private static GameParticipantRepository gameParticipantRepository;
     private static GroupBotRepository groupBotRepository;
     private static GroupPerkRepository groupPerkRepository;
@@ -94,6 +95,11 @@ public final class Repositories {
     public static FormerMemberRoleRepository getFormerMemberRoleRepository() {
         if (formerMemberRoleRepository == null) formerMemberRoleRepository = new FormerMemberRoleRepository(getDSLContext());
         return formerMemberRoleRepository;
+    }
+
+    public static GameMafiaLogRepository getGameMafiaLogRepository() {
+        if (gameMafiaLogRepository == null) gameMafiaLogRepository = new GameMafiaLogRepository(getDSLContext());
+        return gameMafiaLogRepository;
     }
 
     public static GameParticipantRepository getGameParticipantRepository() {

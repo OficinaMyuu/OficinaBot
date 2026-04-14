@@ -8,7 +8,7 @@ Read this first, then open only the files relevant to the task.
 - Never read local artifacts such as `database.db`, `database-backup.db`, `bot.jar`, anything inside `target/`, or other generated binaries. They are local garbage, runtime output, bytecode, or backups.
 - Do not inspect `content/*.json` unless the task is explicitly about content payloads. These are environment-specific data files.
 - Prefer reading registration/entrypoint files before feature implementations.
-- This project currently has no `src/test` tree. If behavior changes, add tests when feasible, but do not waste time hunting for non-existent test suites.
+- Tests now exist under `src/test/java/ofc/bot/handlers/games/mafia/`; extend them when changing Oficina Dorme behavior.
 
 ## Project Snapshot
 - Stack: Java 21, Maven, JDA 6, SQLite, jOOQ, HikariCP, Quartz, OkHttp, OpenAI Java SDK.
@@ -72,6 +72,8 @@ Read this first, then open only the files relevant to the task.
 ## Start Here For Common Tasks
 - Add or modify a slash command:
   Open `CommandsInitializer.java`, then the command under `commands/impl/slash/...`.
+- Change Oficina Dorme behavior:
+  Open `CreateMafiaGameCommand.java`, then `MafiaInteractionListener.java`, and finally the rule helpers in `handlers/games/mafia/service/`.
 - Fix a Discord event reaction:
   Open `EntityInitializerManager.java`, then the relevant listener under `listeners/discord/...`.
 - Change button/modal behavior:
@@ -102,6 +104,13 @@ Read this first, then open only the files relevant to the task.
   `commands/impl/slash/tickets/`, modal/button handlers under `listeners/discord/interactions/.../tickets/`
 - Mafia/bets/games:
   `commands/impl/slash/mafia/`, `commands/impl/slash/bets/`, `handlers/games/`
+- Oficina Dorme internals:
+  `handlers/games/mafia/service/` contains orchestration and pure rules,
+  `handlers/games/mafia/domain/` contains the in-memory match state,
+  `handlers/games/mafia/discord/` contains embeds and components,
+  `listeners/discord/interactions/buttons/mafia/MafiaInteractionListener.java` handles both buttons and select menus,
+  `listeners/discord/guilds/mafia/MafiaLifecycleListener.java` handles deleted channels and member departures,
+  and `game_mafia_logs` stores the persisted audit trail for match events.
 - User profile/customization:
   `commands/impl/slash/userinfo/`, `commands/impl/slash/userinfo/custom/`, `CustomUserinfoRepository`
 
@@ -125,8 +134,9 @@ Read this first, then open only the files relevant to the task.
 
 ## Build And Validation
 - Build command: `mvn clean package`
+- Local test command used for this repo in the sandbox: `mvn "-Dmaven.repo.local=.m2" test`
 - CI currently builds with `-DskipTests`, then uploads `target/bot.jar` through SFTP.
-- There is no established automated test suite in the repo today.
+- Oficina Dorme now has an automated unit test suite under `src/test/java/ofc/bot/handlers/games/mafia/`.
 - For doc-only changes, a file review is enough.
 
 ## Known Traps

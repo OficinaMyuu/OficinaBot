@@ -55,6 +55,7 @@ public final class DB {
                 CustomUserinfoTable.CUSTOM_USERINFO,
                 EntitiesPoliciesTable.ENTITIES_POLICIES,
                 FormerMembersRolesTable.FORMER_MEMBERS_ROLES,
+                GameMafiaLogsTable.GAME_MAFIA_LOGS,
                 GamesParticipantsTable.GAMES_PARTICIPANTS,
                 GroupBotsTable.GROUP_BOTS,
                 GroupsPerksTable.GROUPS_PERKS,

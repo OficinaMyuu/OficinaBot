@@ -444,7 +444,7 @@ public final class EmbedFactory {
                 .build();
     }
 
-    public static MessageEmbed embedMafiaRoleReveal(ofc.bot.handlers.games.mafia.enums.Role role) {
+    public static MessageEmbed embedMafiaRoleReveal(ofc.bot.handlers.games.mafia.enums.MafiaRole role) {
         EmbedBuilder builder = new EmbedBuilder();
 
         builder.setTitle("Sua Função: " + role.getDisplayName());

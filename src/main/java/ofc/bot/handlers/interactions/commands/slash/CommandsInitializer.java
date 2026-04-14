@@ -22,6 +22,7 @@ import ofc.bot.commands.impl.slash.groups.member.RemoveGroupMemberCommand;
 import ofc.bot.commands.impl.slash.levels.LevelsCommand;
 import ofc.bot.commands.impl.slash.levels.LevelsRolesCommand;
 import ofc.bot.commands.impl.slash.levels.RankCommand;
+import ofc.bot.commands.impl.slash.mafia.CreateMafiaGameCommand;
 import ofc.bot.commands.impl.slash.moderation.*;
 import ofc.bot.commands.impl.slash.policies.AddPolicyCommand;
 import ofc.bot.commands.impl.slash.policies.RemovePolicyCommand;
@@ -108,6 +109,9 @@ public final class CommandsInitializer {
                 .addSubcommand(new CancelProposalCommand(mreqRepo))
                 .addSubcommand(new ProposalsListCommand(mreqRepo))
                 .addSubcommand(new MarriageRejectCommand(mreqRepo));
+
+        SlashCommand oficinaDorme = new EmptySlashCommand("oficinadorme", "Gerencia partidas de Oficina Dorme.", Permission.MANAGE_SERVER)
+                .addSubcommand(new CreateMafiaGameCommand());
 
         // Custom Userinfo
         SlashCommand customizeUserinfo = new EmptySlashCommand("customize", "Customize o seu userinfo.", Permission.MANAGE_SERVER)
@@ -223,6 +227,7 @@ public final class CommandsInitializer {
         registry.register(colors);
         registry.register(policies);
         registry.register(marriage);
+        registry.register(oficinaDorme);
         registry.register(remind);
         registry.register(emojis);
         registry.register(group);

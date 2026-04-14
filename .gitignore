@@ -36,3 +36,4 @@ content/*.json
 
 # Confidential directories/files
 target/
+.m2/

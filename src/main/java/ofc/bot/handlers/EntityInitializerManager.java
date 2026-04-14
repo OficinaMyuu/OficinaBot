@@ -23,6 +23,7 @@ import ofc.bot.jobs.weekdays.SadSunday;
 import ofc.bot.listeners.discord.economy.ChatMoneyHandler;
 import ofc.bot.listeners.discord.guilds.BlockDumbCommands;
 import ofc.bot.listeners.discord.guilds.UnbanTempBanCleaner;
+import ofc.bot.listeners.discord.guilds.mafia.MafiaLifecycleListener;
 import ofc.bot.listeners.discord.guilds.members.MemberJoinUpsert;
 import ofc.bot.listeners.discord.guilds.messages.*;
 import ofc.bot.listeners.discord.guilds.reactionroles.BotChangelogRoleHandler;
@@ -34,6 +35,7 @@ import ofc.bot.listeners.discord.interactions.autocomplete.*;
 import ofc.bot.listeners.discord.interactions.buttons.WorkReminderHandler;
 import ofc.bot.listeners.discord.interactions.buttons.bets.TicTacToeAcceptHandler;
 import ofc.bot.listeners.discord.interactions.buttons.groups.*;
+import ofc.bot.listeners.discord.interactions.buttons.mafia.MafiaInteractionListener;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.*;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.infractions.DeleteInfraction;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.infractions.InfractionsPageUpdate;
@@ -231,6 +233,8 @@ public final class EntityInitializerManager {
                 new LeaveGroupCommand.FakePISuggester(),
                 new LogTimeout(),
                 new LorittaDailySpamBlocker(),
+                new MafiaLifecycleListener(),
+                new MafiaInteractionListener(),
                 new MentionLoggerHandler(mentionLogRepo),
                 new MemberJoinUpsert(),
                 new MemberNickUpdateLogger(namesRepo, userRepo),
