@@ -1,6 +1,5 @@
 package ofc.bot.commands.impl.slash.mafia;
 
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -10,8 +9,8 @@ import ofc.bot.handlers.games.mafia.discord.MafiaMessageFactory;
 import ofc.bot.handlers.games.mafia.domain.MafiaMatch;
 import ofc.bot.handlers.games.mafia.domain.MafiaRoleConfiguration;
 import ofc.bot.handlers.games.mafia.enums.MafiaEventType;
-import ofc.bot.handlers.games.mafia.service.MafiaGameManager;
 import ofc.bot.handlers.games.mafia.service.MafiaGameLogger;
+import ofc.bot.handlers.games.mafia.service.MafiaGameManager;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
@@ -28,7 +27,7 @@ import java.util.List;
  * configuration. The player cap is intentionally limited to 25 because the match uses Discord select menus for
  * every vote.
  */
-@DiscordCommand(name = "oficinadorme create", permissions = Permission.MANAGE_CHANNEL)
+@DiscordCommand(name = "oficinadorme create")
 public class CreateMafiaGameCommand extends SlashSubcommand {
     private final MafiaGameManager gameManager = MafiaGameManager.getInstance();
     private final MafiaGameLogger gameLogger = MafiaGameLogger.getInstance();
