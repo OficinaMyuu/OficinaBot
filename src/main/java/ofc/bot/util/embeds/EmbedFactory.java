@@ -1050,7 +1050,7 @@ public final class EmbedFactory {
 
     private static String formatOptimizationTasks(List<TaskView> tasks) {
         return tasks.stream()
-                .map(task -> task.state().prefix + " - " + task.label())
+                .map(task -> task.state().prefix + " " + task.label())
                 .collect(Collectors.joining("\n"));
     }
 
