@@ -206,6 +206,7 @@ public final class CommandsInitializer {
         registry.register(new AvatarCommand());
         registry.register(new BackupMemberRolesCommand(bckpRepo));
         registry.register(new BotStatusCommand(lvlRoleRepo));
+        registry.register(new ChannelOptimizeCommand());
         registry.register(new ClearMessagesCommand());
         registry.register(new DavizinhoBirthday(bdayRepo));
         registry.register(new GuildInfoCommand());

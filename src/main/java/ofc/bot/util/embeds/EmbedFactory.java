@@ -1,8 +1,10 @@
 package ofc.bot.util.embeds;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.redhogs.cronparser.CronExpressionDescriptor;
 import ofc.bot.commands.impl.slash.economy.LeaderboardCommand;
@@ -11,6 +13,7 @@ import ofc.bot.domain.entity.enums.GroupPermission;
 import ofc.bot.domain.entity.enums.PunishmentType;
 import ofc.bot.domain.entity.enums.ReminderType;
 import ofc.bot.domain.viewmodels.*;
+import ofc.bot.handlers.channels.ChannelPermissionOptimizer;
 import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.paginations.PageItem;
 import ofc.bot.util.Bot;
@@ -930,5 +933,173 @@ public final class EmbedFactory {
             builder.append(row);
         }
         return builder.toString().strip();
+    }
+
+    public static MessageEmbed embedChannelOptimizationProgress(
+            GuildChannel channel, List<TaskView> tasks
+    ) {
+        OficinaEmbed builder = new OficinaEmbed();
+
+        return builder
+                .setAuthor("/chanoptz", null, channel.getGuild().getIconUrl())
+                .setColor(Bot.Colors.DEFAULT)
+                .setTitle("Otimização de canal em andamento")
+                .setDescf("Canal alvo: %s\n\n%s", channel.getAsMention(), formatOptimizationTasks(tasks))
+                .setFooter(channel.getGuild().getName(), channel.getGuild().getIconUrl())
+                .build();
+    }
+
+    public static MessageEmbed embedChannelOptimizationReview(
+            GuildChannel channel, ChannelPermissionOptimizer.AnalysisResult analysis
+    ) {
+        OficinaEmbed builder = new OficinaEmbed();
+        String summary = String.format(
+                """
+                Membros validados: `%d`
+                Overrides analisados: `%d`
+                Candidatos simulados: `%d`
+                Overrides que serão limpos: `%d`
+                Permissões redundantes removidas: `%d`
+                """,
+                analysis.memberCount(),
+                analysis.overrideCount(),
+                analysis.simulatedCandidates(),
+                analysis.changedOverrideCount(),
+                analysis.removedPermissionCount()
+        );
+
+        return builder
+                .setAuthor("/chanoptz", null, channel.getGuild().getIconUrl())
+                .setColor(OK_GREEN)
+                .setTitle("Revisão da otimização")
+                .setDescf(
+                        "Canal alvo: %s\n\nA análise terminou e encontrou uma otimização sem perda.\n\n%s",
+                        channel.getAsMention(),
+                        summary
+                )
+                .addField(
+                        "Mudanças revisadas",
+                        limitForEmbed(formatOptimizationChanges(analysis.changes())),
+                        false
+                )
+                .setFooter("Clique em Aprovar para aplicar.", channel.getGuild().getIconUrl())
+                .build();
+    }
+
+    public static MessageEmbed embedChannelOptimizationNoChanges(
+            GuildChannel channel, ChannelPermissionOptimizer.AnalysisResult analysis
+    ) {
+        OficinaEmbed builder = new OficinaEmbed();
+
+        return builder
+                .setAuthor("/chanoptz", null, channel.getGuild().getIconUrl())
+                .setColor(Bot.Colors.DEFAULT)
+                .setTitle("Nenhuma otimização sem perda encontrada")
+                .setDescf(
+                        "Canal alvo: %s\n\nEu validei `%d` membros e `%d` overrides, mas não encontrei nenhuma remoção segura desta vez.",
+                        channel.getAsMention(),
+                        analysis.memberCount(),
+                        analysis.overrideCount()
+                )
+                .setFooter(channel.getGuild().getName(), channel.getGuild().getIconUrl())
+                .build();
+    }
+
+    public static MessageEmbed embedChannelOptimizationApplied(
+            GuildChannel channel, ChannelPermissionOptimizer.AnalysisResult analysis
+    ) {
+        OficinaEmbed builder = new OficinaEmbed();
+
+        return builder
+                .setAuthor("/chanoptz", null, channel.getGuild().getIconUrl())
+                .setColor(OK_GREEN)
+                .setTitle("Otimização aplicada")
+                .setDescf(
+                        "Canal alvo: %s\n\nAs mudanças aprovadas foram aplicadas com sucesso.\nOverrides limpos: `%d`\nPermissões redundantes removidas: `%d`",
+                        channel.getAsMention(),
+                        analysis.changedOverrideCount(),
+                        analysis.removedPermissionCount()
+                )
+                .setFooter(channel.getGuild().getName(), channel.getGuild().getIconUrl())
+                .build();
+    }
+
+    public static MessageEmbed embedChannelOptimizationFailure(GuildChannel channel, String reason) {
+        OficinaEmbed builder = new OficinaEmbed();
+        String target = channel == null ? "Canal indisponível" : channel.getAsMention();
+
+        return builder
+                .setAuthor("/chanoptz")
+                .setColor(DANGER_RED)
+                .setTitle("Não foi possível concluir a otimização")
+                .setDescf("Canal alvo: %s\n\n%s", target, reason)
+                .build();
+    }
+
+    private static String formatOptimizationTasks(List<TaskView> tasks) {
+        return tasks.stream()
+                .map(task -> task.state().prefix + " " + task.label())
+                .collect(Collectors.joining("\n"));
+    }
+
+    private static String formatOptimizationChanges(List<ChannelPermissionOptimizer.OverrideChange> changes) {
+        StringBuilder builder = new StringBuilder();
+
+        for (ChannelPermissionOptimizer.OverrideChange change : changes) {
+            builder.append("• ")
+                    .append(change.before().holderLabel())
+                    .append(": ");
+
+            if (change.removedAllowedRaw() != 0L) {
+                builder.append("remover allow ")
+                        .append(formatPermissionNames(change.removedAllowedRaw()));
+            }
+
+            if (change.removedDeniedRaw() != 0L) {
+                if (change.removedAllowedRaw() != 0L) {
+                    builder.append(" | ");
+                }
+
+                builder.append("remover deny ")
+                        .append(formatPermissionNames(change.removedDeniedRaw()));
+            }
+
+            if (change.deletesOverride()) {
+                builder.append(" | apagar override vazio");
+            }
+
+            builder.append("\n");
+        }
+
+        return builder.toString().strip();
+    }
+
+    private static String formatPermissionNames(long raw) {
+        return ChannelPermissionOptimizer.permissionsOf(raw).stream()
+                .map(Permission::name)
+                .sorted()
+                .collect(Collectors.joining(", ", "`", "`"));
+    }
+
+    private static String limitForEmbed(String value) {
+        if (value.length() <= MessageEmbed.VALUE_MAX_LENGTH) {
+            return value;
+        }
+
+        return value.substring(0, MessageEmbed.VALUE_MAX_LENGTH - 1) + "…";
+    }
+
+    public record TaskView(String label, TaskState state) {}
+
+    public enum TaskState {
+        PENDING("<a:loading:1293036166387601469>"),
+        RUNNING("<a:loading:1293036166387601469>"),
+        DONE("✅");
+
+        private final String prefix;
+
+        TaskState(String prefix) {
+            this.prefix = prefix;
+        }
     }
 }

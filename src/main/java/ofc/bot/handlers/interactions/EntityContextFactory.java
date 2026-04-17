@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.modals.Modal;
 import ofc.bot.domain.entity.*;
 import ofc.bot.domain.entity.enums.GroupPermission;
 import ofc.bot.domain.entity.enums.NameScope;
+import ofc.bot.handlers.channels.ChannelPermissionOptimizer;
 import ofc.bot.domain.viewmodels.LeaderboardUser;
 import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.games.betting.tictactoe.GameGrid;
@@ -420,6 +421,21 @@ public final class EntityContextFactory {
                 0,
                 Bot.map("target_id", targetId)
         );
+    }
+
+    public static Button createChannelOptimizationApproveButton(
+            long userId, long channelId, ChannelPermissionOptimizer.AnalysisResult plan
+    ) {
+        ButtonContext approve = ButtonContext.success("Aprovar")
+                .addUser(userId)
+                .setPermission(Permission.MANAGE_CHANNEL)
+                .setScope(Scopes.Channels.APPROVE_OPTIMIZATION)
+                .setValidity(10, TimeUnit.MINUTES)
+                .put("channel_id", channelId)
+                .put("plan", plan);
+
+        INTERACTION_MANAGER.save(approve);
+        return approve.getEntity();
     }
 
     /* -------------------- Modals -------------------- */

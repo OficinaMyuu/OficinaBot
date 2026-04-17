@@ -34,6 +34,7 @@ import ofc.bot.listeners.discord.interactions.GenericInteractionLocaleUpsert;
 import ofc.bot.listeners.discord.interactions.autocomplete.*;
 import ofc.bot.listeners.discord.interactions.buttons.WorkReminderHandler;
 import ofc.bot.listeners.discord.interactions.buttons.bets.TicTacToeAcceptHandler;
+import ofc.bot.listeners.discord.interactions.buttons.channels.ChannelOptimizeApproveHandler;
 import ofc.bot.listeners.discord.interactions.buttons.groups.*;
 import ofc.bot.listeners.discord.interactions.buttons.mafia.MafiaInteractionListener;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.*;
@@ -162,6 +163,7 @@ public final class EntityInitializerManager {
                 // Shop
                 new ColorRolePurchaseHandler(colorStateRepo),
                 new ColorRoleRemoveHandler(colorStateRepo),
+                new ChannelOptimizeApproveHandler(),
 
                 // Groups' commands confirmation handlers
                 new GroupBotAddHandler(),

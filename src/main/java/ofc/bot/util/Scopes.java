@@ -52,4 +52,8 @@ public final class Scopes {
         public static final String PAGINATE_NAME_UPDATE       = "USERNAME_UPDATE";
         public static final String PAGINATE_MARRIAGE_REQUESTS = "MARRIAGE_REQUESTS";
     }
+
+    public static class Channels {
+        public static final String APPROVE_OPTIMIZATION = "CHANNEL_APPROVE_OPTIMIZATION";
+    }
 }
