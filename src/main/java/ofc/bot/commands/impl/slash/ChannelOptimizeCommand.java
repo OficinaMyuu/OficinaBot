@@ -65,6 +65,10 @@ public class ChannelOptimizeCommand extends SlashCommand {
 
         ctx.create()
                 .setEmbeds(initialEmbed)
+                // SlashCommandsGateway already runs commands on a virtual thread,
+                // and we hop to another one here so the full channel review can
+                // wait on member loading and permission simulation without
+                // stretching the interaction callback chain.
                 .onHook(message -> EXECUTOR.execute(() -> executeAnalysis(ctx, message, channel)))
                 .send();
         return Status.OK;

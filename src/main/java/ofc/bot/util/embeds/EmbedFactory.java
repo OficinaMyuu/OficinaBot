@@ -953,13 +953,18 @@ public final class EmbedFactory {
             GuildChannel channel, ChannelPermissionOptimizer.AnalysisResult analysis
     ) {
         OficinaEmbed builder = new OficinaEmbed();
+        String optimizationCount = String.format(
+                "`%d` otimizações (`%s%%`)",
+                analysis.removedPermissionCount(),
+                formatOptimizationPercentage(analysis.optimizationPercentage())
+        );
         String summary = String.format(
                 """
-                Membros validados: `%d`
-                Overrides analisados: `%d`
-                Candidatos simulados: `%d`
-                Overrides que serão limpos: `%d`
-                Permissões redundantes removidas: `%d`
+                - Membros validados: `%d`
+                - Overrides analisados: `%d`
+                - Candidatos simulados: `%d`
+                - Overrides que serão limpos: `%d`
+                - Permissões redundantes removidas: `%d`
                 """,
                 analysis.memberCount(),
                 analysis.overrideCount(),
@@ -973,8 +978,9 @@ public final class EmbedFactory {
                 .setColor(OK_GREEN)
                 .setTitle("Revisão da otimização")
                 .setDescf(
-                        "Canal alvo: %s\n\nA análise terminou e encontrou uma otimização sem perda.\n\n%s",
+                        "Canal alvo: %s\n\nOtimização encontrada: %s\n\nA análise terminou e encontrou uma otimização sem perda.\n\n%s",
                         channel.getAsMention(),
+                        optimizationCount,
                         summary
                 )
                 .addField(
@@ -996,7 +1002,7 @@ public final class EmbedFactory {
                 .setColor(Bot.Colors.DEFAULT)
                 .setTitle("Nenhuma otimização sem perda encontrada")
                 .setDescf(
-                        "Canal alvo: %s\n\nEu validei `%d` membros e `%d` overrides, mas não encontrei nenhuma remoção segura desta vez.",
+                        "Canal alvo: %s\n\n- Membros validados: `%d`\n- Overrides analisados: `%d`\n\nEu não encontrei nenhuma remoção segura desta vez.",
                         channel.getAsMention(),
                         analysis.memberCount(),
                         analysis.overrideCount()
@@ -1009,14 +1015,20 @@ public final class EmbedFactory {
             GuildChannel channel, ChannelPermissionOptimizer.AnalysisResult analysis
     ) {
         OficinaEmbed builder = new OficinaEmbed();
+        String optimizationCount = String.format(
+                "`%d` otimizações (`%s%%`)",
+                analysis.removedPermissionCount(),
+                formatOptimizationPercentage(analysis.optimizationPercentage())
+        );
 
         return builder
                 .setAuthor("/chanoptz", null, channel.getGuild().getIconUrl())
                 .setColor(OK_GREEN)
                 .setTitle("Otimização aplicada")
                 .setDescf(
-                        "Canal alvo: %s\n\nAs mudanças aprovadas foram aplicadas com sucesso.\nOverrides limpos: `%d`\nPermissões redundantes removidas: `%d`",
+                        "Canal alvo: %s\n\nOtimização aplicada: %s\n\n- Overrides limpos: `%d`\n- Permissões redundantes removidas: `%d`",
                         channel.getAsMention(),
+                        optimizationCount,
                         analysis.changedOverrideCount(),
                         analysis.removedPermissionCount()
                 )
@@ -1038,7 +1050,7 @@ public final class EmbedFactory {
 
     private static String formatOptimizationTasks(List<TaskView> tasks) {
         return tasks.stream()
-                .map(task -> task.state().prefix + " " + task.label())
+                .map(task -> task.state().prefix + " - " + task.label())
                 .collect(Collectors.joining("\n"));
     }
 
@@ -1046,26 +1058,25 @@ public final class EmbedFactory {
         StringBuilder builder = new StringBuilder();
 
         for (ChannelPermissionOptimizer.OverrideChange change : changes) {
-            builder.append("• ")
+            builder.append("- **")
                     .append(change.before().holderLabel())
-                    .append(": ");
+                    .append("**");
 
             if (change.removedAllowedRaw() != 0L) {
-                builder.append("remover allow ")
+                builder.append("\n")
+                        .append("  - Remover allow: ")
                         .append(formatPermissionNames(change.removedAllowedRaw()));
             }
 
             if (change.removedDeniedRaw() != 0L) {
-                if (change.removedAllowedRaw() != 0L) {
-                    builder.append(" | ");
-                }
-
-                builder.append("remover deny ")
+                builder.append("\n")
+                        .append("  - Remover deny: ")
                         .append(formatPermissionNames(change.removedDeniedRaw()));
             }
 
             if (change.deletesOverride()) {
-                builder.append(" | apagar override vazio");
+                builder.append("\n")
+                        .append("  - Ação final: apagar override vazio");
             }
 
             builder.append("\n");
@@ -1076,9 +1087,13 @@ public final class EmbedFactory {
 
     private static String formatPermissionNames(long raw) {
         return ChannelPermissionOptimizer.permissionsOf(raw).stream()
-                .map(Permission::name)
+                .map(Permission::getName)
                 .sorted()
                 .collect(Collectors.joining(", ", "`", "`"));
+    }
+
+    private static String formatOptimizationPercentage(double value) {
+        return String.format(Bot.defaultLocale(), "%.1f", value);
     }
 
     private static String limitForEmbed(String value) {

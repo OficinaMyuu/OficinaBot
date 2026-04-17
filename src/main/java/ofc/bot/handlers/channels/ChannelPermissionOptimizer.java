@@ -81,6 +81,7 @@ public final class ChannelPermissionOptimizer {
                 request.members().size(),
                 original.size(),
                 simulatedCandidates,
+                countPermissions(original),
                 computeSignature(original),
                 changes
         );
@@ -281,6 +282,17 @@ public final class ChannelPermissionOptimizer {
                 .toArray();
     }
 
+    private static int countPermissions(List<OverrideState> overrides) {
+        int count = 0;
+
+        for (OverrideState override : overrides) {
+            count += permissionsOf(override.allowRaw()).size();
+            count += permissionsOf(override.denyRaw()).size();
+        }
+
+        return count;
+    }
+
     public static EnumSet<Permission> permissionsOf(long raw) {
         EnumSet<Permission> permissions = EnumSet.noneOf(Permission.class);
 
@@ -384,21 +396,31 @@ public final class ChannelPermissionOptimizer {
             int memberCount,
             int overrideCount,
             int simulatedCandidates,
+            int originalPermissionCount,
             String originalSignature,
             String failureReason,
             List<OverrideChange> changes
     ) {
         public static AnalysisResult valid(
-                int memberCount, int overrideCount, int simulatedCandidates, String originalSignature,
+                int memberCount, int overrideCount, int simulatedCandidates, int originalPermissionCount, String originalSignature,
                 List<OverrideChange> changes
         ) {
-            return new AnalysisResult(true, memberCount, overrideCount, simulatedCandidates, originalSignature, null, List.copyOf(changes));
+            return new AnalysisResult(
+                    true,
+                    memberCount,
+                    overrideCount,
+                    simulatedCandidates,
+                    originalPermissionCount,
+                    originalSignature,
+                    null,
+                    List.copyOf(changes)
+            );
         }
 
         public static AnalysisResult invalid(
                 int memberCount, int overrideCount, String originalSignature, String failureReason
         ) {
-            return new AnalysisResult(false, memberCount, overrideCount, 0, originalSignature, failureReason, List.of());
+            return new AnalysisResult(false, memberCount, overrideCount, 0, 0, originalSignature, failureReason, List.of());
         }
 
         public boolean hasChanges() {
@@ -416,6 +438,14 @@ public final class ChannelPermissionOptimizer {
                 count += permissionsOf(change.removedDeniedRaw()).size();
             }
             return count;
+        }
+
+        public double optimizationPercentage() {
+            if (originalPermissionCount == 0) {
+                return 0.0;
+            }
+
+            return (removedPermissionCount() * 100.0) / originalPermissionCount;
         }
     }
 }
