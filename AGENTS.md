@@ -72,6 +72,8 @@ Read this first, then open only the files relevant to the task.
 ## Start Here For Common Tasks
 - Add or modify a slash command:
   Open `CommandsInitializer.java`, then the command under `commands/impl/slash/...`.
+- Change channel permission optimization:
+  Open `ChannelOptimizeCommand.java`, then `handlers/channels/ChannelPermissionOptimizer.java`, and finally `ChannelOptimizeApproveHandler.java`.
 - Change Oficina Dorme behavior:
   Open `CreateMafiaGameCommand.java`, then `MafiaInteractionListener.java`, and finally the rule helpers in `handlers/games/mafia/service/`.
 - Fix a Discord event reaction:
@@ -113,6 +115,12 @@ Read this first, then open only the files relevant to the task.
   and `game_mafia_logs` stores the persisted audit trail for match events.
 - User profile/customization:
   `commands/impl/slash/userinfo/`, `commands/impl/slash/userinfo/custom/`, `CustomUserinfoRepository`
+- Channel permission optimization:
+  `commands/impl/slash/ChannelOptimizeCommand.java`,
+  `handlers/channels/ChannelPermissionOptimizer.java`,
+  `listeners/discord/interactions/buttons/channels/ChannelOptimizeApproveHandler.java`,
+  `util/embeds/EmbedFactory.java`,
+  and `src/test/java/ofc/bot/handlers/channels/ChannelPermissionOptimizerTest.java`
 
 ## Central Registration Files Worth Memorizing
 - `src/main/java/ofc/bot/handlers/EntityInitializerManager.java`

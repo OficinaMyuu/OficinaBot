@@ -28,6 +28,21 @@ Oficina is a Java 21 Discord bot built on JDA. The application boots from `src/m
 - Button/modal/menu/autocomplete routing is centralized under `src/main/java/ofc/bot/handlers/interactions/`
 - Scheduled jobs live under `src/main/java/ofc/bot/jobs/`
 
+## Channel Permission Optimization
+- Slash entrypoint:
+  `src/main/java/ofc/bot/commands/impl/slash/ChannelOptimizeCommand.java`
+- Optimization engine:
+  `src/main/java/ofc/bot/handlers/channels/ChannelPermissionOptimizer.java`
+- Approval button handler:
+  `src/main/java/ofc/bot/listeners/discord/interactions/buttons/channels/ChannelOptimizeApproveHandler.java`
+- Shared embeds/buttons:
+  `src/main/java/ofc/bot/util/embeds/EmbedFactory.java`
+  and `src/main/java/ofc/bot/handlers/interactions/EntityContextFactory.java`
+- Unit tests:
+  `src/test/java/ofc/bot/handlers/channels/ChannelPermissionOptimizerTest.java`
+
+`/chanoptz` is a review-first flow. It requires a target channel parameter, loads every guild member, snapshots the channel overrides, validates a local permission simulation against JDA's explicit channel permissions/access for the current state, and only proposes removals that keep every member's access and explicit channel permission set unchanged. The approval step is guarded by an in-memory review plan plus an override signature check so stale reviews are rejected instead of applying against a changed channel.
+
 ## Oficina Dorme
 - Slash entrypoint:
   `src/main/java/ofc/bot/commands/impl/slash/mafia/CreateMafiaGameCommand.java`
