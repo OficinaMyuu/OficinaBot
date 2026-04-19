@@ -14,6 +14,8 @@ Oficina is a Java 21 Discord bot built on JDA. The application boots from `src/m
   `src/main/java/ofc/bot/domain/sqlite/DB.java`
 - Repository access:
   `src/main/java/ofc/bot/domain/sqlite/repository/Repositories.java`
+- Shared utility helpers:
+  `src/main/java/ofc/bot/util/`
 
 ## Persistence Shape
 - SQLite database file: `database.db`
@@ -71,3 +73,8 @@ Every relevant match action is also persisted to `game_mafia_logs` through `Game
 - Build output is a shaded jar at `target/bot.jar`
 - CI deploy workflow is defined in `.github/workflows/deploy.yml`
 - Local artifacts such as `database.db`, `database-backup.db`, `bot.jar`, and `target/` should not be read for code understanding; they are runtime/generated artifacts, not source of truth
+
+## Shared Utilities
+- `src/main/java/ofc/bot/util/UrlBuilder.java`
+
+`UrlBuilder` is a small query-string utility for features that need to safely inspect or mutate URLs without hand-splicing strings. It preserves the original URI structure, stores decoded query parameters in insertion order, supports fluent updates through `set`, `add`, `remove`, and `clear`, and can build either a `URI` via `toUri()` or a string via `build()` and `toString()`. The utility is intentionally single-value per key; if a feature needs repeated query keys, extend it deliberately instead of quietly changing its semantics.
