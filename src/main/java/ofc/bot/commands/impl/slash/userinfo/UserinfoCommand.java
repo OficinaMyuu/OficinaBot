@@ -17,6 +17,7 @@ import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashCommand;
 import ofc.bot.internal.data.BotProperties;
 import ofc.bot.util.Bot;
+import ofc.bot.util.UrlBuilder;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
 import org.jetbrains.annotations.NotNull;
 
@@ -96,7 +97,7 @@ public class UserinfoCommand extends SlashCommand {
         String description = getDescription(cs, target);
         String footer = getFooter(cs, guild);
         String banner = profile.getBannerUrl();
-        String resizedBanner = banner == null ? null : banner + "?size=2048";
+        String resizedBanner = resolveBannerUrl(banner);
 
         builder
                 .setTitle(title)
@@ -168,7 +169,7 @@ public class UserinfoCommand extends SlashCommand {
 
         return roles.isEmpty()
                 ? Color.GRAY
-                : roles.getFirst().getColor();
+                : roles.getFirst().getColors().getPrimary();
     }
 
     private String getTitle(User user) {
@@ -198,6 +199,14 @@ public class UserinfoCommand extends SlashCommand {
         return desc == null
                 ? String.format(CustomUserinfo.DEFAULT_DESCRIPTION_FORMAT, member.getEffectiveName())
                 : desc;
+    }
+
+    private String resolveBannerUrl(String url) {
+        if (url == null) return null;
+
+        return new UrlBuilder(url)
+                .add("size", "1024")
+                .toString();
     }
 
     private String getFooter(UserinfoView cs, Guild guild) {
