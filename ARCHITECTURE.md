@@ -69,6 +69,14 @@ Operationally, the feature has a hard cap of 25 players because Discord string s
 
 Every relevant match action is also persisted to `game_mafia_logs` through `GameMafiaLogRepository`, using an English `action` string plus structured fields such as event type, actor, target, channel, phase, and timestamp so moderation can inspect the full match timeline later.
 
+## Coinflip Inference
+- Listener:
+  `src/main/java/ofc/bot/listeners/discord/guilds/messages/CoinflipInferenceHandler.java`
+- Unit tests:
+  `src/test/java/ofc/bot/listeners/discord/guilds/messages/CoinflipInferenceHandlerTest.java`
+
+The coinflip inference listener watches guild messages for plain `cara` and `coroa` guesses, pairs two different users with opposite guesses inside a short timeout window, and announces the result in-channel. The cooldown remains channel-scoped for regular users, but a matching pair bypasses that cooldown when either participant is staff, which keeps moderation and event facilitation from getting rate-limited by the mini-interaction.
+
 ## Operational Notes
 - Build output is a shaded jar at `target/bot.jar`
 - CI deploy workflow is defined in `.github/workflows/deploy.yml`
