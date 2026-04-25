@@ -13,17 +13,30 @@ import ofc.bot.handlers.exceptions.PunishmentCreationException;
 import ofc.bot.util.embeds.EmbedFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.exception.DataAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
 public final class PunishmentManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PunishmentManager.class);
     private static final long PUNISHMENT_EXPIRY_SECONDS = TimeUnit.DAYS.toSeconds(180); // 6 months
     private final MemberPunishmentRepository pnshRepo;
     private final AutomodActionRepository modActRepo;
+    private final AutoKickCleanup autoKickCleanup;
 
     public PunishmentManager(MemberPunishmentRepository pnshRepo, AutomodActionRepository modActRepo) {
+        this(pnshRepo, modActRepo, AutoKickCleanup.createDefault());
+    }
+
+    PunishmentManager(
+            MemberPunishmentRepository pnshRepo,
+            AutomodActionRepository modActRepo,
+            AutoKickCleanup autoKickCleanup
+    ) {
         this.pnshRepo = pnshRepo;
         this.modActRepo = modActRepo;
+        this.autoKickCleanup = autoKickCleanup;
     }
 
     public MessageEmbed createPunishment(@NotNull PunishmentData data) {
@@ -46,7 +59,7 @@ public final class PunishmentManager {
             int duration = automodAction.getDurationRaw();
             resolveAction(target, duration, action)
                     .reason(fmtReason)
-                    .queue();
+                    .queue(ignored -> resetOnKick(target, action, fmtReason));
 
             PunishmentType embedAction = action == PunishmentType.MUTE ? PunishmentType.WARN : action;
             return EmbedFactory.embedPunishment(target.getUser(), embedAction, fmtReason);
@@ -65,5 +78,17 @@ public final class PunishmentManager {
             // This will never happen
             case UNMUTE, UNBAN -> throw new UnsupportedOperationException();
         };
+    }
+
+    private void resetOnKick(Member target, PunishmentType action, String reason) {
+        if (action != PunishmentType.KICK) return;
+
+        long userId = target.getIdLong();
+        long guildId = target.getGuild().getIdLong();
+        try {
+            autoKickCleanup.reset(userId, guildId, reason);
+        } catch (RuntimeException e) {
+            LOGGER.error("Could not reset XP and economy after auto-kicking member {}", userId, e);
+        }
     }
 }
