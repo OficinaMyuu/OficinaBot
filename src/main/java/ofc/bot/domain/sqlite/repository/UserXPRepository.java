@@ -55,6 +55,12 @@ public class UserXPRepository extends Repository<UserXP> {
                 .fetchOne();
     }
 
+    public void deleteByUserId(long userId) {
+        ctx.deleteFrom(USERS_XP)
+                .where(USERS_XP.USER_ID.eq(userId))
+                .execute();
+    }
+
     public List<UserXP> findAllOrdered() {
         return ctx.selectFrom(USERS_XP)
                 .orderBy(USERS_XP.LEVEL.desc(), USERS_XP.XP.desc(), USERS_XP.USER_ID.asc())
