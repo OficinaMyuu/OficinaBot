@@ -30,6 +30,16 @@ Oficina is a Java 21 Discord bot built on JDA. The application boots from `src/m
 - Button/modal/menu/autocomplete routing is centralized under `src/main/java/ofc/bot/handlers/interactions/`
 - Scheduled jobs live under `src/main/java/ofc/bot/jobs/`
 
+## Moderation
+- Automod listener:
+  `src/main/java/ofc/bot/listeners/discord/moderation/AutoModerator.java`
+- Punishment orchestration:
+  `src/main/java/ofc/bot/handlers/moderation/PunishmentManager.java`
+- Auto-kick cleanup:
+  `src/main/java/ofc/bot/handlers/moderation/AutoKickCleanup.java`
+
+Automod warnings are persisted before the current threshold is resolved through `AutomodActionRepository`. When the configured threshold resolves to `KICK`, the Discord kick is queued first, and the cleanup runs only after JDA reports that kick as successful. Cleanup deletes the user's XP row from `users_xp` and resets every configured economy account to zero, currently Oficina Bank and UnbelievaBoat.
+
 ## Channel Permission Optimization
 - Slash entrypoint:
   `src/main/java/ofc/bot/commands/impl/slash/ChannelOptimizeCommand.java`
