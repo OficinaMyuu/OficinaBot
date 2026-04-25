@@ -140,7 +140,6 @@ public final class CommandsInitializer {
                 .addSubcommand(new GroupInfoCommand(grpRepo))
                 .addSubcommand(new GroupPermissionCommand(grpRepo, policyRepo))
                 .addSubcommand(new GroupPinsCommand(grpRepo))
-                .addSubcommand(new HelpGroupCommand())
                 .addSubcommand(new LeaveGroupCommand(grpRepo))
                 .addSubcommand(new ModifyGroupCommand(grpRepo));
 
