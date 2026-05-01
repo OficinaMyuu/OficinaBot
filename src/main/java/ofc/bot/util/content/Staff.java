@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import ofc.bot.Main;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -23,7 +24,13 @@ public enum Staff {
     AJUDANTES_VICE_LEADER("740360642032173156", Scope.SUPPORT, 3),
     AJUDANTES_SUPERIOR(   "691167798474440775", Scope.SUPPORT, 2),
     AJUDANTES_MAIN(       "592427681727905792", Scope.SUPPORT, 1),
-    AJUDANTES_TRAINEE(    "648408508219260928", Scope.SUPPORT, 0);
+    AJUDANTES_TRAINEE(    "648408508219260928", Scope.SUPPORT, 0),
+
+    EVENTS_CO_LEADER(  "648444769026048010", Scope.EVENTS, 4),
+    EVENTS_VICE_LEADER("740360653075906610", Scope.EVENTS, 3),
+    EVENTS_SUPERIOR(   "691167800605016095", Scope.EVENTS, 2),
+    EVENTS_MAIN(       "648408509985325082", Scope.EVENTS, 1),
+    EVENTS_TRAINEE(    "648408514242543617", Scope.EVENTS, 0);
 
     private final String id;
     private final Scope field;
@@ -61,6 +68,21 @@ public enum Staff {
                 .anyMatch(r -> r.getId().equals(GENERAL.id));
     }
 
+    public static boolean hasRoleInScope(Member member, Scope scope) {
+        return hasRoleInScope(member.getRoles(), scope);
+    }
+
+    public static boolean hasRoleInScope(List<Role> roles, Scope scope) {
+        return hasRoleIdInScope(roles.stream().map(Role::getId).toList(), scope);
+    }
+
+    static boolean hasRoleIdInScope(Collection<String> roleIds, Scope scope) {
+        return getByScope(scope)
+                .stream()
+                .map(Staff::getId)
+                .anyMatch(roleIds::contains);
+    }
+
     public static List<Staff> getByScope(Scope scope) {
         return Stream.of(values())
                 .filter(s -> s.field == scope)
@@ -77,6 +99,7 @@ public enum Staff {
     public enum Scope {
         SUPPORT,
         MOV_CALL,
+        EVENTS,
         NONE
     }
 }
