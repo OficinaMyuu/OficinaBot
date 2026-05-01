@@ -102,19 +102,21 @@ public final class EntityContextFactory {
         return List.of(prev.getEntity(), next.getEntity(), delete.getEntity());
     }
 
-    public static List<Button> createLeaderboardButtons(Paginator<LeaderboardUser> paginator, int pageIndex, boolean hasNext) {
+    public static List<Button> createLeaderboardButtons(long userId, Paginator<LeaderboardUser> paginator, int pageIndex, boolean hasNext) {
         boolean hasPrevious = pageIndex > 0;
 
         ButtonContext prev = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_LEFT)
                 .setScope(Scopes.Economy.VIEW_LEADERBOARD)
                 .put("page_index", pageIndex - 1)
                 .put("paginator", paginator)
+                .addUser(userId)
                 .setEnabled(hasPrevious);
 
         ButtonContext next = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_RIGHT)
                 .setScope(Scopes.Economy.VIEW_LEADERBOARD)
                 .put("page_index", pageIndex + 1)
                 .put("paginator", paginator)
+                .addUser(userId)
                 .setEnabled(hasNext);
 
         INTERACTION_MANAGER.save(prev, next);
@@ -155,12 +157,14 @@ public final class EntityContextFactory {
                 .setScope(Scopes.Misc.PAGINATE_LEVELS)
                 .put("user_id", userId)
                 .put("page_index", pageIndex - 1)
+                .addUser(userId)
                 .setEnabled(hasPrevious);
 
         ButtonContext next = ButtonContext.secondary(Bot.Emojis.GRAY_ARROW_RIGHT)
                 .setScope(Scopes.Misc.PAGINATE_LEVELS)
                 .put("user_id", userId)
                 .put("page_index", pageIndex + 1)
+                .addUser(userId)
                 .setEnabled(hasNext);
 
         INTERACTION_MANAGER.save(prev, next);

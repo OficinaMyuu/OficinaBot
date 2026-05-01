@@ -38,6 +38,7 @@ public class LeaderboardCommand extends SlashCommand {
         Guild guild = ctx.getGuild();
         Paginator<LeaderboardUser> paginator = Paginator.of((o) -> ecoRepo.viewLeaderboard(scope, o, PAGE_SIZE), ecoRepo::countAll, PAGE_SIZE);
         PageItem<LeaderboardUser> lb = paginator.next(pageIndex);
+        long issuerId = ctx.getUserId();
         int lastPageIndex = lb.lastPageIndex();
 
         if (pageIndex > lastPageIndex)
@@ -47,7 +48,7 @@ public class LeaderboardCommand extends SlashCommand {
             return Status.LEADERBOARD_IS_EMPTY;
 
         boolean hasMorePages = lb.hasMore();
-        List<Button> buttons = EntityContextFactory.createLeaderboardButtons(paginator, pageIndex, hasMorePages);
+        List<Button> buttons = EntityContextFactory.createLeaderboardButtons(issuerId, paginator, pageIndex, hasMorePages);
         MessageEmbed embed = EmbedFactory.embedLeaderboard(guild, lb);
 
         return ctx.create()

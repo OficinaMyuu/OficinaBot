@@ -27,7 +27,8 @@ public class LeaderboardOffsetUpdate implements InteractionListener<ButtonClickC
         PageItem<LeaderboardUser> lb = paginator.next(pageIndex);
         Guild guild = ctx.getGuild();
         boolean hasMorePages = lb.hasMore();
-        List<Button> newButtons = EntityContextFactory.createLeaderboardButtons(paginator, pageIndex, hasMorePages);
+        long issuerId = ctx.getUserId();
+        List<Button> newButtons = EntityContextFactory.createLeaderboardButtons(issuerId, paginator, pageIndex, hasMorePages);
         MessageEmbed newEmbed = EmbedFactory.embedLeaderboard(guild, lb);
 
         return ctx.create()
