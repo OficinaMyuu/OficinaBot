@@ -100,6 +100,9 @@ Read this first, then open only the files relevant to the task.
   `commands/impl/slash/reminders/`, `jobs/RemindersHandler.java`, `ReminderRepository`
 - Moderation:
   `commands/impl/slash/moderation/`, `listeners/discord/moderation/`, `handlers/moderation/`, punishment repositories
+- Events:
+  `commands/impl/slash/ToggleEventsCommand.java`, configured by `channels.events.text.id` and `channels.events.voice.id`.
+  `/events` opens/closes the configured event text/voice channels and can optionally disconnect members when closing.
 - Levels/XP:
   `commands/impl/slash/levels/`, `listeners/discord/guilds/messages/UsersXPHandler.java`, `jobs/income/VoiceXPHandler.java`
 - Tickets:

@@ -30,6 +30,16 @@ Oficina is a Java 21 Discord bot built on JDA. The application boots from `src/m
 - Button/modal/menu/autocomplete routing is centralized under `src/main/java/ofc/bot/handlers/interactions/`
 - Scheduled jobs live under `src/main/java/ofc/bot/jobs/`
 
+## Events Command
+- Slash entrypoint:
+  `src/main/java/ofc/bot/commands/impl/slash/ToggleEventsCommand.java`
+- Staff role helpers:
+  `src/main/java/ofc/bot/util/content/Staff.java`
+- Config keys:
+  `channels.events.text.id` and `channels.events.voice.id`
+
+`/events` toggles send/connect permissions for the configured event text and voice channels. The optional `disconnect` argument is only applied while closing an event and defaults to `No one`, preserving member voice state unless an operator chooses a cleanup policy. `Keep Staff` preserves members with the global staff role, while `Keep Event Staff` preserves members with any role from `Staff.Scope.EVENTS`.
+
 ## Moderation
 - Automod listener:
   `src/main/java/ofc/bot/listeners/discord/moderation/AutoModerator.java`
