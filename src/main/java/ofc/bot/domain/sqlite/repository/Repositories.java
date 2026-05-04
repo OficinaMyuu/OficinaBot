@@ -28,6 +28,7 @@ public final class Repositories {
     private static MessageTranscriptionRepository messageTranscriptionRepository;
     private static MessageVersionRepository messageVersionRepository;
     private static OficinaGroupRepository oficinaGroupRepository;
+    private static RegisterRepository registerRepository;
     private static ReminderRepository reminderRepository;
     private static SupportTicketRepository supportTicketRepository;
     private static TempBanRepository tempBanRepository;
@@ -160,6 +161,11 @@ public final class Repositories {
     public static OficinaGroupRepository getOficinaGroupRepository() {
         if (oficinaGroupRepository == null) oficinaGroupRepository = new OficinaGroupRepository(getDSLContext());
         return oficinaGroupRepository;
+    }
+
+    public static RegisterRepository getRegisterRepository() {
+        if (registerRepository == null) registerRepository = new RegisterRepository(getDSLContext());
+        return registerRepository;
     }
 
     public static ReminderRepository getReminderRepository() {

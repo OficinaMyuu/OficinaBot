@@ -68,6 +68,7 @@ public final class DB {
                 MessagesTranscriptionsTable.MESSAGES_TRANSCRIPTIONS,
                 MessagesVersionsTable.MESSAGE_VERSIONS,
                 OficinaGroupsTable.OFICINA_GROUPS,
+                RegistersTable.REGISTERS,
                 RemindersTable.REMINDERS,
                 SupportTicketsTable.SUPPORT_TICKETS,
                 TempBansTable.TEMP_BANS,

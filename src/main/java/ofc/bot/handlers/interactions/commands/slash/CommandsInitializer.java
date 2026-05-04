@@ -68,6 +68,7 @@ public final class CommandsInitializer {
         var mreqRepo = Repositories.getMarriageRequestRepository();
         var policyRepo = Repositories.getEntityPolicyRepository();
         var lvlRoleRepo = Repositories.getLevelRoleRepository();
+        var regRepo = Repositories.getRegisterRepository();
         var grpRepo = Repositories.getOficinaGroupRepository();
         var emjRepo = Repositories.getMemberEmojiRepository();
         var ecoRepo = Repositories.getUserEconomyRepository();
@@ -207,6 +208,7 @@ public final class CommandsInitializer {
         registry.register(new BotStatusCommand(lvlRoleRepo));
         registry.register(new ChannelOptimizeCommand());
         registry.register(new ClearMessagesCommand());
+        registry.register(new CreateRegisterCommand(regRepo));
         registry.register(new DavizinhoBirthday(bdayRepo));
         registry.register(new GuildInfoCommand());
         registry.register(new GuildLogoCommand());
