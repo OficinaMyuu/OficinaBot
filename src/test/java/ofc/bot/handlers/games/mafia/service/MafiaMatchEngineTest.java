@@ -33,7 +33,26 @@ class MafiaMatchEngineTest {
     }
 
     @Test
-    void shouldBlockInvestigationAndAllowDoctorSelfDeath() {
+    void shouldAllowSingleAssassinConfiguration() {
+        MafiaRoleConfiguration configuration = new MafiaRoleConfiguration(1, 1, 1);
+
+        Optional<String> validation = engine.validateRequestedConfiguration(configuration);
+
+        assertTrue(validation.isEmpty());
+    }
+
+    @Test
+    void shouldRejectZeroAssassinConfiguration() {
+        MafiaRoleConfiguration configuration = new MafiaRoleConfiguration(0, 1, 1);
+
+        Optional<String> validation = engine.validateRequestedConfiguration(configuration);
+
+        assertTrue(validation.isPresent());
+        assertTrue(validation.get().contains("1 e 3"));
+    }
+
+    @Test
+    void shouldBlockInvestigationAndProtectDoctorSelfFromDeath() {
         MafiaMatch match = new MafiaMatch(1L, 2L, 3L, 6, null);
         match.addPlayer(10L);
         match.addPlayer(11L);
@@ -56,10 +75,10 @@ class MafiaMatchEngineTest {
 
         NightResolution resolution = engine.resolveNight(match);
 
-        assertTrue(resolution.killedPlayerIds().contains(12L));
+        assertFalse(resolution.killedPlayerIds().contains(12L));
         assertTrue(resolution.killedPlayerIds().contains(14L));
         assertTrue(resolution.investigationsByDetective().get(13L).blocked());
-        assertFalse(match.getPlayer(12L).isAlive());
+        assertTrue(match.getPlayer(12L).isAlive());
     }
 
     @Test

@@ -54,6 +54,25 @@ class MafiaMatchTest {
         assertFalse(match.managesChannel(999L));
     }
 
+    @Test
+    void shouldStoreOptionalAnnouncementChannel() {
+        MafiaMatch match = new MafiaMatch(1L, 2L, 999L, 3L, 6, null);
+
+        assertEquals(999L, match.getAnnouncementChannelId());
+        assertTrue(match.hasCustomAnnouncementChannel());
+    }
+
+    @Test
+    void shouldTrackDoctorSelfSaveUsage() {
+        MafiaPlayer player = new MafiaPlayer(10L);
+
+        assertFalse(player.hasUsedDoctorSelfSave());
+
+        player.markDoctorSelfSaveUsed();
+
+        assertTrue(player.hasUsedDoctorSelfSave());
+    }
+
     private MafiaMatch createMatchWithSixPlayers() {
         MafiaMatch match = new MafiaMatch(1L, 2L, 3L, 6, null);
         match.addPlayer(10L);

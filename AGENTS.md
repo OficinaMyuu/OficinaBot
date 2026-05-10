@@ -119,6 +119,8 @@ Read this first, then open only the files relevant to the task.
   `listeners/discord/interactions/buttons/mafia/MafiaInteractionListener.java` handles both buttons and select menus,
   `listeners/discord/guilds/mafia/MafiaLifecycleListener.java` handles deleted channels and member departures,
   and `game_mafia_logs` stores the persisted audit trail for match events.
+  `announcement-channel` is an optional text channel for public lifecycle announcements and host-only end summaries;
+  day voting stays in the main match channel, and detective results are published with the next day summary.
 - User profile/customization:
   `commands/impl/slash/userinfo/`, `commands/impl/slash/userinfo/custom/`, `CustomUserinfoRepository`
 - Nickname changes:
