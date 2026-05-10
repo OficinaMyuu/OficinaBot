@@ -41,6 +41,8 @@ import ofc.bot.domain.sqlite.repository.Repositories;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.ICommand;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashCommand;
 import ofc.bot.handlers.interactions.commands.slash.dummy.EmptySlashCommand;
+import ofc.bot.handlers.nick.NicknameEmojiPolicy;
+import ofc.bot.handlers.nick.NicknameRequestDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +64,7 @@ public final class CommandsInitializer {
         var pnshRepo = Repositories.getMemberPunishmentRepository();
         var csinfoRepo = Repositories.getCustomUserinfoRepository();
         var msgVrsRepo = Repositories.getMessageVersionRepository();
+        var nickReqRepo = Repositories.getNicknameUpdateRequestRepository();
         var namesRepo = Repositories.getUserNameUpdateRepository();
         var modActRepo = Repositories.getAutomodActionRepository();
         var ticketRepo = Repositories.getSupportTicketRepository();
@@ -79,6 +82,8 @@ public final class CommandsInitializer {
         var remRepo = Repositories.getReminderRepository();
         var xpRepo = Repositories.getUserXPRepository();
         var userRepo = Repositories.getUserRepository();
+        var nickPolicy = new NicknameEmojiPolicy(emjRepo, emojiPermRepo);
+        var nickDispatcher = new NicknameRequestDispatcher(nickReqRepo);
 
         // Additionals
         SlashCommand additionals = new EmptySlashCommand("additionals", "Gerencia recursos adicionais/misc do bot.", Permission.MANAGE_SERVER)
@@ -215,6 +220,7 @@ public final class CommandsInitializer {
         registry.register(new IPLookupCommand());
         registry.register(new MovieInstructionsCommand());
         registry.register(new NamesHistoryCommand(namesRepo));
+        registry.register(new NickCommand(nickPolicy, nickDispatcher));
         registry.register(new OpenTicketCommand());
         registry.register(new RoleAmongUsCommand());
         registry.register(new RoleInfoCommand());

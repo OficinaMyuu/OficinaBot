@@ -15,6 +15,7 @@ import ofc.bot.domain.entity.enums.ReminderType;
 import ofc.bot.domain.viewmodels.*;
 import ofc.bot.handlers.channels.ChannelPermissionOptimizer;
 import ofc.bot.handlers.economy.CurrencyType;
+import ofc.bot.handlers.nick.NicknameEmojiPolicy;
 import ofc.bot.handlers.paginations.PageItem;
 import ofc.bot.util.Bot;
 import ofc.bot.util.OficinaEmbed;
@@ -1048,6 +1049,138 @@ public final class EmbedFactory {
                 .build();
     }
 
+    public static MessageEmbed embedNicknameRequestQueued(Member target, String nickname) {
+        OficinaEmbed builder = new OficinaEmbed();
+
+        return builder
+                .setAuthor(target.getEffectiveName(), null, target.getEffectiveAvatarUrl())
+                .setColor(OK_GREEN)
+                .setTitle("Solicitação enviada")
+                .setDesc("O pedido de alteração de apelido foi enviado para aprovação.")
+                .addField("Apelido solicitado", escapeUsernameSpecialChars(nickname), false)
+                .build();
+    }
+
+    public static MessageEmbed embedNicknameValidationRejected(
+            Member target,
+            String nickname,
+            NicknameEmojiPolicy.NicknameEmojiReport report
+    ) {
+        OficinaEmbed builder = new OficinaEmbed();
+
+        return builder
+                .setAuthor(target.getEffectiveName(), null, target.getEffectiveAvatarUrl())
+                .setColor(DANGER_RED)
+                .setTitle("Apelido recusado")
+                .setDesc(formatNicknameValidationFailure(report))
+                .addField("Apelido informado", escapeUsernameSpecialChars(nickname), false)
+                .build();
+    }
+
+    public static MessageEmbed embedNicknameUnauthorizedConfirmation(
+            Member target,
+            String nickname,
+            NicknameEmojiPolicy.NicknameEmojiReport report
+    ) {
+        OficinaEmbed builder = new OficinaEmbed();
+
+        return builder
+                .setAuthor(target.getEffectiveName(), null, target.getEffectiveAvatarUrl())
+                .setColor(Color.YELLOW)
+                .setTitle("Confirmar envio")
+                .setDesc("Encontrei emoji de staff sem autorização para este membro. Se este pedido foi intencional, confirme o envio mesmo assim.")
+                .addField("Apelido solicitado", escapeUsernameSpecialChars(nickname), false)
+                .addField("Emojis sem autorização", report.unauthorizedSummary(), false)
+                .build();
+    }
+
+    public static MessageEmbed embedNicknameApprovalPending(
+            Member target,
+            User submittedBy,
+            String nickname,
+            NicknameEmojiPolicy.NicknameEmojiReport report,
+            boolean forced
+    ) {
+        OficinaEmbed builder = new OficinaEmbed();
+
+        return builder
+                .setAuthor(target.getEffectiveName(), null, target.getEffectiveAvatarUrl())
+                .setColor(Bot.Colors.DEFAULT)
+                .setTitle("Alteração de apelido pendente")
+                .setDescf("Solicitado por %s.", submittedBy.getAsMention())
+                .addField("Apelido solicitado", escapeUsernameSpecialChars(nickname), false)
+                .addFieldIf(report.hasApprovedStaffEmojis(), "Emojis autorizados", report.approvedSummary(), false)
+                .addFieldIf(forced && report.hasUnauthorizedStaffEmojis(), "Enviado sem autorização", report.unauthorizedSummary(), false)
+                .setFooter("Aguardando aprovação", target.getGuild().getIconUrl())
+                .build();
+    }
+
+    public static MessageEmbed embedNicknameApproved(
+            Member target,
+            long approvedById,
+            String nickname,
+            String emojiApprovalSummary,
+            String unauthorizedSummary
+    ) {
+        OficinaEmbed builder = new OficinaEmbed();
+
+        return builder
+                .setAuthor(target.getEffectiveName(), null, target.getEffectiveAvatarUrl())
+                .setColor(OK_GREEN)
+                .setTitle("Apelido aprovado")
+                .setDescf("Aprovado por <@%d>.", approvedById)
+                .addField("Apelido aplicado", escapeUsernameSpecialChars(nickname), false)
+                .addFieldIf(emojiApprovalSummary != null && !emojiApprovalSummary.isBlank(), "Emojis autorizados", emojiApprovalSummary, false)
+                .addFieldIf(unauthorizedSummary != null && !unauthorizedSummary.isBlank(), "Enviado sem autorização", unauthorizedSummary, false)
+                .build();
+    }
+
+    public static MessageEmbed embedNicknameRejected(
+            User target,
+            long rejectedById,
+            String nickname,
+            String emojiApprovalSummary,
+            String unauthorizedSummary
+    ) {
+        OficinaEmbed builder = new OficinaEmbed();
+
+        return builder
+                .setAuthor(target.getEffectiveName(), null, target.getEffectiveAvatarUrl())
+                .setColor(DANGER_RED)
+                .setTitle("Apelido rejeitado")
+                .setDescf("Rejeitado por <@%d>.", rejectedById)
+                .addField("Apelido recusado", escapeUsernameSpecialChars(nickname), false)
+                .addFieldIf(emojiApprovalSummary != null && !emojiApprovalSummary.isBlank(), "Emojis autorizados", emojiApprovalSummary, false)
+                .addFieldIf(unauthorizedSummary != null && !unauthorizedSummary.isBlank(), "Enviado sem autorização", unauthorizedSummary, false)
+                .build();
+    }
+
+    public static MessageEmbed embedNicknameDecisionUnavailable(String reason) {
+        OficinaEmbed builder = new OficinaEmbed();
+
+        return builder
+                .setTitle("Não foi possível processar")
+                .setColor(DANGER_RED)
+                .setDesc(reason)
+                .build();
+    }
+
+    public static MessageEmbed embedNicknameMessageRejected(
+            Member author,
+            String nickname,
+            NicknameEmojiPolicy.NicknameEmojiReport report
+    ) {
+        OficinaEmbed builder = new OficinaEmbed();
+
+        return builder
+                .setAuthor(author.getEffectiveName(), null, author.getEffectiveAvatarUrl())
+                .setColor(DANGER_RED)
+                .setTitle("Pedido de apelido recusado")
+                .setDesc(formatNicknameValidationFailure(report))
+                .addField("Mensagem enviada", escapeUsernameSpecialChars(nickname), false)
+                .build();
+    }
+
     private static String formatOptimizationTasks(List<TaskView> tasks) {
         return tasks.stream()
                 .map(task -> task.state().prefix + " " + task.label())
@@ -1102,6 +1235,28 @@ public final class EmbedFactory {
         }
 
         return value.substring(0, MessageEmbed.VALUE_MAX_LENGTH - 1) + "…";
+    }
+
+    private static String formatNicknameValidationFailure(NicknameEmojiPolicy.NicknameEmojiReport report) {
+        List<String> reasons = new ArrayList<>();
+
+        if (report.hasTooManyEmojis()) {
+            reasons.add(String.format(
+                    "O apelido possui `%d` emojis. O limite é `%d`.",
+                    report.emojiCount(),
+                    NicknameEmojiPolicy.MAX_EMOJIS
+            ));
+        }
+
+        if (report.hasUnauthorizedStaffEmojis()) {
+            reasons.add("Emojis de staff sem autorização:\n" + report.unauthorizedSummary());
+        }
+
+        if (reasons.isEmpty()) {
+            reasons.add("O apelido informado não pode ser usado.");
+        }
+
+        return String.join("\n\n", reasons);
     }
 
     public record TaskView(String label, TaskState state) {}

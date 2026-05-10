@@ -442,6 +442,25 @@ public final class EntityContextFactory {
         return approve.getEntity();
     }
 
+    public static Button createNicknameSendAnywayButton(
+            long userId,
+            Member target,
+            String nickname,
+            ofc.bot.handlers.nick.NicknameEmojiPolicy.NicknameEmojiReport report
+    ) {
+        ButtonContext confirm = ButtonContext.danger("Enviar Mesmo Assim")
+                .addUser(userId)
+                .setPermission(Permission.NICKNAME_MANAGE)
+                .setScope(Scopes.Misc.CONFIRM_NICKNAME_REQUEST)
+                .setValidity(5, TimeUnit.MINUTES)
+                .put("target", target)
+                .put("nickname", nickname)
+                .put("report", report);
+
+        INTERACTION_MANAGER.save(confirm);
+        return confirm.getEntity();
+    }
+
     /* -------------------- Modals -------------------- */
     public static Modal createChoosableRolesModal(Message.Attachment img, long chanId, int color, int maxChoices) {
         int maxTitle = MessageEmbed.AUTHOR_MAX_LENGTH;

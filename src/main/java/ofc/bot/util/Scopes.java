@@ -47,6 +47,7 @@ public final class Scopes {
 
     public static class Misc {
         public static final String CHOOSABLE_ROLES            = "CHOOSABLE_ROLES";
+        public static final String CONFIRM_NICKNAME_REQUEST   = "CONFIRM_NICKNAME_REQUEST";
         public static final String PAGINATE_BIRTHDAYS         = "VIEW_BIRTHDAYS";
         public static final String PAGINATE_LEVELS            = "VIEW_LEVELS";
         public static final String PAGINATE_NAME_UPDATE       = "USERNAME_UPDATE";

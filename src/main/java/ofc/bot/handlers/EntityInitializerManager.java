@@ -13,6 +13,8 @@ import ofc.bot.handlers.interactions.buttons.ButtonInteractionGateway;
 import ofc.bot.handlers.interactions.commands.SlashCommandsGateway;
 import ofc.bot.handlers.interactions.commands.slash.CommandsInitializer;
 import ofc.bot.handlers.interactions.modals.ModalInteractionGateway;
+import ofc.bot.handlers.nick.NicknameEmojiPolicy;
+import ofc.bot.handlers.nick.NicknameRequestDispatcher;
 import ofc.bot.jobs.*;
 import ofc.bot.jobs.groups.LateGroupsChecker;
 import ofc.bot.jobs.income.VoiceChatMoneyHandler;
@@ -37,6 +39,8 @@ import ofc.bot.listeners.discord.interactions.buttons.bets.TicTacToeAcceptHandle
 import ofc.bot.listeners.discord.interactions.buttons.channels.ChannelOptimizeApproveHandler;
 import ofc.bot.listeners.discord.interactions.buttons.groups.*;
 import ofc.bot.listeners.discord.interactions.buttons.mafia.MafiaInteractionListener;
+import ofc.bot.listeners.discord.interactions.buttons.nick.NicknameApprovalButtonListener;
+import ofc.bot.listeners.discord.interactions.buttons.nick.NicknameSendAnywayHandler;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.*;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.infractions.DeleteInfraction;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.infractions.InfractionsPageUpdate;
@@ -129,6 +133,7 @@ public final class EntityInitializerManager {
         var betUsersRepo = Repositories.getGameParticipantRepository();
         var pnshRepo = Repositories.getMemberPunishmentRepository();
         var msgVrsRepo = Repositories.getMessageVersionRepository();
+        var nickReqRepo = Repositories.getNicknameUpdateRequestRepository();
         var mreqRepo = Repositories.getMarriageRequestRepository();
         var namesRepo = Repositories.getUserNameUpdateRepository();
         var ticketRepo = Repositories.getSupportTicketRepository();
@@ -164,6 +169,7 @@ public final class EntityInitializerManager {
                 new ColorRolePurchaseHandler(colorStateRepo),
                 new ColorRoleRemoveHandler(colorStateRepo),
                 new ChannelOptimizeApproveHandler(),
+                new NicknameSendAnywayHandler(new NicknameRequestDispatcher(nickReqRepo)),
 
                 // Groups' commands confirmation handlers
                 new GroupBotAddHandler(),
@@ -203,6 +209,7 @@ public final class EntityInitializerManager {
         var mentionLogRepo = Repositories.getMentionLogRepository();
         var blckWordsRepo = Repositories.getBlockedWordRepository();
         var msgVrsRepo = Repositories.getMessageVersionRepository();
+        var nickReqRepo = Repositories.getNicknameUpdateRequestRepository();
         var welcomedRepo = Repositories.getWelcomedUserRepository();
         var namesRepo = Repositories.getUserNameUpdateRepository();
         var modActRepo = Repositories.getAutomodActionRepository();
@@ -211,7 +218,9 @@ public final class EntityInitializerManager {
         var appBanRepo = Repositories.getAppUserBanRepository();
         var grpRepo = Repositories.getOficinaGroupRepository();
         var ecoRepo = Repositories.getUserEconomyRepository();
+        var emojiPermRepo = Repositories.getUserEmojiPermissionRepository();
         var grpBotRepo = Repositories.getGroupBotRepository();
+        var memberEmojiRepo = Repositories.getMemberEmojiRepository();
         var tmpBanRepo = Repositories.getTempBanRepository();
         var xpRepo = Repositories.getUserXPRepository();
         var userRepo = Repositories.getUserRepository();
@@ -249,6 +258,8 @@ public final class EntityInitializerManager {
                 new MessageReferenceIndicator(),
                 new MessageTranscriptionsHandler(msgTrscptRepo, appBanRepo),
                 new MessageUpdatedLogger(msgVrsRepo),
+                new NicknameApprovalButtonListener(nickReqRepo),
+                new NicknameUpdateRequestGuard(new NicknameEmojiPolicy(memberEmojiRepo, emojiPermRepo)),
                 new OficinaGroupAutocompletion(grpRepo),
                 new OutageCommandsDisclaimer(),
                 new RemoveColorRoleCommand.ColorRoleAutocompletionHandler(colorStateRepo),
