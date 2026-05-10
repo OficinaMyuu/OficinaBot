@@ -50,7 +50,7 @@ public class NicknameUpdateRequestGuard extends ListenerAdapter {
             return;
         }
 
-        message.replyEmbeds(EmbedFactory.embedNicknameMessageRejected(member, nickname, report))
+        message.replyEmbeds(EmbedFactory.embedNicknameMessageRejected(member, report))
                 .queue(null, error -> LOGGER.warn("Failed to reply to invalid nickname request {}", message.getId(), error));
         message.addReaction(REJECTION_REACTION)
                 .queue(null, error -> LOGGER.warn("Failed to react to invalid nickname request {}", message.getId(), error));

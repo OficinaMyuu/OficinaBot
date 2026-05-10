@@ -1167,7 +1167,6 @@ public final class EmbedFactory {
 
     public static MessageEmbed embedNicknameMessageRejected(
             Member author,
-            String nickname,
             NicknameEmojiPolicy.NicknameEmojiReport report
     ) {
         OficinaEmbed builder = new OficinaEmbed();
@@ -1177,7 +1176,6 @@ public final class EmbedFactory {
                 .setColor(DANGER_RED)
                 .setTitle("Pedido de apelido recusado")
                 .setDesc(formatNicknameValidationFailure(report))
-                .addField("Mensagem enviada", escapeUsernameSpecialChars(nickname), false)
                 .build();
     }
 
