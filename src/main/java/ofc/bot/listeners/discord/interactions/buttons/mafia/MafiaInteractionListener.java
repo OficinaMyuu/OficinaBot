@@ -1,11 +1,15 @@
 package ofc.bot.listeners.discord.interactions.buttons.mafia;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.utils.FileUpload;
 import ofc.bot.handlers.games.mafia.discord.MafiaComponentFactory;
 import ofc.bot.handlers.games.mafia.discord.MafiaMessageFactory;
 import ofc.bot.handlers.games.mafia.domain.DayResolution;
@@ -18,9 +22,13 @@ import ofc.bot.handlers.games.mafia.enums.MafiaRole;
 import ofc.bot.handlers.games.mafia.enums.MafiaTeam;
 import ofc.bot.handlers.games.mafia.service.MafiaGameLogger;
 import ofc.bot.handlers.games.mafia.service.MafiaGameManager;
+import ofc.bot.handlers.games.mafia.service.MafiaLogExporter;
 import ofc.bot.handlers.games.mafia.service.MafiaMatchEngine;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -34,6 +42,7 @@ public class MafiaInteractionListener extends ListenerAdapter {
     private final MafiaGameManager gameManager = MafiaGameManager.getInstance();
     private final MafiaGameLogger gameLogger = MafiaGameLogger.getInstance();
     private final MafiaMatchEngine matchEngine = gameManager.getMatchEngine();
+    private final MafiaLogExporter logExporter = new MafiaLogExporter();
 
     /**
      * Routes every mafia button interaction to its dedicated handler.
@@ -47,15 +56,28 @@ public class MafiaInteractionListener extends ListenerAdapter {
             return;
         }
 
-        switch (buttonId) {
-            case MafiaComponentFactory.LOBBY_JOIN_BUTTON_ID -> handleLobbyJoin(event);
-            case MafiaComponentFactory.LOBBY_LEAVE_BUTTON_ID -> handleLobbyLeave(event);
-            case MafiaComponentFactory.LOBBY_START_BUTTON_ID -> handleLobbyStart(event);
-            case MafiaComponentFactory.VIEW_ROLE_BUTTON_ID -> handleViewRole(event);
-            case MafiaComponentFactory.OPEN_DAY_VOTE_BUTTON_ID -> handleOpenDayVote(event);
-            case MafiaComponentFactory.RESOLVE_DAY_VOTE_BUTTON_ID -> handleResolveDayVote(event);
-            default -> {
-            }
+        if (buttonId.equals(MafiaComponentFactory.LOBBY_JOIN_BUTTON_ID)) {
+            handleLobbyJoin(event);
+        } else if (buttonId.equals(MafiaComponentFactory.LOBBY_LEAVE_BUTTON_ID)) {
+            handleLobbyLeave(event);
+        } else if (buttonId.equals(MafiaComponentFactory.LOBBY_START_BUTTON_ID)) {
+            handleLobbyStart(event);
+        } else if (MafiaComponentFactory.matchesScopedButton(buttonId, MafiaComponentFactory.VIEW_ROLE_BUTTON_ID)) {
+            handleViewRole(event);
+        } else if (MafiaComponentFactory.matchesScopedButton(buttonId, MafiaComponentFactory.OPEN_DAY_VOTE_BUTTON_ID)) {
+            handleOpenDayVote(event);
+        } else if (MafiaComponentFactory.matchesScopedButton(buttonId, MafiaComponentFactory.RESOLVE_DAY_VOTE_BUTTON_ID)) {
+            handleResolveDayVote(event);
+        } else if (buttonId.equals(MafiaComponentFactory.DAY_LEAVE_BUTTON_ID)) {
+            handleDayLeave(event);
+        } else if (buttonId.equals(MafiaComponentFactory.DAY_LEAVE_CONFIRM_BUTTON_ID)) {
+            handleConfirmDayLeave(event);
+        } else if (buttonId.equals(MafiaComponentFactory.DAY_LEAVE_CANCEL_BUTTON_ID)) {
+            handleCancelDayLeave(event);
+        } else if (buttonId.startsWith(MafiaComponentFactory.DOWNLOAD_LOGS_BUTTON_PREFIX + ":")) {
+            handleDownloadLogs(event);
+        } else if (buttonId.startsWith(MafiaComponentFactory.DELETE_THREADS_BUTTON_PREFIX + ":")) {
+            handleDeleteThreads(event);
         }
     }
 
@@ -87,7 +109,7 @@ public class MafiaInteractionListener extends ListenerAdapter {
      * @param event join-button interaction
      */
     private void handleLobbyJoin(ButtonInteractionEvent event) {
-        MafiaMatch match = gameManager.getMatchByMainChannel(event.getChannelIdLong());
+        MafiaMatch match = resolveMatch(event);
         if (match == null || match.getPhase() != MafiaPhase.LOBBY) {
             event.reply("Esta partida já começou ou foi encerrada.").setEphemeral(true).queue();
             return;
@@ -123,7 +145,7 @@ public class MafiaInteractionListener extends ListenerAdapter {
      * @param event leave-button interaction
      */
     private void handleLobbyLeave(ButtonInteractionEvent event) {
-        MafiaMatch match = gameManager.getMatchByMainChannel(event.getChannelIdLong());
+        MafiaMatch match = resolveMatch(event);
         if (match == null || match.getPhase() != MafiaPhase.LOBBY) {
             event.reply("Esta partida já começou ou foi encerrada.").setEphemeral(true).queue();
             return;
@@ -152,7 +174,7 @@ public class MafiaInteractionListener extends ListenerAdapter {
      * @param event start-button interaction
      */
     private void handleLobbyStart(ButtonInteractionEvent event) {
-        MafiaMatch match = gameManager.getMatchByMainChannel(event.getChannelIdLong());
+        MafiaMatch match = resolveMatch(event);
         Guild guild = event.getGuild();
         Member member = event.getMember();
 
@@ -188,7 +210,7 @@ public class MafiaInteractionListener extends ListenerAdapter {
      * @param event role-reveal button interaction
      */
     private void handleViewRole(ButtonInteractionEvent event) {
-        MafiaMatch match = gameManager.getMatch(event.getChannelIdLong());
+        MafiaMatch match = resolveMatch(event);
         if (match == null) {
             event.reply("Esta partida não está mais disponível.").setEphemeral(true).queue();
             return;
@@ -216,7 +238,7 @@ public class MafiaInteractionListener extends ListenerAdapter {
      * @param event open-day-vote button interaction
      */
     private void handleOpenDayVote(ButtonInteractionEvent event) {
-        MafiaMatch match = gameManager.getMatchByMainChannel(event.getChannelIdLong());
+        MafiaMatch match = resolveMatch(event);
         Guild guild = event.getGuild();
         Member member = event.getMember();
 
@@ -372,6 +394,11 @@ public class MafiaInteractionListener extends ListenerAdapter {
                 return;
             }
 
+            if (actorId == targetId && actingRole == MafiaRole.DOCTOR && actor.hasUsedDoctorSelfSave()) {
+                event.reply("Você já usou sua autoproteção nesta partida.").setEphemeral(true).queue();
+                return;
+            }
+
             if (actingRole == MafiaRole.ASSASSIN && target.getRole() == MafiaRole.ASSASSIN) {
                 event.reply("Assassinos não podem eliminar alguém do próprio time.").setEphemeral(true).queue();
                 return;
@@ -389,6 +416,9 @@ public class MafiaInteractionListener extends ListenerAdapter {
                 case DOCTOR -> {
                     match.getDoctorVotes().put(actorId, targetId);
                     actor.setPreviousNightTargetId(targetId);
+                    if (actorId == targetId) {
+                        actor.markDoctorSelfSaveUsed();
+                    }
                 }
                 case DETECTIVE -> {
                     match.getDetectiveVotes().put(actorId, targetId);
@@ -424,8 +454,6 @@ public class MafiaInteractionListener extends ListenerAdapter {
         if (resolution == null) {
             return;
         }
-
-        gameManager.announceDetectiveResults(match, guild, resolution);
 
         if (winner.isPresent()) {
             gameManager.announceGameOver(match, guild, winner.get());
@@ -492,6 +520,208 @@ public class MafiaInteractionListener extends ListenerAdapter {
         }
 
         event.reply("Seu voto do dia foi registrado.").setEphemeral(true).queue();
+    }
+
+    /**
+     * Shows the irreversible leave confirmation during day voting.
+     *
+     * @param event leave-button interaction
+     */
+    private void handleDayLeave(ButtonInteractionEvent event) {
+        MafiaMatch match = gameManager.getMatchByMainChannel(event.getChannelIdLong());
+        if (match == null) {
+            event.reply("Esta partida não está mais disponível.").setEphemeral(true).queue();
+            return;
+        }
+
+        synchronized (match) {
+            if (match.getPhase() != MafiaPhase.DAY_VOTING) {
+                event.reply("Você só pode sair por este botão durante a votação do dia.").setEphemeral(true).queue();
+                return;
+            }
+
+            MafiaPlayer player = match.getPlayer(event.getUser().getIdLong());
+            if (player == null || !player.isAlive()) {
+                event.reply("Você não pode sair da partida por este botão agora.").setEphemeral(true).queue();
+                return;
+            }
+        }
+
+        event.replyEmbeds(MafiaMessageFactory.createLeaveConfirmation())
+                .setEphemeral(true)
+                .setComponents(ActionRow.of(
+                        MafiaComponentFactory.createConfirmDayLeaveButton(),
+                        MafiaComponentFactory.createCancelDayLeaveButton()
+                ))
+                .queue();
+    }
+
+    /**
+     * Removes a player after they confirm leaving an active day vote.
+     *
+     * @param event confirmation-button interaction
+     */
+    private void handleConfirmDayLeave(ButtonInteractionEvent event) {
+        MafiaMatch match = gameManager.getMatchByMainChannel(event.getChannelIdLong());
+        Guild guild = event.getGuild();
+        if (match == null || guild == null) {
+            event.reply("Esta partida não está mais disponível.").setEphemeral(true).queue();
+            return;
+        }
+
+        synchronized (match) {
+            if (match.getPhase() != MafiaPhase.DAY_VOTING) {
+                event.reply("A votação do dia não está aberta agora.").setEphemeral(true).queue();
+                return;
+            }
+
+            MafiaPlayer player = match.getPlayer(event.getUser().getIdLong());
+            if (player == null || !player.isAlive()) {
+                event.reply("Você não pode sair da partida por este botão agora.").setEphemeral(true).queue();
+                return;
+            }
+        }
+
+        event.editMessageEmbeds(MafiaMessageFactory.createLeaveConfirmed())
+                .setComponents()
+                .queue();
+        gameManager.handleVoluntaryLeave(match, guild, event.getUser().getIdLong());
+    }
+
+    /**
+     * Cancels the leave confirmation prompt.
+     *
+     * @param event cancellation-button interaction
+     */
+    private void handleCancelDayLeave(ButtonInteractionEvent event) {
+        event.editMessageEmbeds(MafiaMessageFactory.createLeaveCancelled())
+                .setComponents()
+                .queue();
+    }
+
+    /**
+     * Sends a host-only persisted log export for a finished match.
+     *
+     * @param event download-button interaction
+     */
+    private void handleDownloadLogs(ButtonInteractionEvent event) {
+        String[] parts = event.getComponentId().split(":", 3);
+        if (parts.length != 3 || !isComponentHost(event, parts[1])) {
+            return;
+        }
+
+        String matchId = parts[2];
+        var logs = gameLogger.findLogs(matchId);
+        if (logs.isEmpty()) {
+            event.reply("Nenhum log foi encontrado para esta partida.").setEphemeral(true).queue();
+            return;
+        }
+
+        byte[] fileData = logExporter.export(matchId, logs).getBytes(StandardCharsets.UTF_8);
+        event.replyFiles(FileUpload.fromData(fileData, logExporter.fileName(matchId)))
+                .setEphemeral(true)
+                .queue();
+    }
+
+    /**
+     * Deletes the private role threads from a finished match when the host confirms it.
+     *
+     * @param event delete-button interaction
+     */
+    private void handleDeleteThreads(ButtonInteractionEvent event) {
+        String[] parts = event.getComponentId().split(":");
+        if (parts.length != 5 || !isComponentHost(event, parts[1])) {
+            return;
+        }
+
+        Guild guild = event.getGuild();
+        if (guild == null) {
+            event.reply("Não foi possível localizar o servidor da partida.").setEphemeral(true).queue();
+            return;
+        }
+
+        List<RestAction<?>> deleteActions = new ArrayList<>();
+        for (int i = 2; i < parts.length; i++) {
+            Long threadId = parseLong(parts[i]);
+            ThreadChannel thread = threadId == null || threadId == 0L ? null : findThreadById(guild, threadId);
+            if (thread != null) {
+                deleteActions.add(thread.delete());
+            }
+        }
+
+        if (deleteActions.isEmpty()) {
+            event.reply("Nenhuma thread privada foi encontrada para apagar.").setEphemeral(true).queue();
+            return;
+        }
+
+        event.deferReply(true).queue();
+        RestAction.allOf(deleteActions).queue(
+                ignored -> event.getHook().editOriginal("Threads privadas apagadas.").queue(),
+                error -> event.getHook().editOriginal("Não foi possível apagar todas as threads privadas.").queue()
+        );
+    }
+
+    /**
+     * Resolves a match from either a scoped component id or the interaction channel.
+     *
+     * @param event button interaction
+     * @return matching active match, or {@code null}
+     */
+    private MafiaMatch resolveMatch(ButtonInteractionEvent event) {
+        Long mainChannelId = MafiaComponentFactory.extractMainChannelId(event.getComponentId());
+        return mainChannelId == null
+                ? gameManager.getMatch(event.getChannelIdLong())
+                : gameManager.getMatchByMainChannel(mainChannelId);
+    }
+
+    /**
+     * Checks that a durable summary component belongs to the interacting host.
+     *
+     * @param event button interaction
+     * @param hostIdSegment host id encoded in the component
+     * @return {@code true} when the user is the encoded host
+     */
+    private boolean isComponentHost(ButtonInteractionEvent event, String hostIdSegment) {
+        Long hostId = parseLong(hostIdSegment);
+        if (hostId == null) {
+            event.reply("Não foi possível validar o host desta ação.").setEphemeral(true).queue();
+            return false;
+        }
+
+        if (event.getUser().getIdLong() != hostId) {
+            event.reply("Apenas o host da partida pode usar este botão.").setEphemeral(true).queue();
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Finds a thread channel from the guild cache.
+     *
+     * @param guild guild that owns the thread
+     * @param threadId thread id to find
+     * @return thread channel, or {@code null}
+     */
+    private ThreadChannel findThreadById(Guild guild, long threadId) {
+        return guild.getThreadChannels().stream()
+                .filter(thread -> thread.getIdLong() == threadId)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Parses a long value without throwing into the interaction event path.
+     *
+     * @param value value to parse
+     * @return parsed value, or {@code null}
+     */
+    private Long parseLong(String value) {
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException exception) {
+            return null;
+        }
     }
 
     /**

@@ -16,7 +16,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -38,8 +37,8 @@ public class MafiaMatchEngine {
             return Optional.empty();
         }
 
-        if (cfg.assassins() < 2 || cfg.assassins() > 3) {
-            return Optional.of("A quantidade de assassinos deve ficar entre 2 e 3.");
+        if (cfg.assassins() < 1 || cfg.assassins() > 3) {
+            return Optional.of("A quantidade de assassinos deve ficar entre 1 e 3.");
         }
 
         if (cfg.doctors() < 1 || cfg.doctors() > 2) {
@@ -245,11 +244,7 @@ public class MafiaMatchEngine {
     private Set<Long> resolveProtectedFromDeath(MafiaMatch match) {
         Set<Long> protectedFromDeath = new LinkedHashSet<>();
 
-        for (Map.Entry<Long, Long> protection : match.getDoctorVotes().entrySet()) {
-            if (!Objects.equals(protection.getKey(), protection.getValue())) {
-                protectedFromDeath.add(protection.getValue());
-            }
-        }
+        protectedFromDeath.addAll(match.getDoctorVotes().values());
 
         return protectedFromDeath;
     }

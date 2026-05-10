@@ -1,6 +1,8 @@
 package ofc.bot.commands.impl.slash.mafia;
 
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -53,6 +55,15 @@ public class CreateMafiaGameCommand extends SlashSubcommand {
         Integer assassins = ctx.getOption("assassins", OptionMapping::getAsInt);
         Integer doctors = ctx.getOption("doctors", OptionMapping::getAsInt);
         Integer detectives = ctx.getOption("detectives", OptionMapping::getAsInt);
+        GuildChannel announcementChannel = ctx.getOption("announcement-channel", null, OptionMapping::getAsChannel);
+        Long announcementChannelId = null;
+
+        if (announcementChannel != null) {
+            if (announcementChannel.getType() != ChannelType.TEXT) {
+                return ctx.reply("O canal de anúncios precisa ser um canal de texto.", true);
+            }
+            announcementChannelId = announcementChannel.getIdLong();
+        }
 
         MafiaRoleConfiguration requestedConfiguration = buildRequestedConfiguration(assassins, doctors, detectives);
         if ((assassins != null || doctors != null || detectives != null) && requestedConfiguration == null) {
@@ -74,6 +85,7 @@ public class CreateMafiaGameCommand extends SlashSubcommand {
         MafiaMatch match = gameManager.createMatch(
                 ctx.getGuildId(),
                 channelId,
+                announcementChannelId,
                 ctx.getIssuer().getIdLong(),
                 maxPlayers,
                 requestedConfiguration
@@ -118,14 +130,16 @@ public class CreateMafiaGameCommand extends SlashSubcommand {
                         .setMinValue(MafiaMatch.MIN_PLAYERS)
                         .setMaxValue(MafiaMatch.MAX_PLAYERS),
                 new OptionData(OptionType.INTEGER, "assassins", "Quantidade manual de assassinos.")
-                        .setMinValue(2)
+                        .setMinValue(1)
                         .setMaxValue(3),
                 new OptionData(OptionType.INTEGER, "doctors", "Quantidade manual de médicos.")
                         .setMinValue(1)
                         .setMaxValue(2),
                 new OptionData(OptionType.INTEGER, "detectives", "Quantidade manual de detetives.")
                         .setMinValue(1)
-                        .setMaxValue(2)
+                        .setMaxValue(2),
+                new OptionData(OptionType.CHANNEL, "announcement-channel", "Canal de texto para os anúncios da partida.")
+                        .setChannelTypes(ChannelType.TEXT)
         );
     }
 

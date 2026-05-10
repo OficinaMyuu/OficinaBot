@@ -2,6 +2,7 @@ package ofc.bot.handlers.games.mafia.discord;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import ofc.bot.domain.entity.GameMafiaLog;
 import ofc.bot.handlers.games.mafia.domain.DayResolution;
 import ofc.bot.handlers.games.mafia.domain.MafiaMatch;
 import ofc.bot.handlers.games.mafia.domain.MafiaPlayer;
@@ -10,9 +11,13 @@ import ofc.bot.handlers.games.mafia.domain.NightInvestigationResult;
 import ofc.bot.handlers.games.mafia.domain.NightResolution;
 import ofc.bot.handlers.games.mafia.enums.MafiaRole;
 import ofc.bot.handlers.games.mafia.enums.MafiaTeam;
+import ofc.bot.util.Bot;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -93,7 +98,8 @@ public final class MafiaMessageFactory {
                             **Objetivo:** manter a aldeia viva.
                             **Durante a noite:** escolha 1 jogador para proteger.
                             - Seu alvo fica protegido de investigações nesta noite.
-                            - Seu alvo também fica protegido de assassinato, exceto se o alvo for você mesmo.
+                            - Seu alvo também fica protegido de assassinato.
+                            - Você pode se proteger de assassinato apenas uma vez por partida.
                             - Você não pode escolher a mesma pessoa em duas noites seguidas.
                             **Durante o dia:** vote com a vila.
                             """);
@@ -104,7 +110,7 @@ public final class MafiaMessageFactory {
 
                             **Objetivo:** descobrir quem faz parte dos assassinos.
                             **Durante a noite:** escolha 1 jogador para investigar.
-                            - Se o alvo não for protegido nem morto nesta noite, o bot revela apenas o **time** dele para os detetives.
+                            - Se o alvo não for protegido nem morto nesta noite, o bot revela apenas o **time** dele no resumo do dia.
                             - Se o alvo for protegido ou morrer, a investigação falha.
                             - Você não pode investigar a mesma pessoa em duas noites seguidas.
                             **Durante o dia:** vote com a vila.
@@ -167,37 +173,19 @@ public final class MafiaMessageFactory {
     }
 
     /**
-     * Builds the detective-only night result embed.
+     * Builds the daytime discussion embed shown after the night resolves.
      *
      * @param match active match
      * @param resolution resolved night result
      * @return ready-to-send embed
      */
-    public static MessageEmbed createDetectiveResults(MafiaMatch match, NightResolution resolution) {
-        String results = resolution.investigationsByDetective().values().stream()
-                .map(MafiaMessageFactory::formatInvestigationResult)
-                .collect(Collectors.joining("\n"));
-
-        return new EmbedBuilder()
-                .setTitle("Resultados da investigação - noite " + match.getNightNumber())
-                .setColor(0x5865f2)
-                .setDescription(results.isBlank() ? "Nenhuma investigação foi concluída nesta noite." : results)
-                .build();
-    }
-
-    /**
-     * Builds the daytime discussion embed shown after the night resolves.
-     *
-     * @param match active match
-     * @param killedPlayers players killed during the resolved night
-     * @return ready-to-send embed
-     */
-    public static MessageEmbed createDayDiscussion(MafiaMatch match, Set<Long> killedPlayers) {
+    public static MessageEmbed createDayDiscussion(MafiaMatch match, NightResolution resolution) {
+        Set<Long> killedPlayers = resolution.killedPlayerIds();
         String nightSummary = killedPlayers.isEmpty()
                 ? "Ninguém morreu durante a noite."
                 : "Mortes da noite: " + mentionPlayers(killedPlayers) + ".";
 
-        return new EmbedBuilder()
+        EmbedBuilder builder = new EmbedBuilder()
                 .setTitle("Dia " + match.getDayNumber())
                 .setColor(0xf59e0b)
                 .setDescription("""
@@ -207,8 +195,14 @@ public final class MafiaMessageFactory {
 
                         Quando os apresentadores terminarem de conduzir a discussão, a staff ou o host pode abrir a votação do dia.
                         """.formatted(nightSummary))
-                .addField("Participantes", formatRoster(match), false)
-                .build();
+                .addField("Participantes", formatRoster(match), false);
+
+        String investigationResults = formatInvestigationResults(resolution.investigationsByDetective().values());
+        if (!investigationResults.isBlank()) {
+            builder.addField("Investigações", investigationResults, false);
+        }
+
+        return builder.build();
     }
 
     /**
@@ -341,6 +335,72 @@ public final class MafiaMessageFactory {
     }
 
     /**
+     * Builds the ephemeral confirmation shown before a player leaves an active match.
+     *
+     * @return ready-to-send embed
+     */
+    public static MessageEmbed createLeaveConfirmation() {
+        return new EmbedBuilder()
+                .setTitle("Sair da partida?")
+                .setColor(0xed4245)
+                .setDescription("""
+                        Tem certeza que você quer sair da partida?
+
+                        Você não vai conseguir entrar novamente nesta sala depois de confirmar.
+                        """)
+                .build();
+    }
+
+    /**
+     * Builds the ephemeral confirmation shown after a player leaves.
+     *
+     * @return ready-to-send embed
+     */
+    public static MessageEmbed createLeaveConfirmed() {
+        return new EmbedBuilder()
+                .setTitle("Você saiu da partida")
+                .setColor(0xed4245)
+                .setDescription("Sua saída foi confirmada e a lista da votação será atualizada.")
+                .build();
+    }
+
+    /**
+     * Builds the ephemeral notice shown when a player cancels leaving.
+     *
+     * @return ready-to-send embed
+     */
+    public static MessageEmbed createLeaveCancelled() {
+        return new EmbedBuilder()
+                .setTitle("Saída cancelada")
+                .setColor(0x57f287)
+                .setDescription("Você continua na partida.")
+                .build();
+    }
+
+    /**
+     * Builds the optional end-of-match summary sent to a custom announcement channel.
+     *
+     * @param match finished match
+     * @param logs persisted match logs
+     * @param forced whether the match ended because of an external interruption
+     * @return ready-to-send embed
+     */
+    public static MessageEmbed createMatchSummary(MafiaMatch match, List<GameMafiaLog> logs, boolean forced) {
+        long durationSeconds = calculateDurationSeconds(logs);
+
+        return new EmbedBuilder()
+                .setTitle("Resumo da partida")
+                .setColor(forced ? 0xed4245 : 0x57f287)
+                .addField("Eventos registrados", String.valueOf(logs.size()), true)
+                .addField("Jogadores finais", String.valueOf(match.getPlayerCount()), true)
+                .addField("Duração", Bot.parsePeriod(durationSeconds), true)
+                .addField("Encerramento", forced ? "Forçado" : "Normal", true)
+                .addField("Funções", formatRoleCounts(match), false)
+                .setFooter("Apenas o host pode baixar os logs ou apagar as threads.")
+                .build();
+    }
+
+    /**
      * Formats the requested lobby configuration for display.
      *
      * @param match lobby match
@@ -391,6 +451,55 @@ public final class MafiaMessageFactory {
                 mentionPlayer(result.targetId()),
                 result.revealedTeam() == null ? "Desconhecido" : result.revealedTeam().getDisplayName()
         );
+    }
+
+    /**
+     * Formats all detective results for the public day summary.
+     *
+     * @param results detective results resolved during the night
+     * @return newline-separated result lines
+     */
+    private static String formatInvestigationResults(Collection<NightInvestigationResult> results) {
+        return results.stream()
+                .map(MafiaMessageFactory::formatInvestigationResult)
+                .collect(Collectors.joining("\n"));
+    }
+
+    /**
+     * Formats final role counts for the match summary.
+     *
+     * @param match finished match
+     * @return role counts by display name
+     */
+    private static String formatRoleCounts(MafiaMatch match) {
+        Map<MafiaRole, Long> counts = new EnumMap<>(MafiaRole.class);
+        for (MafiaRole role : MafiaRole.values()) {
+            counts.put(role, 0L);
+        }
+
+        match.getPlayers().stream()
+                .filter(player -> player.getRole() != null)
+                .forEach(player -> counts.merge(player.getRole(), 1L, Long::sum));
+
+        return counts.entrySet().stream()
+                .map(entry -> "%s: %d".formatted(entry.getKey().getDisplayName(), entry.getValue()))
+                .collect(Collectors.joining("\n"));
+    }
+
+    /**
+     * Calculates a second-precision match duration from persisted logs.
+     *
+     * @param logs ordered match logs
+     * @return duration in seconds
+     */
+    private static long calculateDurationSeconds(List<GameMafiaLog> logs) {
+        if (logs.isEmpty()) {
+            return 0L;
+        }
+
+        long startedAt = logs.getFirst().getTimeCreated();
+        long endedAt = logs.getLast().getTimeCreated();
+        return Math.max(0L, endedAt - startedAt);
     }
 
     /**
@@ -448,12 +557,13 @@ public final class MafiaMessageFactory {
                     """;
             case DOCTOR -> prefix + """
                     Cada médico deve escolher 1 alvo.
-                    Você pode proteger qualquer jogador de investigação, mas não pode se proteger de assassinato.
+                    Você pode proteger qualquer jogador de investigação e de assassinato.
+                    Você pode se proteger de assassinato apenas uma vez por partida.
                     Se o seu alvo anterior deixou a partida, escolha novamente usando este menu.
                     """;
             case DETECTIVE -> prefix + """
                     Cada detetive deve escolher 1 alvo.
-                    O resultado será enviado apenas nesta thread.
+                    O resultado será enviado no resumo público do dia.
                     Se o seu alvo anterior deixou a partida, escolha novamente usando este menu.
                     """;
             case VILLAGER -> "";

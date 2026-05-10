@@ -25,6 +25,11 @@ public final class MafiaComponentFactory {
     public static final String VIEW_ROLE_BUTTON_ID = "mafia_view_role";
     public static final String OPEN_DAY_VOTE_BUTTON_ID = "mafia_open_day_vote";
     public static final String RESOLVE_DAY_VOTE_BUTTON_ID = "mafia_resolve_day_vote";
+    public static final String DAY_LEAVE_BUTTON_ID = "mafia_day_leave";
+    public static final String DAY_LEAVE_CONFIRM_BUTTON_ID = "mafia_day_leave_confirm";
+    public static final String DAY_LEAVE_CANCEL_BUTTON_ID = "mafia_day_leave_cancel";
+    public static final String DOWNLOAD_LOGS_BUTTON_PREFIX = "mafia_download_logs";
+    public static final String DELETE_THREADS_BUTTON_PREFIX = "mafia_delete_threads";
     public static final String ASSASSIN_MENU_ID = "mafia_night_assassin_vote";
     public static final String DOCTOR_MENU_ID = "mafia_night_doctor_vote";
     public static final String DETECTIVE_MENU_ID = "mafia_night_detective_vote";
@@ -58,6 +63,16 @@ public final class MafiaComponentFactory {
     }
 
     /**
+     * Builds the private role-reveal button scoped to one match.
+     *
+     * @param match active match
+     * @return role-reveal button
+     */
+    public static Button createViewRoleButton(MafiaMatch match) {
+        return Button.of(ButtonStyle.PRIMARY, scopedId(VIEW_ROLE_BUTTON_ID, match), "Ver minha função");
+    }
+
+    /**
      * Builds the button that opens day voting.
      *
      * @return open-day-vote button
@@ -67,12 +82,74 @@ public final class MafiaComponentFactory {
     }
 
     /**
+     * Builds the button that opens day voting for one match.
+     *
+     * @param match active match
+     * @return open-day-vote button
+     */
+    public static Button createOpenDayVoteButton(MafiaMatch match) {
+        return Button.of(ButtonStyle.SUCCESS, scopedId(OPEN_DAY_VOTE_BUTTON_ID, match), "Abrir votação do dia");
+    }
+
+    /**
      * Builds the button that resolves day voting.
      *
      * @return resolve-day-vote button
      */
     public static Button createResolveDayVoteButton() {
         return Button.of(ButtonStyle.DANGER, RESOLVE_DAY_VOTE_BUTTON_ID, "Encerrar votação do dia");
+    }
+
+    /**
+     * Builds the button that resolves day voting for one match.
+     *
+     * @param match active match
+     * @return resolve-day-vote button
+     */
+    public static Button createResolveDayVoteButton(MafiaMatch match) {
+        return Button.of(ButtonStyle.DANGER, scopedId(RESOLVE_DAY_VOTE_BUTTON_ID, match), "Encerrar votação do dia");
+    }
+
+    /**
+     * Builds the day-vote leave button.
+     *
+     * @return leave button
+     */
+    public static Button createDayLeaveButton() {
+        return Button.of(ButtonStyle.SECONDARY, DAY_LEAVE_BUTTON_ID, "Sair");
+    }
+
+    /**
+     * Builds the confirmation button for leaving an active match.
+     *
+     * @return leave confirmation button
+     */
+    public static Button createConfirmDayLeaveButton() {
+        return Button.of(ButtonStyle.DANGER, DAY_LEAVE_CONFIRM_BUTTON_ID, "Confirmar saída");
+    }
+
+    /**
+     * Builds the cancel button for the leave confirmation prompt.
+     *
+     * @return leave cancellation button
+     */
+    public static Button createCancelDayLeaveButton() {
+        return Button.of(ButtonStyle.SECONDARY, DAY_LEAVE_CANCEL_BUTTON_ID, "Cancelar");
+    }
+
+    /**
+     * Builds host-only buttons shown in the final custom announcement summary.
+     *
+     * @param match finished match
+     * @return log download and thread deletion buttons
+     */
+    public static List<Button> createMatchSummaryButtons(MafiaMatch match) {
+        return List.of(
+                Button.of(ButtonStyle.PRIMARY,
+                        DOWNLOAD_LOGS_BUTTON_PREFIX + ":" + match.getHostId() + ":" + match.getMatchId(),
+                        "Download Logs"),
+                Button.of(ButtonStyle.DANGER, createDeleteThreadsButtonId(match), "Delete Threads")
+        );
     }
 
     /**
@@ -151,6 +228,71 @@ public final class MafiaComponentFactory {
                 .setMinValues(1)
                 .setMaxValues(1)
                 .build();
+    }
+
+    /**
+     * Checks whether a custom id matches a static or scoped button id.
+     *
+     * @param componentId custom id to inspect
+     * @param baseId base button id
+     * @return {@code true} when the id belongs to the base button
+     */
+    public static boolean matchesScopedButton(String componentId, String baseId) {
+        return componentId.equals(baseId) || componentId.startsWith(baseId + ":");
+    }
+
+    /**
+     * Extracts the main channel id from a scoped component id.
+     *
+     * @param componentId custom id to inspect
+     * @return main channel id, or {@code null} when the id is not scoped
+     */
+    public static Long extractMainChannelId(String componentId) {
+        int separatorIndex = componentId.indexOf(':');
+        if (separatorIndex < 0 || separatorIndex == componentId.length() - 1) {
+            return null;
+        }
+
+        try {
+            return Long.parseLong(componentId.substring(separatorIndex + 1));
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
+    /**
+     * Builds a scoped component id using the match main channel.
+     *
+     * @param baseId base button id
+     * @param match active match
+     * @return scoped component id
+     */
+    private static String scopedId(String baseId, MafiaMatch match) {
+        return baseId + ":" + match.getMainChannelId();
+    }
+
+    /**
+     * Builds the durable delete-threads button id.
+     *
+     * @param match finished match
+     * @return custom id containing the host and private thread ids
+     */
+    private static String createDeleteThreadsButtonId(MafiaMatch match) {
+        return DELETE_THREADS_BUTTON_PREFIX
+                + ":" + match.getHostId()
+                + ":" + valueOrZero(match.getPrivateThreadId(MafiaRole.ASSASSIN))
+                + ":" + valueOrZero(match.getPrivateThreadId(MafiaRole.DOCTOR))
+                + ":" + valueOrZero(match.getPrivateThreadId(MafiaRole.DETECTIVE));
+    }
+
+    /**
+     * Converts a nullable id into a stable component-id segment.
+     *
+     * @param value id value
+     * @return id value or {@code 0}
+     */
+    private static long valueOrZero(Long value) {
+        return value == null ? 0L : value;
     }
 
     /**

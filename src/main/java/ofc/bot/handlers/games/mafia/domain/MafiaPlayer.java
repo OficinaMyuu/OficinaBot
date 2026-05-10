@@ -13,6 +13,7 @@ public class MafiaPlayer {
     private final long userId;
     private MafiaRole role;
     private boolean alive;
+    private boolean doctorSelfSaveUsed;
     /**
      * Stores the last night target used for the consecutive-night restriction.
      * <p>
@@ -83,6 +84,22 @@ public class MafiaPlayer {
      */
     public void setAlive(boolean alive) {
         this.alive = alive;
+    }
+
+    /**
+     * Indicates whether this doctor already consumed their one self-protection for the match.
+     *
+     * @return {@code true} when the player already protected themselves once
+     */
+    public boolean hasUsedDoctorSelfSave() {
+        return doctorSelfSaveUsed;
+    }
+
+    /**
+     * Marks the one-per-match doctor self-protection as consumed.
+     */
+    public void markDoctorSelfSaveUsed() {
+        this.doctorSelfSaveUsed = true;
     }
 
     /**

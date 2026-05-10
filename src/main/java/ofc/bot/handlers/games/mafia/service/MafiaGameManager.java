@@ -2,6 +2,7 @@ package ofc.bot.handlers.games.mafia.service;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
@@ -19,15 +20,18 @@ import ofc.bot.handlers.games.mafia.enums.MafiaEventType;
 import ofc.bot.handlers.games.mafia.enums.MafiaPhase;
 import ofc.bot.handlers.games.mafia.enums.MafiaRole;
 import ofc.bot.handlers.games.mafia.enums.MafiaTeam;
+import ofc.bot.util.content.Staff;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -83,14 +87,17 @@ public final class MafiaGameManager {
      *
      * @param guildId guild id that owns the match
      * @param mainChannelId main event text channel id
+     * @param announcementChannelId optional public announcement channel id
      * @param hostId lobby creator user id
      * @param maxPlayers configured player cap
      * @param requestedRoleConfiguration optional manual role configuration
      * @return newly created match
      */
-    public MafiaMatch createMatch(long guildId, long mainChannelId, long hostId, int maxPlayers,
+    public MafiaMatch createMatch(long guildId, long mainChannelId, @Nullable Long announcementChannelId,
+                                  long hostId, int maxPlayers,
                                   @Nullable MafiaRoleConfiguration requestedRoleConfiguration) {
-        MafiaMatch match = new MafiaMatch(guildId, mainChannelId, hostId, maxPlayers, requestedRoleConfiguration);
+        MafiaMatch match = new MafiaMatch(guildId, mainChannelId, announcementChannelId, hostId, maxPlayers,
+                requestedRoleConfiguration);
         matchesByMainChannel.put(mainChannelId, match);
         return match;
     }
@@ -188,15 +195,24 @@ public final class MafiaGameManager {
             mainChannelByThreadId.put(doctorThread.getIdLong(), match.getMainChannelId());
             mainChannelByThreadId.put(detectiveThread.getIdLong(), match.getMainChannelId());
 
-            List<RestAction<?>> memberActions = buildThreadMemberActions(match, assassinThread, doctorThread, detectiveThread);
-            RestAction.allOf(memberActions).queue(v -> {
-                announceNightPhase(match, guild);
-                hook.editOriginal("Partida iniciada. As funções e as threads privadas já estão prontas.").queue();
-            }, error -> {
-                LOGGER.error("Failed to add players to Oficina Dorme threads", error);
-                hook.editOriginal("Não foi possível adicionar os jogadores às threads privadas.").queue();
-                endMatch(match.getMainChannelId());
-            });
+            guild.findMembers(member -> Staff.hasRoleInScope(member, Staff.Scope.EVENTS))
+                    .onSuccess(eventStaff -> {
+                        List<RestAction<?>> memberActions = buildThreadMemberActions(match, eventStaff,
+                                assassinThread, doctorThread, detectiveThread);
+                        RestAction.allOf(memberActions).queue(v -> {
+                            announceNightPhase(match, guild);
+                            hook.editOriginal("Partida iniciada. As funções e as threads privadas já estão prontas.").queue();
+                        }, error -> {
+                            LOGGER.error("Failed to add players to Oficina Dorme threads", error);
+                            hook.editOriginal("Não foi possível adicionar os jogadores às threads privadas.").queue();
+                            endMatch(match.getMainChannelId());
+                        });
+                    })
+                    .onError(error -> {
+                        LOGGER.error("Failed to resolve EVENT staff for Oficina Dorme threads", error);
+                        hook.editOriginal("Não foi possível localizar a staff de eventos para as threads privadas.").queue();
+                        endMatch(match.getMainChannelId());
+                    });
         }, error -> {
             LOGGER.error("Failed to create Oficina Dorme private threads", error);
             hook.editOriginal("Não foi possível criar as threads privadas da partida.").queue();
@@ -211,13 +227,13 @@ public final class MafiaGameManager {
      * @param guild guild that owns the match
      */
     public void announceNightPhase(MafiaMatch match, Guild guild) {
-        TextChannel mainChannel = guild.getTextChannelById(match.getMainChannelId());
-        if (mainChannel == null) {
+        TextChannel announcementChannel = getAnnouncementChannelOrMain(guild, match);
+        if (announcementChannel == null) {
             return;
         }
 
-        mainChannel.sendMessageEmbeds(MafiaMessageFactory.createNightAnnouncement(match))
-                .setComponents(ActionRow.of(MafiaComponentFactory.createViewRoleButton()))
+        announcementChannel.sendMessageEmbeds(MafiaMessageFactory.createNightAnnouncement(match))
+                .setComponents(ActionRow.of(MafiaComponentFactory.createViewRoleButton(match)))
                 .queue();
 
         sendNightMenus(match, guild, false);
@@ -234,22 +250,6 @@ public final class MafiaGameManager {
     }
 
     /**
-     * Announces detective-only investigation results.
-     *
-     * @param match active match
-     * @param guild guild that owns the match
-     * @param resolution resolved night result
-     */
-    public void announceDetectiveResults(MafiaMatch match, Guild guild, NightResolution resolution) {
-        ThreadChannel detectivesThread = getPrivateThread(guild, match, MafiaRole.DETECTIVE);
-        if (detectivesThread == null || resolution.investigationsByDetective().isEmpty()) {
-            return;
-        }
-
-        detectivesThread.sendMessageEmbeds(MafiaMessageFactory.createDetectiveResults(match, resolution)).queue();
-    }
-
-    /**
      * Announces the start of daytime discussion after a resolved night.
      *
      * @param match active match
@@ -257,8 +257,8 @@ public final class MafiaGameManager {
      * @param resolution resolved night result
      */
     public void announceDayDiscussion(MafiaMatch match, Guild guild, NightResolution resolution) {
-        TextChannel mainChannel = guild.getTextChannelById(match.getMainChannelId());
-        if (mainChannel == null) {
+        TextChannel announcementChannel = getAnnouncementChannelOrMain(guild, match);
+        if (announcementChannel == null) {
             return;
         }
 
@@ -270,15 +270,15 @@ public final class MafiaGameManager {
         resolution.investigationsByDetective().values().forEach(result ->
                 gameLogger.log(match, MafiaEventType.INVESTIGATION_RESOLVED,
                         result.blocked() ? "Investigation was blocked." : "Investigation resolved successfully.",
-                        result.detectiveId(), result.targetId(), match.getPrivateThreadId(MafiaRole.DETECTIVE))
+                        result.detectiveId(), result.targetId(), announcementChannel.getIdLong())
         );
         gameLogger.log(match, MafiaEventType.DAY_DISCUSSION_STARTED, "Day discussion started.",
                 null, null, match.getMainChannelId());
 
-        mainChannel.sendMessageEmbeds(MafiaMessageFactory.createDayDiscussion(match, resolution.killedPlayerIds()))
+        announcementChannel.sendMessageEmbeds(MafiaMessageFactory.createDayDiscussion(match, resolution))
                 .setComponents(ActionRow.of(
-                        MafiaComponentFactory.createOpenDayVoteButton(),
-                        MafiaComponentFactory.createViewRoleButton()
+                        MafiaComponentFactory.createOpenDayVoteButton(match),
+                        MafiaComponentFactory.createViewRoleButton(match)
                 ))
                 .queue();
     }
@@ -311,12 +311,12 @@ public final class MafiaGameManager {
      * @param resolution resolved day result
      */
     public void announceDayResolution(MafiaMatch match, Guild guild, DayResolution resolution) {
-        TextChannel mainChannel = guild.getTextChannelById(match.getMainChannelId());
-        if (mainChannel == null) {
+        TextChannel announcementChannel = getAnnouncementChannelOrMain(guild, match);
+        if (announcementChannel == null) {
             return;
         }
 
-        mainChannel.sendMessageEmbeds(MafiaMessageFactory.createDayResolution(match, resolution)).queue();
+        announcementChannel.sendMessageEmbeds(MafiaMessageFactory.createDayResolution(match, resolution)).queue();
     }
 
     /**
@@ -327,15 +327,51 @@ public final class MafiaGameManager {
      * @param winner winning team
      */
     public void announceGameOver(MafiaMatch match, Guild guild, MafiaTeam winner) {
-        TextChannel mainChannel = guild.getTextChannelById(match.getMainChannelId());
-        if (mainChannel == null) {
+        announceGameOver(match, guild, winner, false);
+    }
+
+    /**
+     * Announces the winner and, when a custom announcement channel exists, posts the host-only match summary controls.
+     *
+     * @param match completed match
+     * @param guild guild that owns the match
+     * @param winner winning team
+     * @param forced whether the match ended because of an external interruption
+     */
+    public void announceGameOver(MafiaMatch match, Guild guild, MafiaTeam winner, boolean forced) {
+        TextChannel announcementChannel = getAnnouncementChannelOrMain(guild, match);
+        if (announcementChannel == null) {
             return;
         }
 
         gameLogger.log(match, MafiaEventType.GAME_WON, "Game finished with winner " + winner.name() + ".",
                 null, null, match.getMainChannelId());
 
-        mainChannel.sendMessageEmbeds(MafiaMessageFactory.createGameOver(match, winner)).queue();
+        announcementChannel.sendMessageEmbeds(MafiaMessageFactory.createGameOver(match, winner)).queue();
+        announceMatchSummary(match, guild, forced);
+    }
+
+    /**
+     * Posts the optional final summary to the configured announcement channel.
+     *
+     * @param match completed or terminated match
+     * @param guild guild that owns the match
+     * @param forced whether the match ended because of an external interruption
+     */
+    public void announceMatchSummary(MafiaMatch match, Guild guild, boolean forced) {
+        if (!match.hasCustomAnnouncementChannel()) {
+            return;
+        }
+
+        TextChannel announcementChannel = getAnnouncementChannel(guild, match);
+        if (announcementChannel == null) {
+            return;
+        }
+
+        var logs = gameLogger.findLogs(match.getMatchId());
+        announcementChannel.sendMessageEmbeds(MafiaMessageFactory.createMatchSummary(match, logs, forced))
+                .setComponents(ActionRow.of(MafiaComponentFactory.createMatchSummaryButtons(match)))
+                .queue();
     }
 
     /**
@@ -360,22 +396,30 @@ public final class MafiaGameManager {
                     null, null, deletedChannelId);
             gameLogger.log(match, MafiaEventType.GAME_TERMINATED, "Game terminated because the main channel was deleted.",
                     null, null, deletedChannelId);
+            TextChannel announcementChannel = getAnnouncementChannel(guild, match);
+            if (announcementChannel != null) {
+                announcementChannel.sendMessageEmbeds(
+                        MafiaMessageFactory.createChannelDeletedTermination(deletedChannelId, true)
+                ).queue();
+            }
+            announceMatchSummary(match, guild, true);
             endMatch(match.getMainChannelId());
             notifyHostAboutMainChannelDeletion(api, match, deletedChannelId);
             return;
         }
 
-        TextChannel mainChannel = guild.getTextChannelById(match.getMainChannelId());
-        if (mainChannel != null) {
+        TextChannel announcementChannel = getAnnouncementChannelOrMain(guild, match);
+        if (announcementChannel != null) {
             gameLogger.log(match, MafiaEventType.CHANNEL_DELETED, "Required action channel was deleted.",
                     null, null, deletedChannelId);
             gameLogger.log(match, MafiaEventType.GAME_TERMINATED, "Game terminated because a required action channel was deleted.",
                     null, null, deletedChannelId);
-            mainChannel.sendMessageEmbeds(
+            announcementChannel.sendMessageEmbeds(
                     MafiaMessageFactory.createChannelDeletedTermination(deletedChannelId, false)
             ).queue();
         }
 
+        announceMatchSummary(match, guild, true);
         endMatch(match.getMainChannelId());
     }
 
@@ -419,6 +463,34 @@ public final class MafiaGameManager {
     }
 
     /**
+     * Returns the explicitly configured announcement channel when it still exists.
+     *
+     * @param guild guild that owns the match
+     * @param match active match
+     * @return configured announcement channel, or {@code null}
+     */
+    @Nullable
+    public TextChannel getAnnouncementChannel(Guild guild, MafiaMatch match) {
+        Long announcementChannelId = match.getAnnouncementChannelId();
+        return announcementChannelId == null ? null : guild.getTextChannelById(announcementChannelId);
+    }
+
+    /**
+     * Resolves the public announcement target, falling back to the main match channel.
+     *
+     * @param guild guild that owns the match
+     * @param match active match
+     * @return announcement channel, main channel, or {@code null} when neither exists
+     */
+    @Nullable
+    public TextChannel getAnnouncementChannelOrMain(Guild guild, MafiaMatch match) {
+        TextChannel announcementChannel = getAnnouncementChannel(guild, match);
+        return announcementChannel == null
+                ? guild.getTextChannelById(match.getMainChannelId())
+                : announcementChannel;
+    }
+
+    /**
      * Refreshes the original lobby message when the lobby roster changes outside button interactions.
      *
      * @param guild guild that owns the match
@@ -434,6 +506,17 @@ public final class MafiaGameManager {
                 message -> message.editMessageEmbeds(MafiaMessageFactory.createLobbyEmbed(match)).queue(),
                 error -> LOGGER.debug("Could not refresh Oficina Dorme lobby message {}", match.getLobbyMessageId(), error)
         );
+    }
+
+    /**
+     * Removes a player who voluntarily confirms leaving an active match.
+     *
+     * @param match affected match
+     * @param guild guild that owns the match
+     * @param userId leaving user id
+     */
+    public void handleVoluntaryLeave(MafiaMatch match, Guild guild, long userId) {
+        handlePlayerUnavailable(match, guild, userId, "saiu voluntariamente da sala");
     }
 
     /**
@@ -468,29 +551,63 @@ public final class MafiaGameManager {
     }
 
     /**
-     * Builds thread-member add actions for every role-specific participant.
+     * Builds thread-member add actions for every role-specific participant, host, and EVENT staff member.
      *
      * @param match active match
+     * @param eventStaff event-scope staff members that must be able to spectate every private thread
      * @param assassinThread assassins thread
      * @param doctorThread doctors thread
      * @param detectiveThread detectives thread
      * @return actions that add members to their role threads
      */
-    private List<RestAction<?>> buildThreadMemberActions(MafiaMatch match, ThreadChannel assassinThread,
+    private List<RestAction<?>> buildThreadMemberActions(MafiaMatch match, List<Member> eventStaff,
+                                                         ThreadChannel assassinThread,
                                                          ThreadChannel doctorThread, ThreadChannel detectiveThread) {
         List<RestAction<?>> actions = new ArrayList<>();
+        Set<Long> sharedSpectators = new LinkedHashSet<>();
+        sharedSpectators.add(match.getHostId());
+        eventStaff.stream()
+                .map(Member::getIdLong)
+                .forEach(sharedSpectators::add);
+
+        addThreadMembers(actions, assassinThread, sharedSpectators);
+        addThreadMembers(actions, doctorThread, sharedSpectators);
+        addThreadMembers(actions, detectiveThread, sharedSpectators);
+
+        Set<Long> assassinMembers = new LinkedHashSet<>();
+        Set<Long> doctorMembers = new LinkedHashSet<>();
+        Set<Long> detectiveMembers = new LinkedHashSet<>();
 
         for (MafiaPlayer player : match.getPlayers()) {
             if (player.getRole() == MafiaRole.ASSASSIN) {
-                actions.add(assassinThread.addThreadMemberById(player.getUserId()));
+                assassinMembers.add(player.getUserId());
             } else if (player.getRole() == MafiaRole.DOCTOR) {
-                actions.add(doctorThread.addThreadMemberById(player.getUserId()));
+                doctorMembers.add(player.getUserId());
             } else if (player.getRole() == MafiaRole.DETECTIVE) {
-                actions.add(detectiveThread.addThreadMemberById(player.getUserId()));
+                detectiveMembers.add(player.getUserId());
             }
         }
 
+        assassinMembers.removeAll(sharedSpectators);
+        doctorMembers.removeAll(sharedSpectators);
+        detectiveMembers.removeAll(sharedSpectators);
+        addThreadMembers(actions, assassinThread, assassinMembers);
+        addThreadMembers(actions, doctorThread, doctorMembers);
+        addThreadMembers(actions, detectiveThread, detectiveMembers);
         return actions;
+    }
+
+    /**
+     * Adds one thread-member action per unique user id.
+     *
+     * @param actions target action list
+     * @param thread thread receiving members
+     * @param memberIds user ids to add
+     */
+    private void addThreadMembers(List<RestAction<?>> actions, ThreadChannel thread, Set<Long> memberIds) {
+        memberIds.stream()
+                .map(thread::addThreadMemberById)
+                .forEach(actions::add);
     }
 
     /**
@@ -538,8 +655,9 @@ public final class MafiaGameManager {
                 .setComponents(
                         ActionRow.of(MafiaComponentFactory.createDayVoteMenu(guild, match)),
                         ActionRow.of(
-                                MafiaComponentFactory.createResolveDayVoteButton(),
-                                MafiaComponentFactory.createViewRoleButton()
+                                MafiaComponentFactory.createResolveDayVoteButton(match),
+                                MafiaComponentFactory.createDayLeaveButton(),
+                                MafiaComponentFactory.createViewRoleButton(match)
                         )
                 )
                 .queue();
@@ -574,7 +692,7 @@ public final class MafiaGameManager {
      * @param reason localized explanation for the removal
      */
     private void handlePlayerUnavailable(MafiaMatch match, Guild guild, long userId, String reason) {
-        TextChannel mainChannel = guild.getTextChannelById(match.getMainChannelId());
+        TextChannel announcementChannel = getAnnouncementChannelOrMain(guild, match);
 
         MafiaRole removedRole;
         boolean removedAlive;
@@ -627,11 +745,11 @@ public final class MafiaGameManager {
             }
         }
 
-        if (mainChannel != null) {
+        if (announcementChannel != null) {
             gameLogger.log(match, MafiaEventType.PLAYER_UNAVAILABLE,
                     "Player became unavailable and was removed from the match.",
                     null, userId, match.getMainChannelId());
-            mainChannel.sendMessageEmbeds(MafiaMessageFactory.createPlayerUnavailableNotice(userId, reason)).queue();
+            announcementChannel.sendMessageEmbeds(MafiaMessageFactory.createPlayerUnavailableNotice(userId, reason)).queue();
         }
 
         if (refreshLobby) {
@@ -640,16 +758,14 @@ public final class MafiaGameManager {
         }
 
         if (nightResolution != null) {
-            announceDetectiveResults(match, guild, nightResolution);
-
             if (winner.isPresent()) {
-                if (mainChannel != null) {
-                    mainChannel.sendMessageEmbeds(
+                if (announcementChannel != null) {
+                    announcementChannel.sendMessageEmbeds(
                             MafiaMessageFactory.createDepartureVictoryNotice(winner.get(), lastAssassinDeparted)
                     ).queue();
                 }
 
-                announceGameOver(match, guild, winner.get());
+                announceGameOver(match, guild, winner.get(), true);
                 endMatch(match.getMainChannelId());
                 return;
             }
@@ -659,8 +775,8 @@ public final class MafiaGameManager {
         }
 
         if (winner.isPresent()) {
-            if (mainChannel != null) {
-                mainChannel.sendMessageEmbeds(
+            if (announcementChannel != null) {
+                announcementChannel.sendMessageEmbeds(
                         MafiaMessageFactory.createDepartureVictoryNotice(winner.get(), lastAssassinDeparted)
                 ).queue();
             }
@@ -670,7 +786,7 @@ public final class MafiaGameManager {
                             : "Game terminated because player unavailability changed the victory state.",
                     null, userId, match.getMainChannelId());
 
-            announceGameOver(match, guild, winner.get());
+            announceGameOver(match, guild, winner.get(), true);
             endMatch(match.getMainChannelId());
             return;
         }

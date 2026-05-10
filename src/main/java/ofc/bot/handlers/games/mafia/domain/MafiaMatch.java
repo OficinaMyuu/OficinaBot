@@ -38,6 +38,7 @@ public class MafiaMatch {
     private final Map<Long, Long> dayVotes = new LinkedHashMap<>();
     private final long guildId;
     private final long mainChannelId;
+    private final Long announcementChannelId;
     private final long hostId;
     private final int maxPlayers;
     private final MafiaRoleConfiguration requestedRoleConfiguration;
@@ -53,17 +54,33 @@ public class MafiaMatch {
      *
      * @param guildId guild that owns the match
      * @param mainChannelId main event text channel id
+     * @param announcementChannelId optional channel used for public announcements
+     * @param hostId lobby creator user id
+     * @param maxPlayers configured player cap
+     * @param requestedRoleConfiguration optional manual role configuration requested by staff
+     */
+    public MafiaMatch(long guildId, long mainChannelId, @Nullable Long announcementChannelId, long hostId, int maxPlayers,
+                      @Nullable MafiaRoleConfiguration requestedRoleConfiguration) {
+        this.guildId = guildId;
+        this.mainChannelId = mainChannelId;
+        this.announcementChannelId = announcementChannelId;
+        this.hostId = hostId;
+        this.maxPlayers = Math.min(Math.max(maxPlayers, MIN_PLAYERS), MAX_PLAYERS);
+        this.requestedRoleConfiguration = requestedRoleConfiguration;
+    }
+
+    /**
+     * Creates a match using the main channel as the announcement channel.
+     *
+     * @param guildId guild that owns the match
+     * @param mainChannelId main event text channel id
      * @param hostId lobby creator user id
      * @param maxPlayers configured player cap
      * @param requestedRoleConfiguration optional manual role configuration requested by staff
      */
     public MafiaMatch(long guildId, long mainChannelId, long hostId, int maxPlayers,
                       @Nullable MafiaRoleConfiguration requestedRoleConfiguration) {
-        this.guildId = guildId;
-        this.mainChannelId = mainChannelId;
-        this.hostId = hostId;
-        this.maxPlayers = Math.min(Math.max(maxPlayers, MIN_PLAYERS), MAX_PLAYERS);
-        this.requestedRoleConfiguration = requestedRoleConfiguration;
+        this(guildId, mainChannelId, null, hostId, maxPlayers, requestedRoleConfiguration);
     }
 
     /**
@@ -91,6 +108,25 @@ public class MafiaMatch {
      */
     public long getMainChannelId() {
         return mainChannelId;
+    }
+
+    /**
+     * Returns the optional text channel used for public announcements.
+     *
+     * @return announcement channel id, or {@code null} when the main channel should be used
+     */
+    @Nullable
+    public Long getAnnouncementChannelId() {
+        return announcementChannelId;
+    }
+
+    /**
+     * Indicates whether the match has a custom announcement channel.
+     *
+     * @return {@code true} when announcement output was explicitly redirected
+     */
+    public boolean hasCustomAnnouncementChannel() {
+        return announcementChannelId != null;
     }
 
     /**

@@ -48,6 +48,21 @@ public final class MafiaGameLogger {
         }
     }
 
+    /**
+     * Returns all persisted audit entries for a match.
+     *
+     * @param matchId match id to export
+     * @return ordered audit entries, or an empty list when loading fails
+     */
+    public java.util.List<GameMafiaLog> findLogs(@NotNull String matchId) {
+        try {
+            return getRepository().findAllByMatchId(matchId);
+        } catch (Exception exception) {
+            LOGGER.error("Failed to fetch mafia logs for match {}", matchId, exception);
+            return java.util.List.of();
+        }
+    }
+
     private GameMafiaLogRepository getRepository() {
         return Repositories.getGameMafiaLogRepository();
     }
