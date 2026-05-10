@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 @DiscordEventHandler
 public class NicknameUpdateRequestGuard extends ListenerAdapter {
@@ -51,7 +52,9 @@ public class NicknameUpdateRequestGuard extends ListenerAdapter {
         }
 
         message.replyEmbeds(EmbedFactory.embedNicknameMessageRejected(member, report))
-                .queue(null, error -> LOGGER.warn("Failed to reply to invalid nickname request {}", message.getId(), error));
+                .delay(30, TimeUnit.SECONDS)
+                .flatMap(Message::delete)
+                .queue(null, error -> LOGGER.warn("Failed to reply/delete invalid nickname request {}", message.getId(), error));
         message.addReaction(REJECTION_REACTION)
                 .queue(null, error -> LOGGER.warn("Failed to react to invalid nickname request {}", message.getId(), error));
     }
