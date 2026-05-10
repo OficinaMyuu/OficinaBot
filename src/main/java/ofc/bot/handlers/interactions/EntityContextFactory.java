@@ -450,7 +450,6 @@ public final class EntityContextFactory {
     ) {
         ButtonContext confirm = ButtonContext.danger("Enviar Mesmo Assim")
                 .addUser(userId)
-                .setPermission(Permission.NICKNAME_MANAGE)
                 .setScope(Scopes.Misc.CONFIRM_NICKNAME_REQUEST)
                 .setValidity(5, TimeUnit.MINUTES)
                 .put("target", target)
