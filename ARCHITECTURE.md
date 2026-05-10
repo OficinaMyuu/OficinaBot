@@ -97,6 +97,25 @@ Every relevant match action is also persisted to `game_mafia_logs` through `Game
 
 The coinflip inference listener watches guild messages for plain `cara` and `coroa` guesses, pairs two different users with opposite guesses inside a short timeout window, and announces the result in-channel. The cooldown remains channel-scoped for regular users, but a matching pair bypasses that cooldown when either participant is staff, which keeps moderation and event facilitation from getting rate-limited by the mini-interaction.
 
+## Nickname Approval
+- Slash entrypoint:
+  `src/main/java/ofc/bot/commands/impl/slash/NickCommand.java`
+- Validation and queue dispatch:
+  `src/main/java/ofc/bot/handlers/nick/NicknameEmojiPolicy.java`
+  and `src/main/java/ofc/bot/handlers/nick/NicknameRequestDispatcher.java`
+- User request channel guard:
+  `src/main/java/ofc/bot/listeners/discord/guilds/messages/NicknameUpdateRequestGuard.java`
+- Durable approval buttons:
+  `src/main/java/ofc/bot/listeners/discord/interactions/buttons/nick/NicknameApprovalButtonListener.java`
+- Confirmation button:
+  `src/main/java/ofc/bot/listeners/discord/interactions/buttons/nick/NicknameSendAnywayHandler.java`
+- Persistence:
+  `nickname_update_requests`
+
+Nickname requests are split between validation and approval. Messages in `channels.nick-update.id` are checked with `emoji-java`; requests with more than three emojis or unauthorized staff-owned emojis receive a pt-BR embed reply and a rejection reaction. `/nick` defaults to `Gerenciar Apelidos`, validates the target nickname, and sends a durable approval embed to `channels.staff-nick-update.id`. Unauthorized staff emojis pause the slash command behind an ephemeral embed confirmation before the request can be queued.
+
+Approval and rejection buttons use IDs prefixed with `nick-`, so the durable listener can ignore unrelated component clicks without a database read. Pending requests are stored with the message id, approve/reject button ids, target, submitter, requested nickname, emoji authorization summaries, status, and decision metadata. Approving changes the member nickname with audit reason `Requested by: <staff id>` and edits the approval message green; rejecting edits it red.
+
 ## Operational Notes
 - Build output is a shaded jar at `target/bot.jar`
 - CI deploy workflow is defined in `.github/workflows/deploy.yml`

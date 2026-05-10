@@ -88,6 +88,9 @@ Read this first, then open only the files relevant to the task.
   Start with `Main.java`, `BotFiles.java`, `BotProperties.java`, and `DB.java`.
 - Debug command visibility/registration:
   Start with `CommandsInitializer.java` and `SlashCommandsRegistryManager.java`.
+- Change nickname approval behavior:
+  Open `NickCommand.java`, then `handlers/nick/`, `NicknameApprovalButtonListener.java`,
+  and `NicknameUpdateRequestGuard.java`.
 
 ## Feature Map
 - Economy:
@@ -118,6 +121,13 @@ Read this first, then open only the files relevant to the task.
   and `game_mafia_logs` stores the persisted audit trail for match events.
 - User profile/customization:
   `commands/impl/slash/userinfo/`, `commands/impl/slash/userinfo/custom/`, `CustomUserinfoRepository`
+- Nickname changes:
+  `commands/impl/slash/NickCommand.java`,
+  `handlers/nick/NicknameEmojiPolicy.java`,
+  `handlers/nick/NicknameRequestDispatcher.java`,
+  `listeners/discord/guilds/messages/NicknameUpdateRequestGuard.java`,
+  `listeners/discord/interactions/buttons/nick/`,
+  and `nickname_update_requests` store durable approval state.
 - Channel permission optimization:
   `commands/impl/slash/ChannelOptimizeCommand.java`,
   `handlers/channels/ChannelPermissionOptimizer.java`,
@@ -149,6 +159,8 @@ Read this first, then open only the files relevant to the task.
 - CI currently builds with `-DskipTests`, then uploads `target/bot.jar` through SFTP.
 - Oficina Dorme now has an automated unit test suite under `src/test/java/ofc/bot/handlers/games/mafia/`.
 - For doc-only changes, a file review is enough.
+- Nickname approval tests live under `src/test/java/ofc/bot/handlers/nick/`
+  and `src/test/java/ofc/bot/domain/sqlite/repository/NicknameUpdateRequestRepositoryTest.java`.
 
 ## Known Traps
 - Do not assume env files exist; config is often loaded from the DB `config` table.
