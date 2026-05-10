@@ -27,6 +27,7 @@ public final class Repositories {
     private static MentionLogRepository mentionLogRepository;
     private static MessageTranscriptionRepository messageTranscriptionRepository;
     private static MessageVersionRepository messageVersionRepository;
+    private static NicknameUpdateRequestRepository nicknameUpdateRequestRepository;
     private static OficinaGroupRepository oficinaGroupRepository;
     private static RegisterRepository registerRepository;
     private static ReminderRepository reminderRepository;
@@ -156,6 +157,13 @@ public final class Repositories {
     public static MessageVersionRepository getMessageVersionRepository() {
         if (messageVersionRepository == null) messageVersionRepository = new MessageVersionRepository(getDSLContext());
         return messageVersionRepository;
+    }
+
+    public static NicknameUpdateRequestRepository getNicknameUpdateRequestRepository() {
+        if (nicknameUpdateRequestRepository == null) {
+            nicknameUpdateRequestRepository = new NicknameUpdateRequestRepository(getDSLContext());
+        }
+        return nicknameUpdateRequestRepository;
     }
 
     public static OficinaGroupRepository getOficinaGroupRepository() {

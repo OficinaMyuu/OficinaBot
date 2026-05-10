@@ -67,6 +67,7 @@ public final class DB {
                 MentionsLogTable.MENTIONS_LOG,
                 MessagesTranscriptionsTable.MESSAGES_TRANSCRIPTIONS,
                 MessagesVersionsTable.MESSAGE_VERSIONS,
+                NicknameUpdateRequestsTable.NICKNAME_UPDATE_REQUESTS,
                 OficinaGroupsTable.OFICINA_GROUPS,
                 RegistersTable.REGISTERS,
                 RemindersTable.REMINDERS,
