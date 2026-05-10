@@ -15,6 +15,7 @@ import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashCommand;
 import ofc.bot.handlers.nick.NicknameEmojiPolicy;
 import ofc.bot.handlers.nick.NicknameRequestDispatcher;
+import ofc.bot.handlers.nick.NicknameTargetPolicy;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
 import ofc.bot.util.embeds.EmbedFactory;
 import org.jetbrains.annotations.NotNull;
@@ -29,10 +30,16 @@ public class NickCommand extends SlashCommand {
 
     private final NicknameEmojiPolicy emojiPolicy;
     private final NicknameRequestDispatcher dispatcher;
+    private final NicknameTargetPolicy targetPolicy;
 
     public NickCommand(NicknameEmojiPolicy emojiPolicy, NicknameRequestDispatcher dispatcher) {
+        this(emojiPolicy, dispatcher, new NicknameTargetPolicy());
+    }
+
+    NickCommand(NicknameEmojiPolicy emojiPolicy, NicknameRequestDispatcher dispatcher, NicknameTargetPolicy targetPolicy) {
         this.emojiPolicy = emojiPolicy;
         this.dispatcher = dispatcher;
+        this.targetPolicy = targetPolicy;
     }
 
     @Override
@@ -64,6 +71,14 @@ public class NickCommand extends SlashCommand {
 
         if (!guild.getSelfMember().canInteract(target)) {
             MessageEmbed embed = EmbedFactory.embedNicknameDecisionUnavailable("Eu não posso alterar o apelido desse membro pela hierarquia atual de cargos.");
+            return ctx.create(true)
+                    .setEmbeds(embed)
+                    .send();
+        }
+
+        NicknameTargetPolicy.TargetValidation targetValidation = targetPolicy.validate(ctx.getIssuer(), target);
+        if (!targetValidation.accepted()) {
+            MessageEmbed embed = EmbedFactory.embedNicknameDecisionUnavailable(targetValidation.rejectionReason());
             return ctx.create(true)
                     .setEmbeds(embed)
                     .send();
