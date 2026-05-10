@@ -123,6 +123,7 @@ Read this first, then open only the files relevant to the task.
   `commands/impl/slash/userinfo/`, `commands/impl/slash/userinfo/custom/`, `CustomUserinfoRepository`
 - Nickname changes:
   `commands/impl/slash/NickCommand.java`,
+  `handlers/nick/NicknameTargetPolicy.java`,
   `handlers/nick/NicknameEmojiPolicy.java`,
   `handlers/nick/NicknameRequestDispatcher.java`,
   `listeners/discord/guilds/messages/NicknameUpdateRequestGuard.java`,
@@ -159,7 +160,7 @@ Read this first, then open only the files relevant to the task.
 - CI currently builds with `-DskipTests`, then uploads `target/bot.jar` through SFTP.
 - Oficina Dorme now has an automated unit test suite under `src/test/java/ofc/bot/handlers/games/mafia/`.
 - For doc-only changes, a file review is enough.
-- Nickname approval tests live under `src/test/java/ofc/bot/handlers/nick/`
+- Nickname approval and `/nick` target validation tests live under `src/test/java/ofc/bot/handlers/nick/`
   and `src/test/java/ofc/bot/domain/sqlite/repository/NicknameUpdateRequestRepositoryTest.java`.
 
 ## Known Traps
