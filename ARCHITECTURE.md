@@ -99,6 +99,14 @@ Every relevant match action is also persisted to `game_mafia_logs` through `Game
 
 The coinflip inference listener watches guild messages for plain `cara` and `coroa` guesses, pairs two different users with opposite guesses inside a short timeout window, and announces the result in-channel. The cooldown remains channel-scoped for regular users, but a matching pair bypasses that cooldown when either participant is staff, which keeps moderation and event facilitation from getting rate-limited by the mini-interaction.
 
+## Message Transcriptions
+- Listener:
+  `src/main/java/ofc/bot/listeners/discord/guilds/messages/MessageTranscriptionsHandler.java`
+- Unit tests:
+  `src/test/java/ofc/bot/listeners/discord/guilds/messages/MessageTranscriptionsHandlerTest.java`
+
+Voice-message transcription is requested through the microphone reaction. The listener validates that the source message is still a voice message with a supported audio attachment before downloading or calling OpenAI. Transcription work is guarded by an in-memory single-flight set keyed by Discord message id, so concurrent reactions for the same message coalesce into one download/OpenAI transcription workflow. Completed transcriptions are persisted in `message_transcriptions`, and resend attempts use the stored transcription with a short anti-flood cooldown.
+
 ## Nickname Approval
 - Slash entrypoint:
   `src/main/java/ofc/bot/commands/impl/slash/NickCommand.java`
