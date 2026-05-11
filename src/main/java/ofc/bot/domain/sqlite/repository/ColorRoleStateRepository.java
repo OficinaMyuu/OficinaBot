@@ -31,6 +31,20 @@ public class ColorRoleStateRepository extends Repository<ColorRoleState> {
                 .execute();
     }
 
+    public int deleteByGuildUserAndRoleId(long guildId, long userId, long roleId) {
+        return ctx.deleteFrom(COLOR_ROLES_STATE)
+                .where(COLOR_ROLES_STATE.GUILD_ID.eq(guildId))
+                .and(COLOR_ROLES_STATE.USER_ID.eq(userId))
+                .and(COLOR_ROLES_STATE.ROLE_ID.eq(roleId))
+                .execute();
+    }
+
+    public List<ColorRoleState> findExpired(long now) {
+        return ctx.selectFrom(COLOR_ROLES_STATE)
+                .where(COLOR_ROLES_STATE.EXPIRES_AT.le(now))
+                .fetch();
+    }
+
     public List<ColorRoleState> findByUserId(long userId) {
         return ctx.selectFrom(COLOR_ROLES_STATE)
                 .where(COLOR_ROLES_STATE.USER_ID.eq(userId))
