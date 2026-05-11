@@ -17,6 +17,9 @@ public final class Repositories {
     private static FormerMemberRoleRepository formerMemberRoleRepository;
     private static GameMafiaLogRepository gameMafiaLogRepository;
     private static GameParticipantRepository gameParticipantRepository;
+    private static GiveawayEntryRepository giveawayEntryRepository;
+    private static GiveawayRepository giveawayRepository;
+    private static GiveawayWinnerRepository giveawayWinnerRepository;
     private static GroupBotRepository groupBotRepository;
     private static GroupPerkRepository groupPerkRepository;
     private static LevelRoleRepository levelRoleRepository;
@@ -107,6 +110,21 @@ public final class Repositories {
     public static GameParticipantRepository getGameParticipantRepository() {
         if (gameParticipantRepository == null) gameParticipantRepository = new GameParticipantRepository(getDSLContext());
         return gameParticipantRepository;
+    }
+
+    public static GiveawayEntryRepository getGiveawayEntryRepository() {
+        if (giveawayEntryRepository == null) giveawayEntryRepository = new GiveawayEntryRepository(getDSLContext());
+        return giveawayEntryRepository;
+    }
+
+    public static GiveawayRepository getGiveawayRepository() {
+        if (giveawayRepository == null) giveawayRepository = new GiveawayRepository(getDSLContext());
+        return giveawayRepository;
+    }
+
+    public static GiveawayWinnerRepository getGiveawayWinnerRepository() {
+        if (giveawayWinnerRepository == null) giveawayWinnerRepository = new GiveawayWinnerRepository(getDSLContext());
+        return giveawayWinnerRepository;
     }
 
     public static GroupBotRepository getGroupBotRepository() {
