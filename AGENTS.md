@@ -76,6 +76,10 @@ Read this first, then open only the files relevant to the task.
   Open `ChannelOptimizeCommand.java`, then `handlers/channels/ChannelPermissionOptimizer.java`, and finally `ChannelOptimizeApproveHandler.java`.
 - Change Oficina Dorme behavior:
   Open `CreateMafiaGameCommand.java`, then `MafiaInteractionListener.java`, and finally the rule helpers in `handlers/games/mafia/service/`.
+- Change giveaway behavior:
+  Open `commands/impl/slash/giveaway/`, then `handlers/giveaway/`,
+  `GiveawayInteractionListener.java`, `GiveawayVoiceConditionListener.java`,
+  and `GiveawayEndHandler.java`.
 - Fix a Discord event reaction:
   Open `EntityInitializerManager.java`, then the relevant listener under `listeners/discord/...`.
 - Change button/modal behavior:
@@ -112,6 +116,17 @@ Read this first, then open only the files relevant to the task.
   `commands/impl/slash/tickets/`, modal/button handlers under `listeners/discord/interactions/.../tickets/`
 - Mafia/bets/games:
   `commands/impl/slash/mafia/`, `commands/impl/slash/bets/`, `handlers/games/`
+- Giveaways:
+  `commands/impl/slash/giveaway/` defines `/giveaway create/end/reroll`,
+  `handlers/giveaway/` contains prize modals, embeds, durable component ids,
+  winner drawing, live message refresh, and shared services,
+  `listeners/discord/interactions/buttons/giveaway/GiveawayInteractionListener.java`
+  handles durable participation and prize claim buttons/selects; color-role claims use
+  string select menus populated from configured color roles, not Discord role entity menus,
+  `listeners/discord/guilds/voice/GiveawayVoiceConditionListener.java`
+  removes VC-gated entries when members leave the required voice channel,
+  `jobs/GiveawayEndHandler.java` closes due giveaways every 15 seconds,
+  and `giveaways`, `giveaway_entries`, and `giveaway_winners` store state.
 - Oficina Dorme internals:
   `handlers/games/mafia/service/` contains orchestration and pure rules,
   `handlers/games/mafia/domain/` contains the in-memory match state,
@@ -137,6 +152,9 @@ Read this first, then open only the files relevant to the task.
   `listeners/discord/interactions/buttons/channels/ChannelOptimizeApproveHandler.java`,
   `util/embeds/EmbedFactory.java`,
   and `src/test/java/ofc/bot/handlers/channels/ChannelPermissionOptimizerTest.java`
+- Generic throttled updates:
+  `handlers/ThrottledAction.java` stores only the latest posted value per window
+  and is used by giveaway message refreshes to avoid queueing many Discord edits.
 
 ## Central Registration Files Worth Memorizing
 - `src/main/java/ofc/bot/handlers/EntityInitializerManager.java`
@@ -164,12 +182,20 @@ Read this first, then open only the files relevant to the task.
 - For doc-only changes, a file review is enough.
 - Nickname approval and `/nick` target validation tests live under `src/test/java/ofc/bot/handlers/nick/`
   and `src/test/java/ofc/bot/domain/sqlite/repository/NicknameUpdateRequestRepositoryTest.java`.
+- Giveaway repository, input parsing, winner drawing, and throttling tests live under
+  `src/test/java/ofc/bot/domain/sqlite/repository/GiveawayRepositoryTest.java`,
+  `src/test/java/ofc/bot/handlers/giveaway/`, and
+  `src/test/java/ofc/bot/handlers/ThrottledActionTest.java`.
 
 ## Known Traps
 - Do not assume env files exist; config is often loaded from the DB `config` table.
 - Do not assume a missing feature is unimplemented before checking central registration.
 - Do not read generated artifacts for context. If it smells like bytecode, backup sludge, or runtime leftovers, leave it alone.
 - SQLite is configured with a single pooled connection on purpose; avoid "fixing" that casually.
+- Giveaway buttons are durable component ids prefixed with `giveaway:` and must not use
+  `InteractionMemoryManager`, because giveaways outlive memory contexts and bot restarts.
+- Color role ownership now uses `color_roles_state.expires_at`; do not reintroduce
+  fixed `updated_at + 60 days` expiration logic.
 
 ## Recommended Reading Budget
 - First pass:

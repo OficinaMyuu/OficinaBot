@@ -135,3 +135,33 @@ Approval and rejection buttons use IDs prefixed with `nick-`, so the durable lis
 - `src/main/java/ofc/bot/util/UrlBuilder.java`
 
 `UrlBuilder` is a small query-string utility for features that need to safely inspect or mutate URLs without hand-splicing strings. It preserves the original URI structure, stores decoded query parameters in insertion order, supports fluent updates through `set`, `add`, `remove`, and `clear`, and can build either a `URI` via `toUri()` or a string via `build()` and `toString()`. The utility is intentionally single-value per key; if a feature needs repeated query keys, extend it deliberately instead of quietly changing its semantics.
+
+## Giveaways
+- Slash entrypoint:
+  `src/main/java/ofc/bot/commands/impl/slash/giveaway/`
+- Runtime services and UI factories:
+  `src/main/java/ofc/bot/handlers/giveaway/`
+- Durable interaction listener:
+  `src/main/java/ofc/bot/listeners/discord/interactions/buttons/giveaway/GiveawayInteractionListener.java`
+- Voice condition cleanup:
+  `src/main/java/ofc/bot/listeners/discord/guilds/voice/GiveawayVoiceConditionListener.java`
+- Scheduled ending:
+  `src/main/java/ofc/bot/jobs/GiveawayEndHandler.java`
+- Persistence:
+  `giveaways`, `giveaway_entries`, and `giveaway_winners`
+
+`/giveaway` is a `Manage Server` command with `create`, `end`, and `reroll` subcommands. Creation collects uniform options in the slash command, then opens a prize-specific modal for generic, economy money, or color-role details. Giveaway participation and claim controls use durable component ids prefixed with `giveaway:` instead of the temporary composed interaction store, because active giveaways must survive beyond a single in-memory context.
+
+Active giveaway embeds show the prize, host, end timestamp, winner count, entry count, and optional required voice channel. Entry updates are routed through `ThrottledAction`, so rapid participation changes coalesce into at most one Discord message edit per update window. If a giveaway requires a voice channel, joining is rejected unless the member is currently connected there, and voice-state updates remove existing entries as soon as the member leaves or moves away from that required channel.
+
+When a giveaway ends, the service marks it ended, draws winners from current entries, persists winners, edits the giveaway message, and posts an announcement. Generic prizes are marked for manual fulfillment. Economy prizes stay pending until a winner clicks claim and chooses Oficina or UnbelievaBoat; the selected economy is credited directly to the winner's bank. Color-role prizes stay pending until a winner chooses a configured color role through a string select menu populated only from registered color roles; the role is applied and persisted in `color_roles_state`.
+
+Color role expiration now uses `color_roles_state.expires_at`. Existing rows are migrated at startup by backfilling `updated_at + 60 days`, while new shop purchases keep the existing 60-day default and giveaway color prizes store their own configured expiration.
+
+## Shared Throttling
+- Utility:
+  `src/main/java/ofc/bot/handlers/ThrottledAction.java`
+- Unit tests:
+  `src/test/java/ofc/bot/handlers/ThrottledActionTest.java`
+
+`ThrottledAction<T>` is a generic latest-value coalescer. Each `post(T)` replaces the pending value, and the scheduled flush runs only the latest value for that interval. It owns a scheduler and exposes `shutdown()`/`close()` so long-lived features can release it when the related workflow ends.
