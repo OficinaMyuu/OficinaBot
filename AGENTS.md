@@ -98,7 +98,8 @@ Read this first, then open only the files relevant to the task.
 
 ## Feature Map
 - Economy:
-  `commands/impl/slash/economy/`, `listeners/discord/economy/`, `handlers/economy/`, `UserEconomyRepository`
+  `commands/impl/slash/economy/`, `listeners/discord/economy/`, `handlers/economy/`, `UserEconomyRepository`.
+  `/rob` rules live in `handlers/economy/RobberyCalculator.java`; it steals wallet only and fines bank on failure.
 - Groups:
   `commands/impl/slash/groups/`, `listeners/discord/interactions/buttons/groups/`, `handlers/groups/`, `OficinaGroupRepository`
 - Marriage/relationships:

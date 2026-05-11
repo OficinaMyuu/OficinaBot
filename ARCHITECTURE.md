@@ -30,6 +30,22 @@ Oficina is a Java 21 Discord bot built on JDA. The application boots from `src/m
 - Button/modal/menu/autocomplete routing is centralized under `src/main/java/ofc/bot/handlers/interactions/`
 - Scheduled jobs live under `src/main/java/ofc/bot/jobs/`
 
+## Economy
+- Slash entrypoints:
+  `src/main/java/ofc/bot/commands/impl/slash/economy/`
+- Shared economy rules:
+  `src/main/java/ofc/bot/handlers/economy/`
+- Persistence:
+  `src/main/java/ofc/bot/domain/sqlite/repository/UserEconomyRepository.java`
+
+`/rob` only steals from the target user's wallet. The failure probability follows the
+UnbelievaBoat-style formula `robber net worth / (target wallet + robber net worth)`,
+clamped to `20%` through `80%`. On success, the stolen amount is the success
+probability multiplied by the target wallet and rounded up. On failure, the robber is
+fined using the UnbelievaBoat crime default range of `20%` through `40%` of their net
+worth. The fine is applied to bank balance, because wallet cannot be negative while
+bank balance is allowed to represent debt.
+
 ## Events Command
 - Slash entrypoint:
   `src/main/java/ofc/bot/commands/impl/slash/ToggleEventsCommand.java`
