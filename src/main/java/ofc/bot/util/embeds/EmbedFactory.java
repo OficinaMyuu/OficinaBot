@@ -28,7 +28,6 @@ import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -929,7 +928,7 @@ public final class EmbedFactory {
         StringBuilder builder = new StringBuilder();
 
         for (ColorRoleState crs : states) {
-            long expiresAt = crs.getLastUpdated() + TimeUnit.DAYS.toSeconds(60);
+            long expiresAt = crs.getExpiresAt();
             String row = String.format("<t:%d:R>**・**<@&%d>\n", expiresAt, crs.getRoleId());
             builder.append(row);
         }

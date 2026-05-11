@@ -8,6 +8,7 @@ import ofc.bot.internal.data.BotFiles;
 import ofc.bot.listeners.console.QueryCounter;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
@@ -39,6 +40,7 @@ public final class DB {
             table.getSchema(ctx).execute();
             LOGGER.info("Successfully created table \"{}\"", table.getName());
         }
+        runMigrations(ctx);
         LOGGER.info("Successfully created all tables");
     }
 
@@ -82,6 +84,35 @@ public final class DB {
                 VoiceHeartbeatsTable.VOICE_HEARTBEATS,
                 WelcomedUsersTable.WELCOMED_USERS
         );
+    }
+
+    private static void runMigrations(DSLContext ctx) {
+        ensureColorRoleExpiresAt(ctx);
+    }
+
+    private static void ensureColorRoleExpiresAt(DSLContext ctx) {
+        String table = ColorRolesStateTable.COLOR_ROLES_STATES.getName();
+        boolean hasColumn = ctx.fetch("PRAGMA table_info(" + table + ")")
+                .stream()
+                .map(Record::intoMap)
+                .anyMatch(row -> "expires_at".equals(row.get("name")));
+
+        if (hasColumn) {
+            return;
+        }
+
+        ctx.query("ALTER TABLE " + table + " ADD COLUMN expires_at BIGINT")
+                .execute();
+
+        long defaultDurationSeconds = ofc.bot.domain.entity.ColorRoleState.DEFAULT_DURATION_SECONDS;
+        ctx.update(ColorRolesStateTable.COLOR_ROLES_STATES)
+                .set(
+                        ColorRolesStateTable.COLOR_ROLES_STATES.EXPIRES_AT,
+                        ColorRolesStateTable.COLOR_ROLES_STATES.UPDATED_AT.plus(defaultDurationSeconds)
+                )
+                .execute();
+
+        LOGGER.info("Migrated color role states with expires_at");
     }
 
     private static void initConfigs() {

@@ -17,6 +17,7 @@ public class ColorRolesStateTable extends InitializableTable<ColorRoleState> {
     public final Field<Long> USER_ID       = newField("user_id",    BIGINT.notNull());
     public final Field<Long> GUILD_ID      = newField("guild_id",   BIGINT.notNull());
     public final Field<Long> ROLE_ID       = newField("role_id",    BIGINT.notNull());
+    public final Field<Long> EXPIRES_AT    = newField("expires_at", BIGINT.notNull());
     public final Field<Long> CREATED_AT    = newField("created_at", BIGINT.notNull());
     public final Field<Long> UPDATED_AT    = newField("updated_at", BIGINT.notNull());
 

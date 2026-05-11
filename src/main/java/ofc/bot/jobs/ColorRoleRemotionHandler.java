@@ -11,7 +11,6 @@ import ofc.bot.util.content.annotations.jobs.CronJob;
 import ofc.bot.domain.entity.ColorRoleState;
 import ofc.bot.domain.sqlite.DB;
 import org.jooq.DSLContext;
-import org.jooq.impl.SQLDataType;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -21,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 import static ofc.bot.domain.tables.ColorRolesStateTable.COLOR_ROLES_STATES;
-import static org.jooq.impl.DSL.*;
 
 @CronJob(expression = "0 0 0 ? * * *") // Every day at midnight
 public class ColorRoleRemotionHandler implements Job {
@@ -79,7 +77,7 @@ public class ColorRoleRemotionHandler implements Job {
         DSLContext ctx = DB.getContext();
 
         return ctx.selectFrom(COLOR_ROLES_STATES)
-                .where(field("(julianday('now') - julianday(datetime(updated_at, 'unixepoch'))) >= 60", SQLDataType.BOOLEAN))
+                .where(COLOR_ROLES_STATES.EXPIRES_AT.le(ofc.bot.util.Bot.unixNow()))
                 .fetch();
     }
 
