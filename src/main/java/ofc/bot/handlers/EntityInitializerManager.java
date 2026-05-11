@@ -8,6 +8,7 @@ import ofc.bot.commands.impl.slash.groups.LeaveGroupCommand;
 import ofc.bot.commands.impl.slash.tickets.MergeTicketCommand;
 import ofc.bot.domain.sqlite.repository.Repositories;
 import ofc.bot.handlers.cache.PolicyService;
+import ofc.bot.handlers.giveaway.GiveawayServices;
 import ofc.bot.handlers.interactions.InteractionMemoryManager;
 import ofc.bot.handlers.interactions.buttons.ButtonInteractionGateway;
 import ofc.bot.handlers.interactions.commands.SlashCommandsGateway;
@@ -31,12 +32,14 @@ import ofc.bot.listeners.discord.guilds.messages.*;
 import ofc.bot.listeners.discord.guilds.reactionroles.BotChangelogRoleHandler;
 import ofc.bot.listeners.discord.guilds.reactionroles.StudyRoleHandler;
 import ofc.bot.listeners.discord.guilds.roles.MemberRolesBackup;
+import ofc.bot.listeners.discord.guilds.voice.GiveawayVoiceConditionListener;
 import ofc.bot.listeners.discord.guilds.voice.solo.SoloChannelsHandler;
 import ofc.bot.listeners.discord.interactions.GenericInteractionLocaleUpsert;
 import ofc.bot.listeners.discord.interactions.autocomplete.*;
 import ofc.bot.listeners.discord.interactions.buttons.WorkReminderHandler;
 import ofc.bot.listeners.discord.interactions.buttons.bets.TicTacToeAcceptHandler;
 import ofc.bot.listeners.discord.interactions.buttons.channels.ChannelOptimizeApproveHandler;
+import ofc.bot.listeners.discord.interactions.buttons.giveaway.GiveawayInteractionListener;
 import ofc.bot.listeners.discord.interactions.buttons.groups.*;
 import ofc.bot.listeners.discord.interactions.buttons.mafia.MafiaInteractionListener;
 import ofc.bot.listeners.discord.interactions.buttons.nick.NicknameApprovalButtonListener;
@@ -53,6 +56,7 @@ import ofc.bot.listeners.discord.interactions.buttons.tickets.DownloadTicketMess
 import ofc.bot.listeners.discord.interactions.dm.DirectMessageReceived;
 import ofc.bot.listeners.discord.interactions.menus.ChoosableRolesListener;
 import ofc.bot.listeners.discord.interactions.modals.ChoosableRolesHandler;
+import ofc.bot.listeners.discord.interactions.modals.giveaway.GiveawayPrizeModalHandler;
 import ofc.bot.listeners.discord.interactions.modals.tickets.TicketClosureHandler;
 import ofc.bot.listeners.discord.interactions.modals.tickets.TicketCreationHandler;
 import ofc.bot.listeners.discord.logs.VoiceActivity;
@@ -100,6 +104,7 @@ public final class EntityInitializerManager {
                     new ColorRoleRemotionHandler(),
                     new ExpiredBanHandler(),
                     new HappyNewYearAnnouncement(),
+                    new GiveawayEndHandler(),
                     new QueryCountPrinter(),
                     new RemindersHandler(),
                     new VoiceHeartbeatCounter(),
@@ -137,6 +142,7 @@ public final class EntityInitializerManager {
         var mreqRepo = Repositories.getMarriageRequestRepository();
         var namesRepo = Repositories.getUserNameUpdateRepository();
         var ticketRepo = Repositories.getSupportTicketRepository();
+        var giveawayRepo = Repositories.getGiveawayRepository();
         var policyRepo = Repositories.getEntityPolicyRepository();
         var appBanRepo = Repositories.getAppUserBanRepository();
         var grpRepo = Repositories.getOficinaGroupRepository();
@@ -190,7 +196,8 @@ public final class EntityInitializerManager {
                 new DownloadTicketMessagesHandler(msgVrsRepo, userRepo),
 
                 // Generic
-                new ChoosableRolesHandler()
+                new ChoosableRolesHandler(),
+                new GiveawayPrizeModalHandler(giveawayRepo)
         );
     }
 
@@ -224,6 +231,7 @@ public final class EntityInitializerManager {
         var tmpBanRepo = Repositories.getTempBanRepository();
         var xpRepo = Repositories.getUserXPRepository();
         var userRepo = Repositories.getUserRepository();
+        var giveawayService = GiveawayServices.create();
 
         api.addEventListener(
                 new AddColorRoleCommand.ColorRoleListAutocompletionHandler(colorItemRepo),
@@ -239,6 +247,8 @@ public final class EntityInitializerManager {
                 new DirectMessageReceived(),
                 new ErikPingReactionHelper(),
                 new GenericInteractionLocaleUpsert(usprefRepo),
+                new GiveawayInteractionListener(giveawayService),
+                new GiveawayVoiceConditionListener(giveawayService),
                 new GroupBotAutocompletion(grpBotRepo),
                 new InfractionsAutocompletion(pnshRepo),
                 new LeaveGroupCommand.FakePISuggester(),
