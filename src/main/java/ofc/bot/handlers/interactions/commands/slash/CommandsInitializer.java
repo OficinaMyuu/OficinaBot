@@ -15,6 +15,9 @@ import ofc.bot.commands.impl.slash.colors.*;
 import ofc.bot.commands.impl.slash.economy.*;
 import ofc.bot.commands.impl.slash.emojis.AuthorizeEmojiCommand;
 import ofc.bot.commands.impl.slash.emojis.RevokeEmojiCommand;
+import ofc.bot.commands.impl.slash.giveaway.CreateGiveawayCommand;
+import ofc.bot.commands.impl.slash.giveaway.EndGiveawayCommand;
+import ofc.bot.commands.impl.slash.giveaway.RerollGiveawayCommand;
 import ofc.bot.commands.impl.slash.groups.*;
 import ofc.bot.commands.impl.slash.groups.channel.CreateGroupChannelCommand;
 import ofc.bot.commands.impl.slash.groups.member.AddGroupMemberCommand;
@@ -41,6 +44,7 @@ import ofc.bot.domain.sqlite.repository.Repositories;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.ICommand;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashCommand;
 import ofc.bot.handlers.interactions.commands.slash.dummy.EmptySlashCommand;
+import ofc.bot.handlers.giveaway.GiveawayServices;
 import ofc.bot.handlers.nick.NicknameEmojiPolicy;
 import ofc.bot.handlers.nick.NicknameRequestDispatcher;
 import org.slf4j.Logger;
@@ -82,6 +86,7 @@ public final class CommandsInitializer {
         var remRepo = Repositories.getReminderRepository();
         var xpRepo = Repositories.getUserXPRepository();
         var userRepo = Repositories.getUserRepository();
+        var giveawayService = GiveawayServices.create();
         var nickPolicy = new NicknameEmojiPolicy(emjRepo, emojiPermRepo);
         var nickDispatcher = new NicknameRequestDispatcher(nickReqRepo);
 
@@ -130,6 +135,11 @@ public final class CommandsInitializer {
         SlashCommand emojis = new EmptySlashCommand("emojis", "Gerencie as permissões do emoji de sua titularidade.")
                 .addSubcommand(new AuthorizeEmojiCommand(emjRepo, emojiPermRepo))
                 .addSubcommand(new RevokeEmojiCommand(emjRepo, emojiPermRepo));
+
+        SlashCommand giveaway = new EmptySlashCommand("giveaway", "Gerencia sorteios.", Permission.MANAGE_SERVER)
+                .addSubcommand(new CreateGiveawayCommand())
+                .addSubcommand(new EndGiveawayCommand(giveawayService))
+                .addSubcommand(new RerollGiveawayCommand(giveawayService));
 
         // Groups
         SlashCommand group = new EmptySlashCommand("group", "Tenha o controle de tudo sobre o seu grupo.")
@@ -238,6 +248,7 @@ public final class CommandsInitializer {
         registry.register(oficinaDorme);
         registry.register(remind);
         registry.register(emojis);
+        registry.register(giveaway);
         registry.register(group);
         registry.register(tickets);
         registry.register(customizeUserinfo);

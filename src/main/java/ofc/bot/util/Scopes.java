@@ -45,6 +45,10 @@ public final class Scopes {
         public static final String DOWNLOAD_MESSAGES = "DOWNLOAD_MESSAGES";
     }
 
+    public static class Giveaway {
+        public static final String CREATE = "GIVEAWAY_CREATE";
+    }
+
     public static class Misc {
         public static final String CHOOSABLE_ROLES            = "CHOOSABLE_ROLES";
         public static final String CONFIRM_NICKNAME_REQUEST   = "CONFIRM_NICKNAME_REQUEST";
