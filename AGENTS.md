@@ -196,6 +196,9 @@ Read this first, then open only the files relevant to the task.
   `InteractionMemoryManager`, because giveaways outlive memory contexts and bot restarts.
 - Color role ownership now uses `color_roles_state.expires_at`; do not reintroduce
   fixed `updated_at + 60 days` expiration logic.
+- `ColorRoleRemotionHandler` deletes stale `color_roles_state` rows when an expired row
+  points at a Discord role that no longer exists. Do not change that path back to
+  "warn and ignore"; those ghost rows will be revisited every daily cleanup.
 
 ## Recommended Reading Budget
 - First pass:

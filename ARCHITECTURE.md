@@ -156,7 +156,7 @@ Active giveaway embeds show the prize, host, end timestamp, winner count, entry 
 
 When a giveaway ends, the service marks it ended, draws winners from current entries, persists winners, edits the giveaway message, and posts an announcement. Generic prizes are marked for manual fulfillment. Economy prizes stay pending until a winner clicks claim and chooses Oficina or UnbelievaBoat; the selected economy is credited directly to the winner's bank. Color-role prizes stay pending until a winner chooses a configured color role through a string select menu populated only from registered color roles; the role is applied and persisted in `color_roles_state`.
 
-Color role expiration now uses `color_roles_state.expires_at`. Existing rows are migrated at startup by backfilling `updated_at + 60 days`, while new shop purchases keep the existing 60-day default and giveaway color prizes store their own configured expiration.
+Color role expiration now uses `color_roles_state.expires_at`. Existing rows are migrated at startup by backfilling `updated_at + 60 days`, while new shop purchases keep the existing 60-day default and giveaway color prizes store their own configured expiration. The daily `ColorRoleRemotionHandler` removes expired roles and deletes the persisted state after successful Discord removal. If the configured role no longer exists in the guild, the handler treats that row as stale data, logs the missing role, and deletes the exact `guild_id`/`user_id`/`role_id` row to avoid accumulating ghost color-role records.
 
 ## Shared Throttling
 - Utility:
