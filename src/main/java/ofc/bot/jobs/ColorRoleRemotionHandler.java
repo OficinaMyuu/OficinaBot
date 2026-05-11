@@ -7,10 +7,11 @@ import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import ofc.bot.Main;
-import ofc.bot.util.content.annotations.jobs.CronJob;
 import ofc.bot.domain.entity.ColorRoleState;
-import ofc.bot.domain.sqlite.DB;
-import org.jooq.DSLContext;
+import ofc.bot.domain.sqlite.repository.ColorRoleStateRepository;
+import ofc.bot.domain.sqlite.repository.Repositories;
+import ofc.bot.util.Bot;
+import ofc.bot.util.content.annotations.jobs.CronJob;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -18,8 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-
-import static ofc.bot.domain.tables.ColorRolesStateTable.COLOR_ROLES_STATES;
 
 @CronJob(expression = "0 0 0 ? * * *") // Every day at midnight
 public class ColorRoleRemotionHandler implements Job {
@@ -29,7 +28,8 @@ public class ColorRoleRemotionHandler implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         LOGGER.info("Checking for members with color role due to be removed...");
 
-        List<ColorRoleState> toRemove = retrieveToRemove();
+        ColorRoleStateRepository repository = Repositories.getColorRoleStateRepository();
+        List<ColorRoleState> toRemove = repository.findExpired(Bot.unixNow());
         JDA api = Main.getApi();
 
         if (toRemove.isEmpty()) {
@@ -40,54 +40,69 @@ public class ColorRoleRemotionHandler implements Job {
         LOGGER.info("Found {} member{}.", toRemove.size(), toRemove.size() == 1 ? "" : "s");
 
         for (ColorRoleState data : toRemove) {
-            long roleId = data.getRoleId();
-            long userId = data.getUserId();
-            long guildId = data.getGuildId();
-            Guild guild = api.getGuildById(guildId);
-            Role role = guild == null ? null : guild.getRoleById(roleId);
-
-            if (guild == null) {
-                LOGGER.warn("Could not find guild with id {}! Ignoring color role removal", roleId);
-                continue;
-            }
-
-            if (role == null) {
-                LOGGER.warn("Could not find role {}! Ignoring color role removal", roleId);
-                continue;
-            }
-
-            guild.removeRoleFromMember(UserSnowflake.fromId(userId), role).queue((s) -> {
-                LOGGER.info("Successfully removed color role {} from {}", roleId, userId);
-                
-                removeFrom(guildId, userId, roleId);
-
-            }, (error) -> {
-
-                if (error instanceof ErrorResponseException response && response.getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER) {
-                    removeFrom(guildId, userId, roleId);
-                    LOGGER.warn("Member '{}' was not found, probably no longer present in the server, ignoring.", userId);
-                } else {
-                    LOGGER.error("Could not remove color role {} from {}", roleId, userId, error);
-                }
-            });
+            processExpiredColorRole(api, repository, data);
         }
     }
 
-    private List<ColorRoleState> retrieveToRemove() {
-        DSLContext ctx = DB.getContext();
+    void processExpiredColorRole(JDA api, ColorRoleStateRepository repository, ColorRoleState data) {
+        long guildId = data.getGuildId();
+        long roleId = data.getRoleId();
+        Guild guild = api.getGuildById(guildId);
 
-        return ctx.selectFrom(COLOR_ROLES_STATES)
-                .where(COLOR_ROLES_STATES.EXPIRES_AT.le(ofc.bot.util.Bot.unixNow()))
-                .fetch();
+        if (guild == null) {
+            LOGGER.warn("Could not find guild with id {}! Ignoring color role removal", guildId);
+            return;
+        }
+
+        Role role = guild.getRoleById(roleId);
+        if (role == null) {
+            deleteStaleColorRole(repository, data);
+            return;
+        }
+
+        removeRoleFromMember(guild, role, repository, data);
     }
 
-    private void removeFrom(long guildId, long userId, long roleId) {
-        DSLContext ctx = DB.getContext();
+    private void removeRoleFromMember(
+            Guild guild,
+            Role role,
+            ColorRoleStateRepository repository,
+            ColorRoleState data
+    ) {
+        long guildId = data.getGuildId();
+        long userId = data.getUserId();
+        long roleId = data.getRoleId();
 
-        ctx.deleteFrom(COLOR_ROLES_STATES)
-                .where(COLOR_ROLES_STATES.GUILD_ID.eq(guildId))
-                .and(COLOR_ROLES_STATES.USER_ID.eq(userId))
-                .and(COLOR_ROLES_STATES.ROLE_ID.eq(roleId))
-                .execute();
+        guild.removeRoleFromMember(UserSnowflake.fromId(userId), role).queue((s) -> {
+            LOGGER.info("Successfully removed color role {} from {}", roleId, userId);
+            removeFrom(repository, guildId, userId, roleId);
+        }, (error) -> {
+            if (error instanceof ErrorResponseException response && response.getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER) {
+                removeFrom(repository, guildId, userId, roleId);
+                LOGGER.warn("Member '{}' was not found, probably no longer present in the server, ignoring.", userId);
+                return;
+            }
+
+            LOGGER.error("Could not remove color role {} from {}", roleId, userId, error);
+        });
+    }
+
+    private void deleteStaleColorRole(ColorRoleStateRepository repository, ColorRoleState data) {
+        long guildId = data.getGuildId();
+        long userId = data.getUserId();
+        long roleId = data.getRoleId();
+
+        int deletedRows = removeFrom(repository, guildId, userId, roleId);
+        LOGGER.warn(
+                "Could not find role {} in guild {}! Deleted {} stale color role row{} from the database.",
+                roleId,
+                guildId,
+                deletedRows,
+                deletedRows == 1 ? "" : "s"
+        );
+    }
+
+    private int removeFrom(ColorRoleStateRepository repository, long guildId, long userId, long roleId) {
+        return repository.deleteByGuildUserAndRoleId(guildId, userId, roleId);
     }
 }
