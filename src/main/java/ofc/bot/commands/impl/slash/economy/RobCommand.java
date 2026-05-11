@@ -7,6 +7,8 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.UserEconomy;
 import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
+import ofc.bot.handlers.economy.RobberyCalculator;
+import ofc.bot.handlers.economy.RobberyCalculator.RobberyAttemptResult;
 import ofc.bot.handlers.games.betting.BetManager;
 import ofc.bot.handlers.interactions.commands.Cooldown;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
@@ -25,16 +27,13 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 
 @DiscordCommand(name = "rob")
 public class RobCommand extends SlashCommand {
-    private static final BiFunction<Double, Double, Double> FAIL_PROB_ALGORITHM = (networth, wallet) -> networth / (wallet + networth);
     private static final Logger LOGGER = LoggerFactory.getLogger(RobCommand.class);
-    private static final BetManager betManager = BetManager.getManager();
-    private static final float MIN_FINE = 0.15f;
-    private static final float MAX_FINE = 0.3f;
+    private static final BetManager BET_MANAGER = BetManager.getManager();
     private static final Random RANDOM = new Random();
+    private static final RobberyCalculator ROBBERY_CALCULATOR = new RobberyCalculator(RANDOM);
     private final UserEconomyRepository ecoRepo;
 
     public RobCommand(UserEconomyRepository ecoRepo) {
@@ -48,11 +47,10 @@ public class RobCommand extends SlashCommand {
         long targetId = target.getIdLong();
         long issuerId = issuer.getIdLong();
 
-        if (betManager.isBetting(issuerId))
+        if (BET_MANAGER.isBetting(issuerId))
             return Status.YOU_CANNOT_DO_THIS_WHILE_BETTING;
 
-        // Can you respectfully at least wait for the user to stop betting before trying to rob them?
-        if (betManager.isBetting(targetId))
+        if (BET_MANAGER.isBetting(targetId))
             return Status.MEMBER_IS_BETTING_PLEASE_WAIT;
 
         if (targetId == issuerId)
@@ -63,32 +61,22 @@ public class RobCommand extends SlashCommand {
             return Status.TARGET_WALLET_IS_EMPTY;
 
         UserEconomy issuerEco = ecoRepo.findByUserId(issuerId, UserEconomy.fromUserId(issuerId));
-        double failProb = FAIL_PROB_ALGORITHM.apply((double) issuerEco.getTotal(), (double) targetEco.getWallet());
-        double rand = RANDOM.nextDouble();
-        float successProb = (float) (1 - failProb);
-        boolean failed = failProb >= rand;
+        RobberyAttemptResult result = ROBBERY_CALCULATOR.roll(issuerEco.getTotal(), targetEco.getWallet());
 
         try {
-            if (failed) {
-                float fineRate = RANDOM.nextFloat(MIN_FINE, MAX_FINE);
-                int fineAmount = Math.clamp(Math.round((double) issuerEco.getTotal() * fineRate),
-                        Integer.MIN_VALUE, Integer.MAX_VALUE);
-
-                issuerEco.modifyBalance(0, -fineAmount).tickUpdate();
+            if (result.failed()) {
+                issuerEco.modifyBalance(0, -result.amount()).tickUpdate();
                 ecoRepo.upsert(issuerEco);
 
-                MessageEmbed embed = embedFail(issuer, target, fineAmount);
+                MessageEmbed embed = embedFail(issuer, target, result.amount());
                 return ctx.replyEmbeds(Status.FAILED_TO_ROB_USER, embed);
-            } else {
-                int moneyStolen = (int) Math.ceil(successProb * targetEco.getWallet());
-
-                // Here, we can just handle the operation as if it was a normal user-actioned transaction,
-                // this way, we simplify the code and also uses ACID operations.
-                ecoRepo.transferWallet(targetId, issuerId, moneyStolen);
-
-                MessageEmbed embed = embedSuccess(issuer, target, moneyStolen);
-                return ctx.replyEmbeds(embed);
             }
+
+            // Treat the theft as a regular user transaction so repository ACID guarantees stay centralized.
+            ecoRepo.transferWallet(targetId, issuerId, result.amount());
+
+            MessageEmbed embed = embedSuccess(issuer, target, result.amount());
+            return ctx.replyEmbeds(embed);
         } catch (DataAccessException e) {
             LOGGER.error("Failed to save user {} robbing user {}", issuerId, targetId, e);
             return Status.COULD_NOT_EXECUTE_SUCH_OPERATION;
