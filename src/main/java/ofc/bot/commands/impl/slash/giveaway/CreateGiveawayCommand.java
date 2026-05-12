@@ -79,9 +79,9 @@ public class CreateGiveawayCommand extends SlashSubcommand {
     public List<OptionData> getOptions() {
         return List.of(
                 new OptionData(OptionType.STRING, "type", "Tipo do prêmio.", true)
-                        .addChoice("Genérico", GiveawayPrizeType.GENERIC.name())
-                        .addChoice("Dinheiro", GiveawayPrizeType.ECONOMY_MONEY.name())
-                        .addChoice("Cargo de cor", GiveawayPrizeType.COLOR_ROLE.name()),
+                        .addChoice("Generic", GiveawayPrizeType.GENERIC.name())
+                        .addChoice("Money", GiveawayPrizeType.ECONOMY_MONEY.name())
+                        .addChoice("Color Role", GiveawayPrizeType.COLOR_ROLE.name()),
                 new OptionData(OptionType.STRING, "title", "Título do sorteio.", true)
                         .setRequiredLength(1, 256),
                 new OptionData(OptionType.INTEGER, "winners", "Quantidade de vencedores.", true)
