@@ -116,7 +116,7 @@ public class UserinfoCommand extends SlashCommand {
             builder.addField("🎪 Grupo", groupRole.getAsMention(), true);
 
         if (boosterSince != 0)
-            builder.addField("<:discordbooster:1094816233234378762> Booster Desde", "<t:" + boosterSince + ">", true);
+            builder.addField("<:discordbooster:1504122639462170654> Booster Desde", "<t:" + boosterSince + ">", true);
 
         includeMarriagesIfPresent(target, cs, builder);
         return builder.build();
