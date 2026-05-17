@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import ofc.bot.Main;
 import ofc.bot.handlers.TemporalTaskExecutor;
+import ofc.bot.handlers.economy.AutomatedMoneyGainPolicy;
 import ofc.bot.handlers.economy.BankAccount;
 import ofc.bot.handlers.economy.PaymentManagerProvider;
 import ofc.bot.handlers.economy.unb.UnbelievaBoatClient;
@@ -25,24 +26,29 @@ public class VoiceChatMoneyHandler implements Job {
     private static final int MIN_VALUE = 20;
     private static final int MAX_VALUE = 40;
     private final UnbelievaBoatClient paymentManager = PaymentManagerProvider.getUnbelievaBoatClient();
+    private final AutomatedMoneyGainPolicy gainPolicy = new AutomatedMoneyGainPolicy();
 
     @Override
-    @SuppressWarnings("DataFlowIssue")
     public void execute(JobExecutionContext context) throws JobExecutionException {
         List<Guild> guilds = Main.getApi().getGuilds();
         List<Member> membersToPay = VoiceIncomeUtil.getEligibleMembers(guilds);
         TemporalTaskExecutor executor = new TemporalTaskExecutor(1000); // 1 request per second
         int totalGiven = 0;
+        int paidMembers = 0;
 
         if (membersToPay.isEmpty()) return;
 
         for (Member member : membersToPay) {
             Guild guild = member.getGuild();
+            if (member.getVoiceState() == null || member.getVoiceState().getChannel() == null) continue;
+
             int randomValue = random.nextInt(MIN_VALUE, MAX_VALUE + 1);
             long userId = member.getIdLong();
             long currentVoiceChannelId = member.getVoiceState().getChannel().getIdLong();
             long guildId = guild.getIdLong();
             boolean isSpecial = SPECIAL_CHANNEL_IDS.contains(currentVoiceChannelId);
+
+            if (gainPolicy.isBlocked(member, currentVoiceChannelId)) continue;
 
             int amount = isSpecial ? randomValue * 2 : randomValue;
             executor.addTask(() -> {
@@ -57,9 +63,13 @@ public class VoiceChatMoneyHandler implements Job {
                     LOGGER.warn("Failed to give money to user '{}'", userId);
             });
             totalGiven += amount;
+            paidMembers++;
         }
+
+        if (paidMembers == 0) return;
+
         LOGGER.info("A total of ${} was given to {} different members",
-                String.format("%02d", totalGiven), membersToPay.size()
+                String.format("%02d", totalGiven), paidMembers
         );
         executor.run();
     }
