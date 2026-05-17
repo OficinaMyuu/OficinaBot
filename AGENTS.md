@@ -100,6 +100,8 @@ Read this first, then open only the files relevant to the task.
 - Economy:
   `commands/impl/slash/economy/`, `listeners/discord/economy/`, `handlers/economy/`, `UserEconomyRepository`.
   `/rob` rules live in `handlers/economy/RobberyCalculator.java`; it steals wallet only and fines bank on failure.
+  `PolicyType.BLOCK_MONEY_GAINS` blocks automated money earnings only: Oficina chat money and UnbelievaBoat voice money.
+  Do not apply it to explicit command rewards such as `/daily` and `/work`, or to giveaway prize claims.
 - Groups:
   `commands/impl/slash/groups/`, `listeners/discord/interactions/buttons/groups/`, `handlers/groups/`, `OficinaGroupRepository`
 - Marriage/relationships:
@@ -113,6 +115,10 @@ Read this first, then open only the files relevant to the task.
   `/events` opens/closes the configured event text/voice channels and can optionally disconnect members when closing.
 - Levels/XP:
   `commands/impl/slash/levels/`, `listeners/discord/guilds/messages/UsersXPHandler.java`, `jobs/income/VoiceXPHandler.java`
+- Automated money income:
+  `listeners/discord/economy/ChatMoneyHandler.java` credits Oficina chat money,
+  `jobs/income/VoiceChatMoneyHandler.java` credits UnbelievaBoat voice money,
+  and both use `handlers/economy/AutomatedMoneyGainPolicy.java` to honor `BLOCK_MONEY_GAINS`.
 - Tickets:
   `commands/impl/slash/tickets/`, modal/button handlers under `listeners/discord/interactions/.../tickets/`
 - Mafia/bets/games:

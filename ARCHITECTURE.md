@@ -38,6 +38,14 @@ Oficina is a Java 21 Discord bot built on JDA. The application boots from `src/m
 - Persistence:
   `src/main/java/ofc/bot/domain/sqlite/repository/UserEconomyRepository.java`
 
+Automated income is split by economy provider: `ChatMoneyHandler` credits Oficina
+wallet money for eligible guild messages, while `VoiceChatMoneyHandler` credits
+UnbelievaBoat cash or bank money for eligible voice activity. Both paths honor
+`PolicyType.BLOCK_MONEY_GAINS` through `AutomatedMoneyGainPolicy`, matching blocked
+users, roles, or channels. The policy is intentionally limited to automated income
+and does not block explicit command rewards such as `/daily` and `/work`, nor manual
+or claim-based prize fulfillment such as giveaway money claims.
+
 `/rob` only steals from the target user's wallet. The failure probability follows the
 UnbelievaBoat-style formula `robber net worth / (target wallet + robber net worth)`,
 clamped to `20%` through `80%`. On success, the stolen amount is the success
