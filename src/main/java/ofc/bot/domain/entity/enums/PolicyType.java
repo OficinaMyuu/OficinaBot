@@ -13,6 +13,7 @@ public enum PolicyType {
     HIDE_BIRTHDAY_AGE(          of(USER), "Ocultar a data de Nascimento."),
     HIDE_FROM_STAFF_LIST(       of(USER), "Ocultar da Lista de Staffs."),
     BLOCK_XP_GAINS(             of(USER, ROLE, CHANNEL), "Bloqueie os ganhos de XP."),
+    BLOCK_MONEY_GAINS(          of(USER, ROLE, CHANNEL), "Bloqueie os ganhos automáticos de dinheiro."),
     BYPASS_WORD_BLOCKER(        of(USER, ROLE, CHANNEL), "Ignorar na moderação de palavras bloqueadas."),
     BYPASS_MASS_EMOJI_BLOCKER(  of(USER, ROLE, CHANNEL), "Ignorar na moderação de excesso de emojis."),
     BYPASS_MASS_MENTION_BLOCKER(of(USER, ROLE, CHANNEL), "Ignorar na moderação de marcações em excesso."),
