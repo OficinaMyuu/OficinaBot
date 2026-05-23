@@ -2,6 +2,7 @@ package ofc.bot.handlers;
 
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.internal.utils.Checks;
@@ -13,6 +14,7 @@ import ofc.bot.util.Bot;
 import ofc.bot.util.content.Channels;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Set;
 
 public final class LevelManager {
@@ -20,12 +22,14 @@ public final class LevelManager {
     private final UserXPRepository xpRepo;
     private final LevelRoleRepository lvlRoleRepo;
     private final AppUserBanRepository appBanRepo;
+    private final UserPreferenceRepository prefRepo;
     private final Set<Long> policyCache;
 
     private LevelManager() {
         this.xpRepo = Repositories.getUserXPRepository();
         this.lvlRoleRepo = Repositories.getLevelRoleRepository();
         this.appBanRepo = Repositories.getAppUserBanRepository();
+        this.prefRepo = Repositories.getUserPreferenceRepository();
         this.policyCache = Repositories.getEntityPolicyRepository().findSetByType(PolicyType.BLOCK_XP_GAINS, Long::parseLong);
     }
 
@@ -60,7 +64,12 @@ public final class LevelManager {
 
         TextChannel chan = Channels.LEVEL_UP.textChannel();
         if (chan != null) {
-            chan.sendMessageFormat("%s avançou para o nível %d!", member.getAsMention(), currLevel).queue();
+            boolean shouldPing = prefRepo.isRankupPingsEnabled(userId);
+            String userView = shouldPing ? member.getAsMention() : member.getEffectiveName();
+
+            chan.sendMessageFormat("%s avançou para o nível %d!", userView, currLevel)
+                    .setAllowedMentions(shouldPing ? List.of(Message.MentionType.USER) : List.of())
+                    .queue();
         }
 
         // Check if we should give the user a new role for their rank.
