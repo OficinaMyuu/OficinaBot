@@ -46,7 +46,7 @@ public final class ColorRoleStoreMessageFactory {
             return String.format("**<@&%d>**", entry.roleId());
         }
 
-        return String.format("**<@&%d>**\n-# Expira em <t:%d>.", entry.roleId(), state.getExpiresAt());
+        return String.format("**<@&%d>**\n-# Expira em <t:%d:D>.", entry.roleId(), state.getExpiresAt());
     }
 
     private static Separator divider() {
