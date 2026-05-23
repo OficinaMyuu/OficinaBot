@@ -18,7 +18,7 @@ import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashSubcommand;
-import ofc.bot.util.Bot;
+import ofc.bot.handlers.shop.ColorRoleRefundPolicy;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 import ofc.bot.util.embeds.EmbedFactory;
@@ -29,7 +29,6 @@ import java.util.Objects;
 
 @DiscordCommand(name = "color remove")
 public class RemoveColorRoleCommand extends SlashSubcommand {
-    private static final int REFUND_PERIOD_MILLIS = 5 * 60 * 1000; // 5 minutes
     private final ColorRoleStateRepository colorStateRepo;
     private final ColorRoleItemRepository colorItemRepo;
 
@@ -57,7 +56,7 @@ public class RemoveColorRoleCommand extends SlashSubcommand {
         if (state == null)
             return Status.YOU_DO_NOT_HAVE_THIS_COLOR_ROLE;
 
-        boolean shouldRefund = shouldRefund(state);
+        boolean shouldRefund = ColorRoleRefundPolicy.isRefundable(state);
         MessageEmbed embed = EmbedFactory.embedColorRoleRemotion(user, state, role, shouldRefund);
         List<Button> confirm = EntityContextFactory.createRemoveColorRoleButtons(state, role, user, shouldRefund);
 
@@ -79,11 +78,6 @@ public class RemoveColorRoleCommand extends SlashSubcommand {
         return List.of(
                 new OptionData(OptionType.STRING, "color", "A cor a ser adicionada", true, true)
         );
-    }
-
-    private boolean shouldRefund(ColorRoleState state) {
-        long now = Bot.unixNow();
-        return state != null && now - state.getTimeCreated() < (REFUND_PERIOD_MILLIS / 1000);
     }
 
     @DiscordEventHandler
