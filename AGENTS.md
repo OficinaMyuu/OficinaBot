@@ -37,6 +37,7 @@ Read this first, then open only the files relevant to the task.
 ## Important Repo Facts
 - Secrets/config are fetched through `Bot.getSafe(...)` and `BotProperties`, which query the SQLite `config` table.
 - The DB schema is code-first: table definitions live under `src/main/java/ofc/bot/domain/tables/`.
+- Schema migrations are manual for this project. Do not add automatic migration logic to `DB.java`.
 - Persistence follows a simple pattern:
   - entity classes: `src/main/java/ofc/bot/domain/entity/`
   - table definitions: `src/main/java/ofc/bot/domain/tables/`
@@ -115,6 +116,10 @@ Read this first, then open only the files relevant to the task.
   `/events` opens/closes the configured event text/voice channels and can optionally disconnect members when closing.
 - Levels/XP:
   `commands/impl/slash/levels/`, `listeners/discord/guilds/messages/UsersXPHandler.java`, `jobs/income/VoiceXPHandler.java`
+  `LevelManager` announces level-ups in `Channels.LEVEL_UP`; `.toggle-rankup-pings`
+  lets each user toggle whether their level-up announcement uses a mention.
+  The setting lives in `users_preferences.rankup_pings_enabled`, while locale may be
+  null until Discord provides it through an interaction.
 - Automated money income:
   `listeners/discord/economy/ChatMoneyHandler.java` credits Oficina chat money,
   `jobs/income/VoiceChatMoneyHandler.java` credits UnbelievaBoat voice money,

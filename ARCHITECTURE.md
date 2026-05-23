@@ -23,6 +23,7 @@ Oficina is a Java 21 Discord bot built on JDA. The application boots from `src/m
 - Entity models live under `src/main/java/ofc/bot/domain/entity/`
 - Repository implementations live under `src/main/java/ofc/bot/domain/sqlite/repository/`
 - Runtime configuration is partially stored in the SQLite `config` table and accessed via `BotProperties`
+- Schema migrations are performed manually outside `DB.java`; startup only creates missing tables.
 
 ## Interaction Model
 - Slash commands live under `src/main/java/ofc/bot/commands/impl/slash/`
@@ -73,6 +74,18 @@ bank balance is allowed to represent debt.
   `src/main/java/ofc/bot/handlers/moderation/AutoKickCleanup.java`
 
 Automod warnings are persisted before the current threshold is resolved through `AutomodActionRepository`. When the configured threshold resolves to `KICK`, the Discord kick is queued first, and the cleanup runs only after JDA reports that kick as successful. Cleanup deletes the user's XP row from `users_xp` and resets every configured economy account to zero, currently Oficina Bank and UnbelievaBoat.
+
+## Levels
+- Slash entrypoint:
+  `src/main/java/ofc/bot/commands/impl/slash/levels/`
+- Message XP listener:
+  `src/main/java/ofc/bot/listeners/discord/guilds/messages/UsersXPHandler.java`
+- Voice XP job:
+  `src/main/java/ofc/bot/jobs/income/VoiceXPHandler.java`
+- Level-up coordinator:
+  `src/main/java/ofc/bot/handlers/LevelManager.java`
+
+`LevelManager` grants XP, persists level progress, announces level-ups in the configured level-up channel, and applies matching level roles. Users can run `.toggle-rankup-pings` to control whether their level-up announcement mentions them. The command is a guild legacy listener available to every user, stores the deterministic boolean value in `users_preferences.rankup_pings_enabled`, and preserves `users_preferences.locale`, which can remain null until Discord exposes it through an interaction.
 
 ## Channel Permission Optimization
 - Slash entrypoint:
@@ -180,7 +193,7 @@ Active giveaway embeds show the prize, host, end timestamp, winner count, entry 
 
 When a giveaway ends, the service marks it ended, draws winners from current entries, persists winners, edits the giveaway message, and posts an announcement. Generic prizes are marked for manual fulfillment. Economy prizes stay pending until a winner clicks claim and chooses Oficina or UnbelievaBoat; the selected economy is credited directly to the winner's bank. Color-role prizes stay pending until a winner chooses a configured color role through a string select menu populated only from registered color roles; the role is applied and persisted in `color_roles_state`.
 
-Color role expiration now uses `color_roles_state.expires_at`. Existing rows are migrated at startup by backfilling `updated_at + 60 days`, while new shop purchases keep the existing 60-day default and giveaway color prizes store their own configured expiration. The daily `ColorRoleRemotionHandler` removes expired roles and deletes the persisted state after successful Discord removal. If the configured role no longer exists in the guild, the handler treats that row as stale data, logs the missing role, and deletes the exact `guild_id`/`user_id`/`role_id` row to avoid accumulating ghost color-role records.
+Color role expiration now uses `color_roles_state.expires_at`. New shop purchases keep the existing 60-day default and giveaway color prizes store their own configured expiration. The daily `ColorRoleRemotionHandler` removes expired roles and deletes the persisted state after successful Discord removal. If the configured role no longer exists in the guild, the handler treats that row as stale data, logs the missing role, and deletes the exact `guild_id`/`user_id`/`role_id` row to avoid accumulating ghost color-role records.
 
 ## Shared Throttling
 - Utility:
