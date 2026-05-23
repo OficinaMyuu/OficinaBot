@@ -12,17 +12,18 @@ public class UserPreference extends OficinaRecord<UserPreference> {
         super(USERS_PREFERENCES);
     }
 
-    public UserPreference(long userId, String locale, long createdAt, long updatedAt) {
+    public UserPreference(long userId, String locale, boolean rankupPingsEnabled, long createdAt, long updatedAt) {
         this();
         set(USERS_PREFERENCES.USER_ID, userId);
         set(USERS_PREFERENCES.LOCALE, locale);
+        set(USERS_PREFERENCES.RANKUP_PINGS_ENABLED, rankupPingsEnabled);
         set(USERS_PREFERENCES.CREATED_AT, createdAt);
         set(USERS_PREFERENCES.UPDATED_AT, updatedAt);
     }
 
     public static UserPreference fromUserPreference(long userId, String locale) {
         long now = Bot.unixNow();
-        return new UserPreference(userId, locale, now, now);
+        return new UserPreference(userId, locale, true, now, now);
     }
 
     public long getUserId() {
@@ -32,6 +33,11 @@ public class UserPreference extends OficinaRecord<UserPreference> {
     public DiscordLocale getLocale() {
         String locale = get(USERS_PREFERENCES.LOCALE);
         return locale == null ? DiscordLocale.UNKNOWN : DiscordLocale.from(locale);
+    }
+
+    public boolean isRankupPingsEnabled() {
+        Boolean enabled = get(USERS_PREFERENCES.RANKUP_PINGS_ENABLED);
+        return enabled == null || enabled;
     }
 
     public long getTimeCreated() {
@@ -49,6 +55,11 @@ public class UserPreference extends OficinaRecord<UserPreference> {
 
     public UserPreference setLocale(String locale) {
         set(USERS_PREFERENCES.LOCALE, locale);
+        return this;
+    }
+
+    public UserPreference setRankupPingsEnabled(boolean enabled) {
+        set(USERS_PREFERENCES.RANKUP_PINGS_ENABLED, enabled);
         return this;
     }
 

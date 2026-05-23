@@ -4,7 +4,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import ofc.bot.domain.entity.UserPreference;
 import ofc.bot.domain.sqlite.repository.UserPreferenceRepository;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 
@@ -23,7 +22,6 @@ public class GenericInteractionLocaleUpsert extends ListenerAdapter {
         String locale = userLocale.getLocale();
         long userId = user.getIdLong();
 
-        UserPreference pref = UserPreference.fromUserPreference(userId, locale);
-        usprefRepo.upsert(pref);
+        usprefRepo.setLocale(userId, locale);
     }
 }

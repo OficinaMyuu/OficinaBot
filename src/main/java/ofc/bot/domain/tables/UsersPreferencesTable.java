@@ -14,8 +14,12 @@ import static ofc.bot.domain.tables.UsersTable.USERS;
 public class UsersPreferencesTable extends InitializableTable<UserPreference> {
     public static final UsersPreferencesTable USERS_PREFERENCES = new UsersPreferencesTable();
 
-    public final Field<Long> USER_ID    = newField("user_id",    SQLDataType.BIGINT.notNull());
-    public final Field<String> LOCALE   = newField("locale",     SQLDataType.CHAR.notNull());
+    public final Field<Long> USER_ID = newField("user_id", SQLDataType.BIGINT.notNull());
+    public final Field<String> LOCALE = newField("locale", SQLDataType.CHAR);
+    public final Field<Boolean> RANKUP_PINGS_ENABLED = newField(
+            "rankup_pings_enabled",
+            SQLDataType.BOOLEAN.notNull().defaultValue(true)
+    );
     public final Field<Long> CREATED_AT = newField("created_at", SQLDataType.BIGINT.notNull());
     public final Field<Long> UPDATED_AT = newField("updated_at", SQLDataType.BIGINT.notNull());
 
