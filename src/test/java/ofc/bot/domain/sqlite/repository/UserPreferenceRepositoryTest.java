@@ -28,7 +28,7 @@ class UserPreferenceRepositoryTest {
     }
 
     @Test
-    void shouldInsertRankupPreferenceWithoutLocale() throws Exception {
+    void shouldInsertRankupPreferenceWithUnknownLocaleFallback() throws Exception {
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite::memory:")) {
             UserPreferenceRepository repository = createRepository(connection);
             insertUser(repository.getContext(), 101L);
@@ -37,7 +37,7 @@ class UserPreferenceRepositoryTest {
 
             UserPreference pref = repository.findByUserId(101L);
             assertNotNull(pref);
-            assertNull(pref.get(USERS_PREFERENCES.LOCALE));
+            assertEquals(DiscordLocale.UNKNOWN.getLocale(), pref.get(USERS_PREFERENCES.LOCALE));
             assertFalse(pref.isRankupPingsEnabled());
             assertEquals(DiscordLocale.UNKNOWN, pref.getLocale());
         }
@@ -69,6 +69,31 @@ class UserPreferenceRepositoryTest {
 
             UserPreference pref = repository.findByUserId(103L);
             assertEquals(DiscordLocale.ENGLISH_US, pref.getLocale());
+            assertFalse(pref.isRankupPingsEnabled());
+        }
+    }
+
+    @Test
+    void shouldSupportLegacyNotNullLocaleSchema() throws Exception {
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite::memory:")) {
+            DSLContext ctx = DSL.using(connection, SQLDialect.SQLITE);
+            UsersTable.USERS.getSchema(ctx).execute();
+            ctx.createTable(USERS_PREFERENCES)
+                    .primaryKey(USERS_PREFERENCES.USER_ID)
+                    .column(USERS_PREFERENCES.USER_ID)
+                    .column(USERS_PREFERENCES.LOCALE.getName(), USERS_PREFERENCES.LOCALE.getDataType().nullable(false))
+                    .column(USERS_PREFERENCES.RANKUP_PINGS_ENABLED)
+                    .column(USERS_PREFERENCES.CREATED_AT)
+                    .column(USERS_PREFERENCES.UPDATED_AT)
+                    .constraint(DSL.foreignKey(USERS_PREFERENCES.USER_ID).references(UsersTable.USERS, UsersTable.USERS.ID))
+                    .execute();
+            UserPreferenceRepository repository = new UserPreferenceRepository(ctx);
+            insertUser(ctx, 104L);
+
+            repository.setRankupPings(104L, false);
+
+            UserPreference pref = repository.findByUserId(104L);
+            assertEquals(DiscordLocale.UNKNOWN, pref.getLocale());
             assertFalse(pref.isRankupPingsEnabled());
         }
     }

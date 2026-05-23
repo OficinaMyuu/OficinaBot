@@ -1,5 +1,6 @@
 package ofc.bot.domain.sqlite.repository;
 
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import ofc.bot.domain.abstractions.InitializableTable;
 import ofc.bot.domain.entity.UserPreference;
 import ofc.bot.domain.tables.UsersPreferencesTable;
@@ -59,7 +60,7 @@ public class UserPreferenceRepository extends Repository<UserPreference> {
 
         ctx.insertInto(USERS_PREFERENCES)
                 .set(USERS_PREFERENCES.USER_ID, userId)
-                .set(USERS_PREFERENCES.LOCALE, (String) null)
+                .set(USERS_PREFERENCES.LOCALE, DiscordLocale.UNKNOWN.getLocale())
                 .set(USERS_PREFERENCES.RANKUP_PINGS_ENABLED, enabled)
                 .set(USERS_PREFERENCES.CREATED_AT, now)
                 .set(USERS_PREFERENCES.UPDATED_AT, now)
