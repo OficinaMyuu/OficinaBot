@@ -108,8 +108,8 @@ Read this first, then open only the files relevant to the task.
   `PolicyType.BLOCK_MONEY_GAINS` blocks automated money earnings only: Oficina chat money and UnbelievaBoat voice money.
   Do not apply it to explicit command rewards such as `/daily` and `/work`, or to giveaway prize claims.
 - Color roles:
-  `commands/impl/slash/colors/` keeps both the legacy `/color add/list/remove/status`
-  commands and the `/colors` Components V2 store. Store rendering lives in
+  `commands/impl/slash/colors/` contains the `/colors` Components V2 store.
+  Store rendering lives in
   `handlers/shop/ColorRoleStoreMessageFactory.java`; the first store click opens a
   public confirmation message through `OpenColorRolePurchaseConfirmationHandler` or
   `OpenColorRoleRemovalConfirmationHandler`, then the existing final purchase/removal

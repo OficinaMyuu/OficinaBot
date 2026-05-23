@@ -102,13 +102,6 @@ public final class CommandsInitializer {
                 .addSubcommand(new BirthdayAddCommand(bdayRepo, policyRepo))
                 .addSubcommand(new BirthdayRemoveCommand(bdayRepo));
 
-        // Colors
-        SlashCommand colors = new EmptySlashCommand("color", "Auxilia nos cargos de cor do servidor.")
-                .addSubcommand(new AddColorRoleCommand(colorItemRepo))
-                .addSubcommand(new ColorRoleStatusCommand(colorStateRepo))
-                .addSubcommand(new RemoveColorRoleCommand(colorStateRepo, colorItemRepo))
-                .addSubcommand(new ListColorsRolesCommand(colorItemRepo));
-
         // Policies
         SlashCommand policies = new EmptySlashCommand("policies", "Gerencia as regras dos módulos do bot.", Permission.MANAGE_SERVER)
                 .addSubcommand(new AddPolicyCommand(policyRepo))
@@ -245,7 +238,6 @@ public final class CommandsInitializer {
         registry.register(additionals);
         registry.register(bets);
         registry.register(birthday);
-        registry.register(colors);
         registry.register(policies);
         registry.register(marriage);
         registry.register(oficinaDorme);
