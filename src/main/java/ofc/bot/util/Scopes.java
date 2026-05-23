@@ -31,6 +31,8 @@ public final class Scopes {
     public static class Shop {
         public static final String ADD_COLOR_ROLE = "ADD_COLOR_ROLE";
         public static final String REMOVE_COLOR_ROLE = "REMOVE_COLOR_ROLE";
+        public static final String OPEN_COLOR_ROLE_PURCHASE_CONFIRMATION = "OPEN_COLOR_ROLE_PURCHASE_CONFIRMATION";
+        public static final String OPEN_COLOR_ROLE_REMOVAL_CONFIRMATION = "OPEN_COLOR_ROLE_REMOVAL_CONFIRMATION";
     }
 
     public static class Bets {

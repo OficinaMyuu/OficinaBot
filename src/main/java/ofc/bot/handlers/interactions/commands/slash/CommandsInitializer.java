@@ -217,6 +217,9 @@ public final class CommandsInitializer {
         // Userinfo
         registry.register(new UserinfoCommand(csinfoRepo, emjRepo, ecoRepo, marrRepo, grpRepo));
 
+        // Color Roles
+        registry.register(new ColorsCommand(colorItemRepo, colorStateRepo));
+
         // Generic
         registry.register(new AvatarCommand());
         registry.register(new BackupMemberRolesCommand(bckpRepo));

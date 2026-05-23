@@ -34,6 +34,8 @@ public final class EntityContextFactory {
     private static final Emoji GAME_EMOJI = Emoji.fromUnicode("🎮");
     private static final Emoji TRASH_EMOJI = Emoji.fromUnicode("🗑");
 
+    private static final Emoji SHOPPING_BAGS_EMOJI = Emoji.fromUnicode("\uD83D\uDECD\uFE0F");
+
     private EntityContextFactory() {}
 
     /* -------------------- Buttons -------------------- */
@@ -299,6 +301,32 @@ public final class EntityContextFactory {
         return List.of(confirm.getEntity());
     }
 
+    public static Button createColorRoleStorePurchaseButton(ColorRoleItem color, Role role, User user) {
+        ButtonContext confirm = ButtonContext.success(Bot.fmtNum(color.getPrice()), SHOPPING_BAGS_EMOJI)
+                .setScope(Scopes.Shop.OPEN_COLOR_ROLE_PURCHASE_CONFIRMATION)
+                .addUser(user.getIdLong())
+                .put("user", user)
+                .put("color", color)
+                .put("role", role);
+
+        INTERACTION_MANAGER.save(confirm);
+        return confirm.getEntity();
+    }
+
+    public static Button createColorRoleStoreRemoveButton(
+            ColorRoleState state, Role role, User user, boolean hasRefund
+    ) {
+        String label = hasRefund ? Bot.fmtNum(state.getValuePaid()) : null;
+        ButtonContext confirm = ButtonContext.danger(label, TRASH_EMOJI)
+                .setScope(Scopes.Shop.OPEN_COLOR_ROLE_REMOVAL_CONFIRMATION)
+                .addUser(user.getIdLong())
+                .put("user", user)
+                .put("role", role);
+
+        INTERACTION_MANAGER.save(confirm);
+        return confirm.getEntity();
+    }
+
     public static List<Button> createColorRoleButtons(ColorRoleItem color, Role role, User user) {
         ButtonContext payOfc = ButtonContext.success("Pagar com Oficina", CurrencyType.OFICINA.getEmoji())
                 .setScope(Scopes.Shop.ADD_COLOR_ROLE)
@@ -310,6 +338,7 @@ public final class EntityContextFactory {
 
         ButtonContext payUnb = ButtonContext.success("Pagar com UnbelievaBoat", CurrencyType.UNBELIEVABOAT.getEmoji())
                 .setScope(Scopes.Shop.ADD_COLOR_ROLE)
+                .addUser(user.getIdLong())
                 .put("currency", CurrencyType.UNBELIEVABOAT)
                 .put("user", user)
                 .put("color", color)
