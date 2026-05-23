@@ -73,6 +73,10 @@ Read this first, then open only the files relevant to the task.
 ## Start Here For Common Tasks
 - Add or modify a slash command:
   Open `CommandsInitializer.java`, then the command under `commands/impl/slash/...`.
+- Change color role shop behavior:
+  Open `ColorsCommand.java`, `handlers/shop/ColorRoleStoreMessageFactory.java`,
+  `handlers/shop/ColorRoleRefundPolicy.java`, and the shop button handlers under
+  `listeners/discord/interactions/buttons/shop/`.
 - Change channel permission optimization:
   Open `ChannelOptimizeCommand.java`, then `handlers/channels/ChannelPermissionOptimizer.java`, and finally `ChannelOptimizeApproveHandler.java`.
 - Change Oficina Dorme behavior:
@@ -103,6 +107,13 @@ Read this first, then open only the files relevant to the task.
   `/rob` rules live in `handlers/economy/RobberyCalculator.java`; it steals wallet only and fines bank on failure.
   `PolicyType.BLOCK_MONEY_GAINS` blocks automated money earnings only: Oficina chat money and UnbelievaBoat voice money.
   Do not apply it to explicit command rewards such as `/daily` and `/work`, or to giveaway prize claims.
+- Color roles:
+  `commands/impl/slash/colors/` keeps both the legacy `/color add/list/remove/status`
+  commands and the `/colors` Components V2 store. Store rendering lives in
+  `handlers/shop/ColorRoleStoreMessageFactory.java`; the first store click opens a
+  public confirmation message through `OpenColorRolePurchaseConfirmationHandler` or
+  `OpenColorRoleRemovalConfirmationHandler`, then the existing final purchase/removal
+  handlers perform the money and Discord role mutations.
 - Groups:
   `commands/impl/slash/groups/`, `listeners/discord/interactions/buttons/groups/`, `handlers/groups/`, `OficinaGroupRepository`
 - Marriage/relationships:
