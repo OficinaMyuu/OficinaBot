@@ -51,6 +51,8 @@ import ofc.bot.listeners.discord.interactions.buttons.pagination.reminders.Delet
 import ofc.bot.listeners.discord.interactions.buttons.pagination.reminders.RemindersPageUpdate;
 import ofc.bot.listeners.discord.interactions.buttons.shop.ColorRolePurchaseHandler;
 import ofc.bot.listeners.discord.interactions.buttons.shop.ColorRoleRemoveHandler;
+import ofc.bot.listeners.discord.interactions.buttons.shop.OpenColorRolePurchaseConfirmationHandler;
+import ofc.bot.listeners.discord.interactions.buttons.shop.OpenColorRoleRemovalConfirmationHandler;
 import ofc.bot.listeners.discord.interactions.buttons.tickets.CloseTicketHandler;
 import ofc.bot.listeners.discord.interactions.buttons.tickets.DownloadTicketMessagesHandler;
 import ofc.bot.listeners.discord.interactions.dm.DirectMessageReceived;
@@ -135,6 +137,7 @@ public final class EntityInitializerManager {
 
     public static void registerComposedInteractions() {
         var colorStateRepo = Repositories.getColorRoleStateRepository();
+        var colorItemRepo = Repositories.getColorRoleItemRepository();
         var betUsersRepo = Repositories.getGameParticipantRepository();
         var pnshRepo = Repositories.getMemberPunishmentRepository();
         var msgVrsRepo = Repositories.getMessageVersionRepository();
@@ -172,6 +175,8 @@ public final class EntityInitializerManager {
                 new TicketsPagination(msgVrsRepo),
 
                 // Shop
+                new OpenColorRolePurchaseConfirmationHandler(colorItemRepo, colorStateRepo),
+                new OpenColorRoleRemovalConfirmationHandler(colorStateRepo),
                 new ColorRolePurchaseHandler(colorStateRepo),
                 new ColorRoleRemoveHandler(colorStateRepo),
                 new ChannelOptimizeApproveHandler(),
