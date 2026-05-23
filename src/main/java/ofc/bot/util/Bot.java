@@ -506,7 +506,7 @@ public final class Bot {
         public static final Emoji DOWNLOAD = Emoji.fromUnicode("\uD83D\uDCBE");
         public static final Emoji WOLF = Emoji.fromUnicode("\uD83D\uDC3A");
         public static final Emoji PLAY = Emoji.fromUnicode("▶");
-        public static final Emoji MAFIA_ROLE = Emoji.fromUnicode("\uD83C\uDFAD");
         public static final Emoji TRASH = Emoji.fromUnicode("\uD83D\uDDD1");
+        public static final Emoji MONEY_BAG = Emoji.fromUnicode("\uD83D\uDCB0");
     }
 }
