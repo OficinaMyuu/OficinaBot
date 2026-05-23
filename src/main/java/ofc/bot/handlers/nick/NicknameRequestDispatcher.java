@@ -121,6 +121,7 @@ public class NicknameRequestDispatcher {
 
     public static void clearRequestComponents(Message message) {
         message.editMessageComponents(List.of())
+                .useComponentsV2(message.isUsingComponentsV2())
                 .queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
     }
 }

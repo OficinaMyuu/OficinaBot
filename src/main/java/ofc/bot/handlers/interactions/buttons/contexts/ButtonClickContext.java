@@ -41,7 +41,9 @@ public class ButtonClickContext extends InteractionSubmitContext<ButtonContext, 
         );
 
         MessageComponentTree updated = components.replace(replacer);
-        msg.editMessageComponents(updated).queue();
+        msg.editMessageComponents(updated)
+                .useComponentsV2(msg.isUsingComponentsV2())
+                .queue();
     }
 
     public void disableAll() {
@@ -51,19 +53,24 @@ public class ButtonClickContext extends InteractionSubmitContext<ButtonContext, 
         ComponentReplacer replacer = ComponentReplacer.of(Button.class, (b) -> true, Button::asDisabled);
 
         MessageComponentTree updated = components.replace(replacer);
-        msg.editMessageComponents(updated).queue();
+        msg.editMessageComponents(updated)
+                .useComponentsV2(msg.isUsingComponentsV2())
+                .queue();
     }
 
     public MessageEditAction editMessage(String content) {
-        return getMessage().editMessage(content);
+        Message msg = getMessage();
+        return msg.editMessage(content).useComponentsV2(msg.isUsingComponentsV2());
     }
 
     public final MessageEditAction editMessageEmbeds(MessageEmbed... embeds) {
-        return getMessage().editMessageEmbeds(embeds);
+        Message msg = getMessage();
+        return msg.editMessageEmbeds(embeds).useComponentsV2(msg.isUsingComponentsV2());
     }
 
     public MessageEditAction editMessageComponents(MessageTopLevelComponent... components) {
-        return getMessage().editMessageComponents(components);
+        Message msg = getMessage();
+        return msg.editMessageComponents(components).useComponentsV2(msg.isUsingComponentsV2());
     }
 
     public Message getMessage() {

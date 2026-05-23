@@ -23,10 +23,10 @@ class ColorRoleStoreMessageFactoryTest {
                 new ColorRoleStoreMessageFactory.Entry(20L, state(3000L), removeButton())
         ));
 
-        assertEquals(240116, container.getAccentColorRaw());
-        assertEquals("### Colors\nShows all available colors, their price and expiry date.",
+        assertEquals(-5618690, container.getAccentColorRaw());
+        assertEquals("### Cores\nMostra todas as cores disponíveis, o preço e a data de remoção.",
                 container.getComponents().getFirst().asTextDisplay().getContent());
-        assertEquals("Page 1/1", container.getComponents().getLast().asTextDisplay().getContent());
+        assertEquals("Pág 1/1", container.getComponents().getLast().asTextDisplay().getContent());
 
         Section available = container.getComponents().get(2).asSection();
         Section owned = container.getComponents().get(4).asSection();
@@ -35,7 +35,7 @@ class ColorRoleStoreMessageFactoryTest {
         assertEquals(ButtonStyle.SUCCESS, available.getAccessory().asButton().getStyle());
         assertEquals("500", available.getAccessory().asButton().getLabel());
 
-        assertEquals("**<@&20>**\n-# Expires at <t:3000>.", firstText(owned).getContent());
+        assertEquals("**<@&20>**\n-# Expira em <t:3000>.", firstText(owned).getContent());
         assertEquals(ButtonStyle.DANGER, owned.getAccessory().asButton().getStyle());
         assertEquals("250", owned.getAccessory().asButton().getLabel());
     }
