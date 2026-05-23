@@ -276,6 +276,7 @@ public final class EntityInitializerManager {
                 new ResourceAutocompletion(userRepo),
                 new SlashCommandsGateway(cmdRepo, appBanRepo),
                 new SoloChannelsHandler(),
+                new ToggleRankupPingsCommandHandler(usprefRepo, userRepo),
                 new SteamScamBlocker(),
                 new StudyRoleHandler(),
                 new UnbanTempBanCleaner(tmpBanRepo),
