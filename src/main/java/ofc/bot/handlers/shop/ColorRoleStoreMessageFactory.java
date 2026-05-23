@@ -7,12 +7,14 @@ import net.dv8tion.jda.api.components.section.Section;
 import net.dv8tion.jda.api.components.separator.Separator;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import ofc.bot.domain.entity.ColorRoleState;
+import ofc.bot.util.Bot;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class ColorRoleStoreMessageFactory {
-    private static final int ACCENT_COLOR = 240116;
+    private static final Color ACCENT_COLOR = Bot.Colors.DEFAULT;
 
     private ColorRoleStoreMessageFactory() {}
 
@@ -20,8 +22,8 @@ public final class ColorRoleStoreMessageFactory {
         List<ContainerChildComponent> components = new ArrayList<>();
 
         components.add(TextDisplay.of("""
-                ### Colors
-                Shows all available colors, their price and expiry date.
+                ### Cores
+                Mostra todas as cores disponíveis, o preço e a data de remoção.
                 """.strip()));
         components.add(divider());
 
@@ -30,7 +32,7 @@ public final class ColorRoleStoreMessageFactory {
             components.add(divider());
         }
 
-        components.add(TextDisplay.of("Page 1/1"));
+        components.add(TextDisplay.of("Pág 1/1"));
         return Container.of(components).withAccentColor(ACCENT_COLOR);
     }
 
@@ -44,7 +46,7 @@ public final class ColorRoleStoreMessageFactory {
             return String.format("**<@&%d>**", entry.roleId());
         }
 
-        return String.format("**<@&%d>**\n-# Expires at <t:%d>.", entry.roleId(), state.getExpiresAt());
+        return String.format("**<@&%d>**\n-# Expira em <t:%d>.", entry.roleId(), state.getExpiresAt());
     }
 
     private static Separator divider() {

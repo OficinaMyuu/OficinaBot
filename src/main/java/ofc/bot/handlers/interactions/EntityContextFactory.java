@@ -34,8 +34,6 @@ public final class EntityContextFactory {
     private static final Emoji GAME_EMOJI = Emoji.fromUnicode("🎮");
     private static final Emoji TRASH_EMOJI = Emoji.fromUnicode("🗑");
 
-    private static final Emoji SHOPPING_BAGS_EMOJI = Emoji.fromUnicode("\uD83D\uDECD\uFE0F");
-
     private EntityContextFactory() {}
 
     /* -------------------- Buttons -------------------- */
@@ -302,7 +300,7 @@ public final class EntityContextFactory {
     }
 
     public static Button createColorRoleStorePurchaseButton(ColorRoleItem color, Role role, User user) {
-        ButtonContext confirm = ButtonContext.success(Bot.fmtNum(color.getPrice()), SHOPPING_BAGS_EMOJI)
+        ButtonContext confirm = ButtonContext.success(Bot.fmtNum(color.getPrice()), Bot.Emojis.MONEY_BAG)
                 .setScope(Scopes.Shop.OPEN_COLOR_ROLE_PURCHASE_CONFIRMATION)
                 .addUser(user.getIdLong())
                 .put("user", user)

@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -44,9 +45,10 @@ public class ColorsCommand extends SlashCommand {
                 .filter(state -> state.getGuildId() == guildId)
                 .collect(Collectors.toMap(ColorRoleState::getRoleId, Function.identity(), (first, ignored) -> first));
 
-        List<ColorRoleStoreMessageFactory.Entry> entries = colorItemRepo.findAll().stream()
+        List<ColorRoleStoreMessageFactory.Entry> entries = colorItemRepo.findAll()
+                .stream()
                 .map(color -> toEntry(guild, user, states, color))
-                .filter(entry -> entry != null)
+                .filter(Objects::nonNull)
                 .toList();
 
         if (entries.isEmpty()) {
