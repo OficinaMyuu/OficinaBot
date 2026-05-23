@@ -2,7 +2,6 @@ package ofc.bot.handlers;
 
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.internal.utils.Checks;
@@ -65,10 +64,8 @@ public final class LevelManager {
         TextChannel chan = Channels.LEVEL_UP.textChannel();
         if (chan != null) {
             boolean shouldPing = prefRepo.isRankupPingsEnabled(userId);
-            String userView = shouldPing ? member.getAsMention() : member.getEffectiveName();
-
-            chan.sendMessageFormat("%s avançou para o nível %d!", userView, currLevel)
-                    .setAllowedMentions(shouldPing ? List.of(Message.MentionType.USER) : List.of())
+            chan.sendMessageFormat("%s avançou para o nível %d!", member.getAsMention(), currLevel)
+                    .setAllowedMentions(shouldPing ? null : List.of())
                     .queue();
         }
 
