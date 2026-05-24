@@ -37,3 +37,28 @@ content/*.json
 # Confidential directories/files
 target/
 .m2/
+
+# Go/backend local files
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+.env
+
+# IDE/project metadata
+*.iws
+*.iml
+*.ipr
+.classpath
+.factorypath
+.project
+.settings/
+.sts4-cache/
+build/
+dist/
+.DS_Store
