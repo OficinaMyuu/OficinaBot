@@ -1,0 +1,56 @@
+name: Build and Deploy Oficina Registrar
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - ".github/workflows/deploy-registrar.yml"
+      - "registrar/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: registrar
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Verify that bot.jar exists
+        run: ls -lh target/bot.jar
+
+      - name: Install lftp
+        working-directory: .
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Upload bot.jar via SFTP using lftp
+        run: |
+          lftp -e "
+          set sftp:connect-program 'ssh -a -x -p ${{ secrets.SFTP_REGISTRY_PORT }}';
+          set sftp:auto-confirm yes;
+          set ssl:verify-certificate no;
+          open -u ${{ secrets.SFTP_REGISTRY_USER }},${{ secrets.SFTP_REGISTRY_PASS }} sftp://${{ secrets.SFTP_REGISTRY_HOST }};
+          put target/bot.jar;
+          bye
+          "
+
+      - name: Restart Pterodactyl Server
+        working-directory: .
+        run: |
+          curl -X POST "https://painel.hostsquare.com.br/api/client/servers/${{ secrets.PTERO_REGISTRY_SERVER_ID }}/power" \
+          -H "Accept: application/vnd.pterodactyl.v1+json" \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.PTERO_API_KEY }}" \
+          -d '{"signal": "restart"}'
