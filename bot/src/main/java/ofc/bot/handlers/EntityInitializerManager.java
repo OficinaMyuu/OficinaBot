@@ -1,0 +1,293 @@
+package ofc.bot.handlers;
+
+import net.dv8tion.jda.api.JDA;
+import ofc.bot.Main;
+import ofc.bot.commands.impl.slash.groups.LeaveGroupCommand;
+import ofc.bot.commands.impl.slash.tickets.MergeTicketCommand;
+import ofc.bot.domain.sqlite.repository.Repositories;
+import ofc.bot.handlers.cache.PolicyService;
+import ofc.bot.handlers.giveaway.GiveawayServices;
+import ofc.bot.handlers.interactions.InteractionMemoryManager;
+import ofc.bot.handlers.interactions.buttons.ButtonInteractionGateway;
+import ofc.bot.handlers.interactions.commands.SlashCommandsGateway;
+import ofc.bot.handlers.interactions.commands.slash.CommandsInitializer;
+import ofc.bot.handlers.interactions.modals.ModalInteractionGateway;
+import ofc.bot.handlers.nick.NicknameEmojiPolicy;
+import ofc.bot.handlers.nick.NicknameRequestDispatcher;
+import ofc.bot.jobs.*;
+import ofc.bot.jobs.groups.LateGroupsChecker;
+import ofc.bot.jobs.income.VoiceChatMoneyHandler;
+import ofc.bot.jobs.income.VoiceXPHandler;
+import ofc.bot.jobs.roles.ExpiredBackupsRemover;
+import ofc.bot.jobs.weekdays.SadMonday;
+import ofc.bot.jobs.weekdays.SadSunday;
+import ofc.bot.listeners.discord.economy.ChatMoneyHandler;
+import ofc.bot.listeners.discord.guilds.BlockDumbCommands;
+import ofc.bot.listeners.discord.guilds.UnbanTempBanCleaner;
+import ofc.bot.listeners.discord.guilds.mafia.MafiaLifecycleListener;
+import ofc.bot.listeners.discord.guilds.members.MemberJoinUpsert;
+import ofc.bot.listeners.discord.guilds.messages.*;
+import ofc.bot.listeners.discord.guilds.reactionroles.BotChangelogRoleHandler;
+import ofc.bot.listeners.discord.guilds.reactionroles.StudyRoleHandler;
+import ofc.bot.listeners.discord.guilds.roles.MemberRolesBackup;
+import ofc.bot.listeners.discord.guilds.voice.GiveawayVoiceConditionListener;
+import ofc.bot.listeners.discord.guilds.voice.solo.SoloChannelsHandler;
+import ofc.bot.listeners.discord.interactions.GenericInteractionLocaleUpsert;
+import ofc.bot.listeners.discord.interactions.autocomplete.*;
+import ofc.bot.listeners.discord.interactions.buttons.WorkReminderHandler;
+import ofc.bot.listeners.discord.interactions.buttons.bets.TicTacToeAcceptHandler;
+import ofc.bot.listeners.discord.interactions.buttons.channels.ChannelOptimizeApproveHandler;
+import ofc.bot.listeners.discord.interactions.buttons.giveaway.GiveawayInteractionListener;
+import ofc.bot.listeners.discord.interactions.buttons.groups.*;
+import ofc.bot.listeners.discord.interactions.buttons.mafia.MafiaInteractionListener;
+import ofc.bot.listeners.discord.interactions.buttons.nick.NicknameApprovalButtonListener;
+import ofc.bot.listeners.discord.interactions.buttons.nick.NicknameSendAnywayHandler;
+import ofc.bot.listeners.discord.interactions.buttons.pagination.*;
+import ofc.bot.listeners.discord.interactions.buttons.pagination.infractions.DeleteInfraction;
+import ofc.bot.listeners.discord.interactions.buttons.pagination.infractions.InfractionsPageUpdate;
+import ofc.bot.listeners.discord.interactions.buttons.pagination.reminders.DeleteReminder;
+import ofc.bot.listeners.discord.interactions.buttons.pagination.reminders.RemindersPageUpdate;
+import ofc.bot.listeners.discord.interactions.buttons.shop.ColorRolePurchaseHandler;
+import ofc.bot.listeners.discord.interactions.buttons.shop.ColorRoleRemoveHandler;
+import ofc.bot.listeners.discord.interactions.buttons.shop.OpenColorRolePurchaseConfirmationHandler;
+import ofc.bot.listeners.discord.interactions.buttons.shop.OpenColorRoleRemovalConfirmationHandler;
+import ofc.bot.listeners.discord.interactions.buttons.tickets.CloseTicketHandler;
+import ofc.bot.listeners.discord.interactions.buttons.tickets.DownloadTicketMessagesHandler;
+import ofc.bot.listeners.discord.interactions.dm.DirectMessageReceived;
+import ofc.bot.listeners.discord.interactions.menus.ChoosableRolesListener;
+import ofc.bot.listeners.discord.interactions.modals.ChoosableRolesHandler;
+import ofc.bot.listeners.discord.interactions.modals.giveaway.GiveawayPrizeModalHandler;
+import ofc.bot.listeners.discord.interactions.modals.tickets.TicketClosureHandler;
+import ofc.bot.listeners.discord.interactions.modals.tickets.TicketCreationHandler;
+import ofc.bot.listeners.discord.logs.VoiceActivity;
+import ofc.bot.listeners.discord.logs.messages.*;
+import ofc.bot.listeners.discord.logs.moderation.LogTimeout;
+import ofc.bot.listeners.discord.logs.moderation.automod.AutoModLogger;
+import ofc.bot.listeners.discord.logs.names.MemberNickUpdateLogger;
+import ofc.bot.listeners.discord.logs.names.UserGlobalNameUpdateLogger;
+import ofc.bot.listeners.discord.logs.names.UserNameUpdateLogger;
+import ofc.bot.listeners.discord.moderation.AutoModerator;
+import ofc.bot.util.GroupHelper;
+import org.quartz.SchedulerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * This is an utility class to register/initialize commands,
+ * listeners, jobs, services, etc.
+ * <p>
+ * For {@link ofc.bot.util.content.annotations.jobs.CronJob CronJob}
+ * classes, they are instantiated through the default constructor,
+ * as {@code new Class()}.
+ */
+public final class EntityInitializerManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EntityInitializerManager.class);
+
+    /**
+     * This method is just a way to streamline the process of instantiating
+     * Slash Commands.
+     * <p>
+     * The operation is delegated to the default initializer, at
+     * {@link CommandsInitializer#initializeSlashCommands()}.
+     */
+    public static void registerSlashCommands() {
+        CommandsInitializer.initializeSlashCommands();
+    }
+
+    public static void initializeCronJobs() {
+        try {
+            SchedulerRegistryManager.initializeSchedulers(
+                    new ExpiredBackupsRemover(),
+                    new SadMonday(),
+                    new SadSunday(),
+                    new BirthdayReminder(),
+                    new ColorRoleRemotionHandler(),
+                    new ExpiredBanHandler(),
+                    new HappyNewYearAnnouncement(),
+                    new GiveawayEndHandler(),
+                    new QueryCountPrinter(),
+                    new RemindersHandler(),
+                    new VoiceHeartbeatCounter(),
+
+                    // Voice Income
+                    new VoiceChatMoneyHandler(),
+                    new VoiceXPHandler(),
+
+                    // Groups
+                    new LateGroupsChecker()
+
+                    // Nicks
+                    // new NickTimeUpdate()
+            );
+            SchedulerRegistryManager.start();
+        } catch (SchedulerException e) {
+            LOGGER.error("Could not initialize schedulers", e);
+        }
+    }
+
+    public static void initServices() {
+        var policyRepo  = Repositories.getEntityPolicyRepository();
+        var grpPerkRepo = Repositories.getGroupPerkRepository();
+
+        PolicyService.setPolicyRepo(policyRepo);
+        GroupHelper.setRepositories(grpPerkRepo);
+    }
+
+    public static void registerComposedInteractions() {
+        var colorStateRepo = Repositories.getColorRoleStateRepository();
+        var colorItemRepo = Repositories.getColorRoleItemRepository();
+        var betUsersRepo = Repositories.getGameParticipantRepository();
+        var pnshRepo = Repositories.getMemberPunishmentRepository();
+        var msgVrsRepo = Repositories.getMessageVersionRepository();
+        var nickReqRepo = Repositories.getNicknameUpdateRequestRepository();
+        var mreqRepo = Repositories.getMarriageRequestRepository();
+        var namesRepo = Repositories.getUserNameUpdateRepository();
+        var ticketRepo = Repositories.getSupportTicketRepository();
+        var giveawayRepo = Repositories.getGiveawayRepository();
+        var policyRepo = Repositories.getEntityPolicyRepository();
+        var appBanRepo = Repositories.getAppUserBanRepository();
+        var grpRepo = Repositories.getOficinaGroupRepository();
+        var ecoRepo = Repositories.getUserEconomyRepository();
+        var perkRepo = Repositories.getGroupPerkRepository();
+        var bdayRepo = Repositories.getBirthdayRepository();
+        var remRepo = Repositories.getReminderRepository();
+        var betRepo = Repositories.getBetGameRepository();
+        var userRepo = Repositories.getUserRepository();
+        var xpRepo = Repositories.getUserXPRepository();
+
+        InteractionMemoryManager.getManager().registerListeners(
+                // Infractions
+                new DeleteInfraction(pnshRepo),
+                new InfractionsPageUpdate(),
+
+                // Reminders
+                new DeleteReminder(remRepo),
+                new RemindersPageUpdate(),
+
+                // Pagination
+                new BirthdayPageUpdate(bdayRepo),
+                new LeaderboardOffsetUpdate(),
+                new LevelsPageUpdate(xpRepo),
+                new NamesPageUpdate(namesRepo),
+                new ProposalListPagination(mreqRepo),
+                new TicketsPagination(msgVrsRepo),
+
+                // Shop
+                new OpenColorRolePurchaseConfirmationHandler(colorItemRepo, colorStateRepo),
+                new OpenColorRoleRemovalConfirmationHandler(colorStateRepo),
+                new ColorRolePurchaseHandler(colorStateRepo),
+                new ColorRoleRemoveHandler(colorStateRepo),
+                new ChannelOptimizeApproveHandler(),
+                new NicknameSendAnywayHandler(new NicknameRequestDispatcher(nickReqRepo)),
+
+                // Groups' commands confirmation handlers
+                new GroupBotAddHandler(),
+                new GroupChannelCreationHandler(grpRepo),
+                new GroupCreationHandler(grpRepo),
+                new GroupMemberAddHandler(perkRepo),
+                new GroupMemberRemoveHandler(),
+                new GroupPermissionAddHandler(policyRepo),
+                new GroupPinsHandler(),
+                new GroupUpdateHandler(grpRepo),
+
+                // Bets
+                new TicTacToeAcceptHandler(ecoRepo, betRepo, betUsersRepo, appBanRepo),
+
+                // Tickets
+                new TicketCreationHandler(ticketRepo),
+                new TicketClosureHandler(ticketRepo),
+                new DownloadTicketMessagesHandler(msgVrsRepo, userRepo),
+
+                // Generic
+                new ChoosableRolesHandler(),
+                new GiveawayPrizeModalHandler(giveawayRepo)
+        );
+    }
+
+    public static void registerListeners() {
+        registerDiscordListeners();
+    }
+
+    private static void registerDiscordListeners() {
+        JDA api = Main.getApi();
+        var msgTrscptRepo = Repositories.getMessageTranscriptionRepository();
+        var rolesRepo = Repositories.getFormerMemberRoleRepository();
+        var pnshRepo = Repositories.getMemberPunishmentRepository();
+        var usprefRepo = Repositories.getUserPreferenceRepository();
+        var mentionLogRepo = Repositories.getMentionLogRepository();
+        var blckWordsRepo = Repositories.getBlockedWordRepository();
+        var msgVrsRepo = Repositories.getMessageVersionRepository();
+        var nickReqRepo = Repositories.getNicknameUpdateRequestRepository();
+        var welcomedRepo = Repositories.getWelcomedUserRepository();
+        var namesRepo = Repositories.getUserNameUpdateRepository();
+        var modActRepo = Repositories.getAutomodActionRepository();
+        var ticketRepo = Repositories.getSupportTicketRepository();
+        var cmdRepo = Repositories.getCommandHistoryRepository();
+        var appBanRepo = Repositories.getAppUserBanRepository();
+        var grpRepo = Repositories.getOficinaGroupRepository();
+        var ecoRepo = Repositories.getUserEconomyRepository();
+        var emojiPermRepo = Repositories.getUserEmojiPermissionRepository();
+        var grpBotRepo = Repositories.getGroupBotRepository();
+        var memberEmojiRepo = Repositories.getMemberEmojiRepository();
+        var tmpBanRepo = Repositories.getTempBanRepository();
+        var xpRepo = Repositories.getUserXPRepository();
+        var userRepo = Repositories.getUserRepository();
+        var giveawayService = GiveawayServices.create();
+
+        api.addEventListener(
+                new AutoModerator(blckWordsRepo, pnshRepo, modActRepo, ticketRepo),
+                new AutoModLogger(),
+                new BlockDumbCommands(),
+                new BotChangelogRoleHandler(),
+                new ButtonInteractionGateway(appBanRepo),
+                new ChatMoneyHandler(ecoRepo),
+                new ChoosableRolesListener(),
+                new CloseTicketHandler(),
+                new CoinflipInferenceHandler(),
+                new DirectMessageReceived(),
+                new ErikPingReactionHelper(),
+                new GenericInteractionLocaleUpsert(usprefRepo),
+                new GiveawayInteractionListener(giveawayService),
+                new GiveawayVoiceConditionListener(giveawayService),
+                new GroupBotAutocompletion(grpBotRepo),
+                new InfractionsAutocompletion(pnshRepo),
+                new LeaveGroupCommand.FakePISuggester(),
+                new LogTimeout(),
+                new LorittaDailySpamBlocker(),
+                new MafiaLifecycleListener(),
+                new MafiaInteractionListener(),
+                new MentionLoggerHandler(mentionLogRepo),
+                new MemberJoinUpsert(),
+                new MemberNickUpdateLogger(namesRepo, userRepo),
+                new MemberRolesBackup(rolesRepo, xpRepo),
+                new MergeTicketCommand.TicketMergeAutocompletionHandler(ticketRepo),
+                new ModalInteractionGateway(),
+                new MessageBulkDeleteLogger(msgVrsRepo),
+                new MessageCreatedLogger(msgVrsRepo),
+                new MessageDeletedLogger(msgVrsRepo),
+                new MessageReferenceIndicator(),
+                new MessageTranscriptionsHandler(msgTrscptRepo, appBanRepo),
+                new MessageUpdatedLogger(msgVrsRepo),
+                new NicknameApprovalButtonListener(nickReqRepo),
+                new NicknameUpdateRequestGuard(new NicknameEmojiPolicy(memberEmojiRepo, emojiPermRepo)),
+                new OficinaGroupAutocompletion(grpRepo),
+                new OutageCommandsDisclaimer(),
+                new ResourceAutocompletion(userRepo),
+                new SlashCommandsGateway(cmdRepo, appBanRepo),
+                new SoloChannelsHandler(),
+                new ToggleRankupPingsCommandHandler(usprefRepo, userRepo),
+                new SteamScamBlocker(),
+                new StudyRoleHandler(),
+                new UnbanTempBanCleaner(tmpBanRepo),
+                new UserGlobalNameUpdateLogger(namesRepo, userRepo),
+                new UserNameUpdateLogger(namesRepo, userRepo),
+                new UsersXPHandler(),
+                new VoiceActivity(),
+                new VoiceDisconnector(),
+                new WasWelcomedCommandHandler(welcomedRepo, userRepo),
+                new WasWelcomedCommandHandler.WasWelcomedCleanupHandler(),
+                new WelcomeCommandHandler(welcomedRepo),
+                new WorkReminderHandler()
+        );
+    }
+}

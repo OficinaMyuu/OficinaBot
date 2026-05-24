@@ -1,28 +1,28 @@
-name: Build and Deploy Oficina Bot
+name: Build and Deploy Oficina Registrar
 
 on:
   workflow_dispatch:
   push:
     branches: [ "main" ]
     paths:
-      - ".github/workflows/deploy.yml"
-      - "bot/**"
+      - ".github/workflows/deploy-registrar.yml"
+      - "registrar/**"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: bot
+        working-directory: registrar
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Java 21
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'temurin'
 
       - name: Build with Maven
@@ -38,10 +38,10 @@ jobs:
       - name: Upload bot.jar via SFTP using lftp
         run: |
           lftp -e "
-          set sftp:connect-program 'ssh -a -x -p ${{ secrets.SFTP_OFICINA_PORT }}';
+          set sftp:connect-program 'ssh -a -x -p ${{ secrets.SFTP_REGISTRY_PORT }}';
           set sftp:auto-confirm yes;
           set ssl:verify-certificate no;
-          open -u ${{ secrets.SFTP_OFICINA_USER }},${{ secrets.SFTP_OFICINA_PASS }} sftp://${{ secrets.SFTP_OFICINA_HOST }};
+          open -u ${{ secrets.SFTP_REGISTRY_USER }},${{ secrets.SFTP_REGISTRY_PASS }} sftp://${{ secrets.SFTP_REGISTRY_HOST }};
           put target/bot.jar;
           bye
           "
@@ -49,7 +49,7 @@ jobs:
       - name: Restart Pterodactyl Server
         working-directory: .
         run: |
-          curl -X POST "https://painel.hostsquare.com.br/api/client/servers/${{ secrets.PTERO_OFICINA_SERVER_ID }}/power" \
+          curl -X POST "https://painel.hostsquare.com.br/api/client/servers/${{ secrets.PTERO_REGISTRY_SERVER_ID }}/power" \
           -H "Accept: application/vnd.pterodactyl.v1+json" \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer ${{ secrets.PTERO_API_KEY }}" \
