@@ -35,7 +35,7 @@ class ColorRoleStoreMessageFactoryTest {
         assertEquals(ButtonStyle.SUCCESS, available.getAccessory().asButton().getStyle());
         assertEquals("500", available.getAccessory().asButton().getLabel());
 
-        assertEquals("**<@&20>**\n-# Expira em <t:3000>.", firstText(owned).getContent());
+        assertEquals("**<@&20>**\n-# Expira em <t:3000:D>.", firstText(owned).getContent());
         assertEquals(ButtonStyle.DANGER, owned.getAccessory().asButton().getStyle());
         assertEquals("250", owned.getAccessory().asButton().getLabel());
     }
