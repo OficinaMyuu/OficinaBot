@@ -1,0 +1,77 @@
+name: CodeQL
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/codeql.yml"
+      - "backend/**"
+      - "bot/**"
+      - "registrar/**"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/codeql.yml"
+      - "backend/**"
+      - "bot/**"
+      - "registrar/**"
+  schedule:
+    - cron: "31 3 * * 1"
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["java-kotlin", "go"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "maven"
+
+      - name: Set up Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "backend/cmd/go.mod"
+          cache-dependency-path: "backend/cmd/go.sum"
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: manual
+
+      - name: Build Java services
+        if: matrix.language == 'java-kotlin'
+        run: |
+          mvn -B -DskipTests package --file bot/pom.xml
+          mvn -B -DskipTests package --file registrar/pom.xml
+
+      - name: Build Go backend
+        if: matrix.language == 'go'
+        working-directory: backend/cmd
+        run: go build ./...
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"

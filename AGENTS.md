@@ -83,6 +83,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 ## Deployments
 - Bot deploy workflow: `.github/workflows/deploy.yml`.
 - Registrar deploy workflow: `.github/workflows/deploy-registrar.yml`.
+- CodeQL workflow: `.github/workflows/codeql.yml`; scans Java/Kotlin and Go with explicit monorepo build steps.
 - Backend deployment is intentionally not wired at the mono-repo root yet.
 - Bot deployment secrets are service-scoped with the `OFICINA` segment, such as `SFTP_OFICINA_HOST` and `PTERO_OFICINA_SERVER_ID`.
 - Registrar deployment secrets are service-scoped with the `REGISTRY` segment, such as `SFTP_REGISTRY_HOST` and `PTERO_REGISTRY_SERVER_ID`.
