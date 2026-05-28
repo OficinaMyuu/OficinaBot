@@ -1,6 +1,6 @@
 services:
   api:
-    image: ghcr.io/kileo13/oficinaservices/oficina-backend:latest
+    image: ghcr.io/kileo13/oficina-backend:latest
     container_name: oficina-backend
     restart: unless-stopped
     ports:
