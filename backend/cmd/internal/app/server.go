@@ -67,7 +67,7 @@ func NewServer(cfg Config) (*Server, error) {
 	registerMiddleware(e, cfg)
 	authService := newAuthService(cfg, db)
 	serviceAuthenticator := auth.NewServiceAuthenticator(repository.NewBotClientRepository(db.Gorm))
-	registerRoutes(e, cfg, cardRenderer, authService, serviceAuthenticator)
+	registerRoutes(e, cfg, db, cardRenderer, authService, serviceAuthenticator)
 	return &Server{
 		Echo:         e,
 		database:     db,
@@ -133,7 +133,7 @@ func ignoreServerClosed(err error) error {
 	return err
 }
 
-func registerRoutes(e *echo.Echo, cfg Config, cardRenderer routes.CardRenderer, authService *auth.Service, serviceAuthenticator *auth.ServiceAuthenticator) {
+func registerRoutes(e *echo.Echo, cfg Config, db *database.Database, cardRenderer routes.CardRenderer, authService *auth.Service, serviceAuthenticator *auth.ServiceAuthenticator) {
 	e.Static("/static", "./static")
 
 	cardHandler := routes.NewCardHandler(cardRenderer)
@@ -141,6 +141,25 @@ func registerRoutes(e *echo.Echo, cfg Config, cardRenderer routes.CardRenderer, 
 	authHandler := routes.NewAuthHandler(authService, authCookieConfig(cfg))
 	adminHandler := routes.NewAdminHandler(authService, authCookieConfig(cfg))
 	serviceHandler := routes.NewServiceHandler()
+	batchRepo := repository.NewEventBatchRepository(db.Gorm)
+	messageLogRepo := repository.NewMessageLogRepository(db.Gorm)
+	punishmentRepo := repository.NewPunishmentRepository(db.Gorm)
+	registrationRepo := repository.NewRegistrationRepository(db.Gorm)
+	heartbeatRepo := repository.NewSyncHeartbeatRepository(db.Gorm)
+	configRepo := repository.NewConfigVersionRepository(db.Gorm)
+	auditRepo := repository.NewAuditActionRepository(db.Gorm)
+	ingestHandler := routes.NewIngestHandler(batchRepo, messageLogRepo, punishmentRepo, registrationRepo, heartbeatRepo)
+	dashboardHandler := routes.NewDashboardHandler(
+		authService,
+		authCookieConfig(cfg),
+		messageLogRepo,
+		punishmentRepo,
+		registrationRepo,
+		heartbeatRepo,
+		auditRepo,
+	)
+	configHandler := routes.NewConfigHandler(authService, authCookieConfig(cfg), configRepo, auditRepo)
+	configSyncHandler := routes.NewConfigSyncHandler(configRepo)
 
 	e.POST("/api/levels/cards", cardHandler.GetLevelCard)
 	e.POST("/api/levels/roles", cardHandler.GetLevelsRoles)
@@ -155,8 +174,22 @@ func registerRoutes(e *echo.Echo, cfg Config, cardRenderer routes.CardRenderer, 
 	e.POST("/api/admin/users", adminHandler.AddUser, csrfMiddleware(cfg))
 	e.DELETE("/api/admin/users/:discord_id", adminHandler.RemoveUser, csrfMiddleware(cfg))
 
+	e.GET("/api/dashboard/message-logs", dashboardHandler.MessageLogs)
+	e.GET("/api/dashboard/punishments", dashboardHandler.Punishments)
+	e.GET("/api/dashboard/registrations", dashboardHandler.Registrations)
+	e.GET("/api/dashboard/sync-health", dashboardHandler.SyncHealth)
+	e.GET("/api/dashboard/audit-actions", dashboardHandler.AuditActions)
+	e.GET("/api/dashboard/configs", configHandler.ListConfigs)
+	e.POST("/api/dashboard/configs", configHandler.CreateConfig, csrfMiddleware(cfg))
+
 	serviceGroup := e.Group("/api/service", routes.ServiceAuthMiddleware(serviceAuthenticator))
 	serviceGroup.GET("/me", serviceHandler.Me)
+	serviceGroup.POST("/batches/message-logs", ingestHandler.MessageLogs)
+	serviceGroup.POST("/batches/punishments", ingestHandler.Punishments)
+	serviceGroup.POST("/batches/registrations", ingestHandler.Registrations)
+	serviceGroup.POST("/sync-heartbeat", ingestHandler.SyncHeartbeat)
+	serviceGroup.GET("/configs/pending", configSyncHandler.Pending)
+	serviceGroup.POST("/configs/:version_id/ack", configSyncHandler.Ack)
 }
 
 func csrfMiddleware(cfg Config) echo.MiddlewareFunc {
