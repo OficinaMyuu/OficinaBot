@@ -93,9 +93,14 @@ Approval and rejection buttons use IDs prefixed with `nick-`, so the durable lis
 `ThrottledAction<T>` is a generic latest-value coalescer. Each `post(T)` replaces the pending value, and the scheduled flush runs only the latest value for that interval. It owns a scheduler and exposes `shutdown()`/`close()` so long-lived features can release it when the related workflow ends.
 
 ## Backend Boot Flow
-The backend entrypoint loads configuration, creates a signal-aware root context, builds the application server through `backend/cmd/internal/app`, and starts Echo through `Server.Start`. The app package owns Playwright installation/startup, route registration, and graceful shutdown. `Server.Close` explicitly releases the card renderer browser and Playwright runtime.
+The backend entrypoint loads configuration, creates a signal-aware root context, builds the application server through `backend/cmd/internal/app`, and starts Echo through `Server.Start`. The app package owns SQLite startup/migrations, Playwright installation/startup, route registration, and graceful shutdown. `Server.Close` explicitly releases the database handle, card renderer browser, and Playwright runtime.
 
 HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, and the external video route uses an injected downloader. This keeps route behavior testable without launching Playwright or shelling out to `yt-dlp`.
+
+## Backend Persistence
+The backend uses SQLite with WAL mode and embedded goose migrations. The default database path is `./data/oficina-services.db` relative to the backend process, and `DATABASE_PATH` can override it for deployment. Startup opens the database, enables foreign keys, WAL, busy timeout, and normal synchronous mode, then applies migrations before HTTP routes start.
+
+The repository layer uses GORM models mapped to migration-owned tables. Current persistence tables cover admin users, bot clients, event batches, message logs, punishments, config versions, config acknowledgements, and audit actions. Tests for persistence use real temporary SQLite databases with migrations applied, not mocks.
 
 ## History Preservation
 This mono-repo was assembled with history-preserving subtree imports:

@@ -23,7 +23,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot repository locator: `bot/src/main/java/ofc/bot/domain/sqlite/repository/Repositories.java`
 - Bot file/bootstrap paths: `bot/src/main/java/ofc/bot/internal/data/BotFiles.java`
 - Bot DB-backed config lookup: `bot/src/main/java/ofc/bot/internal/data/BotProperties.java`
-- Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; routes live under `backend/cmd/internal/routes/`.
+- Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; persistence lives under `backend/cmd/internal/database/` and `backend/cmd/internal/repository/`; routes live under `backend/cmd/internal/routes/`.
 - Registrar entrypoint: `registrar/src/main/java/ofc/bot/RegisterMaster.java`.
 
 ## Bot Project Snapshot
@@ -78,6 +78,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot package: run `mvn clean package` from `bot/`.
 - Registrar package: run `mvn clean package` from `registrar/`.
 - Backend tests: run `go test ./...` from `backend/cmd/`.
+- Backend DB tests use real temporary SQLite files and apply embedded goose migrations.
 - For doc-only changes, a file review is enough.
 
 ## Deployments
@@ -85,6 +86,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Registrar deploy workflow: `.github/workflows/deploy-registrar.yml`.
 - CodeQL workflow: `.github/workflows/codeql.yml`; scans Java/Kotlin and Go with explicit monorepo build steps.
 - Backend deployment is intentionally not wired at the mono-repo root yet.
+- Backend persistence defaults to `backend/cmd/data/oficina-services.db` when run from `backend/cmd/`; override with `DATABASE_PATH`.
 - Bot deployment secrets are service-scoped with the `OFICINA` segment, such as `SFTP_OFICINA_HOST` and `PTERO_OFICINA_SERVER_ID`.
 - Registrar deployment secrets are service-scoped with the `REGISTRY` segment, such as `SFTP_REGISTRY_HOST` and `PTERO_REGISTRY_SERVER_ID`.
 - `PTERO_API_KEY` remains shared unless a future deployment split requires service-specific API keys.

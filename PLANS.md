@@ -32,7 +32,7 @@ Build an admin dashboard for OficinaServices with:
 
    - Add SQLite database initialization with WAL mode.
    - Add migrations using `pressly/goose`.
-   - Add repository interfaces and implementations around `database/sql`.
+   - Add repository interfaces and implementations using GORM on top of SQLite.
    - Create tables for admin users, bot clients, ingested event batches, message logs, punishments, config versions, config acknowledgements, and audit actions.
 
 3. Add admin authentication.
