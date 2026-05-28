@@ -161,6 +161,46 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, page
               >
                 <span style={{ color: 'var(--color-secondary)', opacity: 0.8 }}>#</span> punishments
               </Link>
+              <Link
+                to="/registrations"
+                activeProps={{
+                  style: { backgroundColor: 'var(--bg-hover)', color: 'var(--text-primary)' },
+                }}
+                inactiveProps={{ style: { color: 'var(--text-secondary)' } }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  textDecoration: 'none',
+                  fontSize: '14px',
+                  transition: 'all 0.2s',
+                  fontWeight: '500',
+                }}
+              >
+                <span style={{ color: 'var(--color-secondary)', opacity: 0.8 }}>#</span> member-registrations
+              </Link>
+              <Link
+                to="/config"
+                activeProps={{
+                  style: { backgroundColor: 'var(--bg-hover)', color: 'var(--text-primary)' },
+                }}
+                inactiveProps={{ style: { color: 'var(--text-secondary)' } }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  textDecoration: 'none',
+                  fontSize: '14px',
+                  transition: 'all 0.2s',
+                  fontWeight: '500',
+                }}
+              >
+                <span style={{ color: 'var(--color-secondary)', opacity: 0.8 }}>#</span> automod-config
+              </Link>
 
               {/* Owner-only Admin Management Link */}
               {user?.isOwner && (
