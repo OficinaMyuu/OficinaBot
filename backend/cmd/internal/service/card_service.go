@@ -11,8 +11,6 @@ import (
 
 var (
 	levelCardViewport = &playwright.Size{Width: 934, Height: 282}
-	pw                *playwright.Playwright
-	chromium          playwright.Browser
 )
 
 const (
@@ -23,13 +21,21 @@ const (
 	LevelsRolesRowPath = "./static/templates/levels/roles/role_row.html"
 )
 
-func InitializePlaywrightService(playwright *playwright.Playwright) {
-	pw = playwright
-	browser, err := pw.Chromium.Launch(getLaunchOptions())
+type CardRenderer struct {
+	browser playwright.Browser
+}
+
+func NewCardRenderer(playwright *playwright.Playwright) (*CardRenderer, error) {
+	browser, err := playwright.Chromium.Launch(getLaunchOptions())
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	chromium = browser
+
+	return &CardRenderer{browser: browser}, nil
+}
+
+func (r *CardRenderer) Close() error {
+	return r.browser.Close()
 }
 
 var OnlineColors = map[string]*Color{
@@ -68,7 +74,7 @@ type LevelsRolesData struct {
 	BackgroundColor int             `json:"background_color"`
 }
 
-func GenerateLevelCard(ld *LevelDataDTO) ([]byte, *APIError) {
+func (r *CardRenderer) GenerateLevelCard(ld *LevelDataDTO) ([]byte, *APIError) {
 	if err := checkLevelData(ld); err != nil {
 		return nil, err
 	}
@@ -79,7 +85,7 @@ func GenerateLevelCard(ld *LevelDataDTO) ([]byte, *APIError) {
 		return nil, err
 	}
 
-	page, perr := chromium.NewPage(getPageOptions(levelCardViewport))
+	page, perr := r.browser.NewPage(getPageOptions(levelCardViewport))
 	if perr != nil {
 		fmt.Printf("Could not create page\n%s", perr)
 		return nil, ErrorInternalServer
@@ -99,7 +105,7 @@ func GenerateLevelCard(ld *LevelDataDTO) ([]byte, *APIError) {
 	return img, nil
 }
 
-func GenerateLevelsRoles(lrd *LevelsRolesData) ([]byte, *APIError) {
+func (r *CardRenderer) GenerateLevelsRoles(lrd *LevelsRolesData) ([]byte, *APIError) {
 	if err := checkLevelRoles(lrd); err != nil {
 		return nil, err
 	}
@@ -109,7 +115,7 @@ func GenerateLevelsRoles(lrd *LevelsRolesData) ([]byte, *APIError) {
 		return nil, err
 	}
 
-	page, perr := chromium.NewPage()
+	page, perr := r.browser.NewPage()
 	if perr != nil {
 		fmt.Printf("Could not create page\n%s", perr)
 		return nil, ErrorInternalServer

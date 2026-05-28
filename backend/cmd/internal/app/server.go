@@ -1,13 +1,20 @@
 package app
 
 import (
+	"errors"
 	"github.com/labstack/echo/v4"
 	"github.com/playwright-community/playwright-go"
 	"oficina-img/internal/routes"
 	"oficina-img/internal/service"
 )
 
-func NewServer() (*echo.Echo, error) {
+type Server struct {
+	Echo         *echo.Echo
+	playwright   *playwright.Playwright
+	cardRenderer *service.CardRenderer
+}
+
+func NewServer() (*Server, error) {
 	if err := playwright.Install(); err != nil {
 		return nil, err
 	}
@@ -16,17 +23,38 @@ func NewServer() (*echo.Echo, error) {
 	if err != nil {
 		return nil, err
 	}
-	service.InitializePlaywrightService(pw)
+
+	cardRenderer, err := service.NewCardRenderer(pw)
+	if err != nil {
+		pw.Stop()
+		return nil, err
+	}
 
 	e := echo.New()
-	registerRoutes(e)
-	return e, nil
+	registerRoutes(e, cardRenderer)
+	return &Server{
+		Echo:         e,
+		playwright:   pw,
+		cardRenderer: cardRenderer,
+	}, nil
 }
 
-func registerRoutes(e *echo.Echo) {
+func (s *Server) Close() error {
+	var err error
+	if s.cardRenderer != nil {
+		err = errors.Join(err, s.cardRenderer.Close())
+	}
+	if s.playwright != nil {
+		err = errors.Join(err, s.playwright.Stop())
+	}
+	return err
+}
+
+func registerRoutes(e *echo.Echo, cardRenderer routes.CardRenderer) {
 	e.Static("/static", "./static")
 
-	e.POST("/api/levels/cards", routes.GetLevelCard)
-	e.POST("/api/levels/roles", routes.GetLevelsRoles)
+	cardHandler := routes.NewCardHandler(cardRenderer)
+	e.POST("/api/levels/cards", cardHandler.GetLevelCard)
+	e.POST("/api/levels/roles", cardHandler.GetLevelsRoles)
 	e.GET("/api/external/videos", routes.GetVideo)
 }

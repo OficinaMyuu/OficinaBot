@@ -7,13 +7,26 @@ import (
 	"oficina-img/internal/service"
 )
 
-func GetLevelCard(c echo.Context) error {
+type CardRenderer interface {
+	GenerateLevelCard(ld *service.LevelDataDTO) ([]byte, *service.APIError)
+	GenerateLevelsRoles(lrd *service.LevelsRolesData) ([]byte, *service.APIError)
+}
+
+type CardHandler struct {
+	renderer CardRenderer
+}
+
+func NewCardHandler(renderer CardRenderer) *CardHandler {
+	return &CardHandler{renderer: renderer}
+}
+
+func (h *CardHandler) GetLevelCard(c echo.Context) error {
 	var ld service.LevelDataDTO
 	if err := c.Bind(&ld); err != nil {
 		return c.JSON(http.StatusBadRequest, service.ErrorMalformedJSON)
 	}
 
-	img, err := service.GenerateLevelCard(&ld)
+	img, err := h.renderer.GenerateLevelCard(&ld)
 	if err != nil {
 		return c.JSON(err.Status, err)
 	}
@@ -24,13 +37,13 @@ func GetLevelCard(c echo.Context) error {
 	return c.JSON(http.StatusOK, &resp)
 }
 
-func GetLevelsRoles(c echo.Context) error {
+func (h *CardHandler) GetLevelsRoles(c echo.Context) error {
 	var lrd service.LevelsRolesData
 	if err := c.Bind(&lrd); err != nil {
 		return c.JSON(http.StatusBadRequest, service.ErrorMalformedJSON)
 	}
 
-	img, err := service.GenerateLevelsRoles(&lrd)
+	img, err := h.renderer.GenerateLevelsRoles(&lrd)
 	if err != nil {
 		return c.JSON(err.Status, err)
 	}

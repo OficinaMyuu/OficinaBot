@@ -10,12 +10,13 @@ func main() {
 		panic(err)
 	}
 
-	e, err := app.NewServer()
+	server, err := app.NewServer()
 	if err != nil {
 		panic(err)
 	}
+	defer server.Close()
 
-	if err := e.Start(cfg.Address); err != nil {
-		e.Logger.Fatal(err)
+	if err := server.Echo.Start(cfg.Address); err != nil {
+		server.Echo.Logger.Fatal(err)
 	}
 }
