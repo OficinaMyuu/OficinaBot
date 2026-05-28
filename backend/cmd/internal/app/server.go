@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/playwright-community/playwright-go"
 	"golang.org/x/oauth2"
 	"oficina-img/internal/auth"
@@ -63,6 +64,7 @@ func NewServer(cfg Config) (*Server, error) {
 	}
 
 	e := echo.New()
+	registerMiddleware(e, cfg)
 	authService := newAuthService(cfg, db)
 	serviceAuthenticator := auth.NewServiceAuthenticator(repository.NewBotClientRepository(db.Gorm))
 	registerRoutes(e, cfg, cardRenderer, authService, serviceAuthenticator)
@@ -72,6 +74,22 @@ func NewServer(cfg Config) (*Server, error) {
 		playwright:   pw,
 		cardRenderer: cardRenderer,
 	}, nil
+}
+
+func registerMiddleware(e *echo.Echo, cfg Config) {
+	e.Use(middleware.RequestID())
+	e.Use(middleware.Recover())
+	e.Use(middleware.BodyLimit(cfg.BodyLimit))
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: `{"time":"${time_rfc3339}","id":"${id}","remote_ip":"${remote_ip}","host":"${host}","method":"${method}","uri":"${uri}","status":${status},"latency":"${latency_human}","bytes_in":${bytes_in},"bytes_out":${bytes_out}}` + "\n",
+	}))
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     []string{cfg.FrontendOrigin},
+		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodOptions},
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderXCSRFToken},
+		AllowCredentials: true,
+	}))
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(20)))
 }
 
 func (s *Server) Start(ctx context.Context, address string) error {
@@ -131,14 +149,25 @@ func registerRoutes(e *echo.Echo, cfg Config, cardRenderer routes.CardRenderer, 
 	e.GET("/api/auth/discord/start", authHandler.StartDiscordLogin)
 	e.GET("/api/auth/discord/callback", authHandler.CompleteDiscordLogin)
 	e.GET("/api/auth/me", authHandler.CurrentUser)
-	e.POST("/api/auth/logout", authHandler.Logout)
+	e.POST("/api/auth/logout", authHandler.Logout, csrfMiddleware(cfg))
 
 	e.GET("/api/admin/users", adminHandler.ListUsers)
-	e.POST("/api/admin/users", adminHandler.AddUser)
-	e.DELETE("/api/admin/users/:discord_id", adminHandler.RemoveUser)
+	e.POST("/api/admin/users", adminHandler.AddUser, csrfMiddleware(cfg))
+	e.DELETE("/api/admin/users/:discord_id", adminHandler.RemoveUser, csrfMiddleware(cfg))
 
 	serviceGroup := e.Group("/api/service", routes.ServiceAuthMiddleware(serviceAuthenticator))
 	serviceGroup.GET("/me", serviceHandler.Me)
+}
+
+func csrfMiddleware(cfg Config) echo.MiddlewareFunc {
+	return middleware.CSRFWithConfig(middleware.CSRFConfig{
+		TokenLookup:    "header:" + echo.HeaderXCSRFToken,
+		CookieName:     "oficina_csrf",
+		CookiePath:     "/",
+		CookieHTTPOnly: true,
+		CookieSecure:   cfg.SessionCookieSecure,
+		CookieSameSite: http.SameSiteLaxMode,
+	})
 }
 
 func newAuthService(cfg Config, db *database.Database) *auth.Service {

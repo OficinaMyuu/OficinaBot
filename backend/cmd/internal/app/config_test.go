@@ -1,6 +1,9 @@
 package app
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func TestConfigValidateAuthRequiresOAuthSettings(t *testing.T) {
 	cfg := Config{}
@@ -30,5 +33,41 @@ func TestGetBoolEnvFallsBackForInvalidValues(t *testing.T) {
 
 	if got := getBoolEnv("SESSION_COOKIE_SECURE", true); !got {
 		t.Fatal("expected invalid bool to fall back to true")
+	}
+}
+
+func TestLoadConfigReadsHttpSafeguardSettings(t *testing.T) {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("get working dir: %v", err)
+	}
+	if err := os.Chdir(t.TempDir()); err != nil {
+		t.Fatalf("chdir temp dir: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := os.Chdir(workingDir); err != nil {
+			t.Fatalf("restore working dir: %v", err)
+		}
+	})
+	if err := os.WriteFile(".env", nil, 0644); err != nil {
+		t.Fatalf("write test env file: %v", err)
+	}
+	t.Setenv("FRONTEND_ORIGIN", "https://oficina.test")
+	t.Setenv("BODY_LIMIT", "2M")
+	t.Setenv("SESSION_COOKIE_SECURE", "false")
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("load config: %v", err)
+	}
+
+	if cfg.FrontendOrigin != "https://oficina.test" {
+		t.Fatalf("expected frontend origin from env, got %q", cfg.FrontendOrigin)
+	}
+	if cfg.BodyLimit != "2M" {
+		t.Fatalf("expected body limit from env, got %q", cfg.BodyLimit)
+	}
+	if cfg.SessionCookieSecure {
+		t.Fatal("expected session cookie secure to be false")
 	}
 }

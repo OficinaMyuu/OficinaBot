@@ -12,6 +12,8 @@ import (
 const DefaultAddress = ":8080"
 const DefaultDatabasePath = "./data/oficina-services.db"
 const DefaultFrontendRedirectURL = "http://localhost:5173"
+const DefaultFrontendOrigin = "http://localhost:5173"
+const DefaultBodyLimit = "8M"
 const DefaultSessionTTL = 7 * 24 * time.Hour
 const DefaultSessionCookieName = "oficina_admin_session"
 
@@ -22,6 +24,8 @@ type Config struct {
 	DiscordClientSecret string
 	DiscordRedirectURL  string
 	FrontendRedirectURL string
+	FrontendOrigin      string
+	BodyLimit           string
 	OwnerDiscordID      string
 	SessionSecret       string
 	SessionTTL          time.Duration
@@ -41,6 +45,8 @@ func LoadConfig() (Config, error) {
 		DiscordClientSecret: os.Getenv("DISCORD_CLIENT_SECRET"),
 		DiscordRedirectURL:  os.Getenv("DISCORD_REDIRECT_URL"),
 		FrontendRedirectURL: getEnv("FRONTEND_REDIRECT_URL", DefaultFrontendRedirectURL),
+		FrontendOrigin:      getEnv("FRONTEND_ORIGIN", DefaultFrontendOrigin),
+		BodyLimit:           getEnv("BODY_LIMIT", DefaultBodyLimit),
 		OwnerDiscordID:      os.Getenv("OFICINA_OWNER_DISCORD_ID"),
 		SessionSecret:       os.Getenv("SESSION_SECRET"),
 		SessionTTL:          DefaultSessionTTL,
