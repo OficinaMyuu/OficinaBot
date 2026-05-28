@@ -23,7 +23,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot repository locator: `bot/src/main/java/ofc/bot/domain/sqlite/repository/Repositories.java`
 - Bot file/bootstrap paths: `bot/src/main/java/ofc/bot/internal/data/BotFiles.java`
 - Bot DB-backed config lookup: `bot/src/main/java/ofc/bot/internal/data/BotProperties.java`
-- Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; persistence lives under `backend/cmd/internal/database/` and `backend/cmd/internal/repository/`; routes live under `backend/cmd/internal/routes/`.
+- Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; admin auth lives under `backend/cmd/internal/auth/`; persistence lives under `backend/cmd/internal/database/` and `backend/cmd/internal/repository/`; routes live under `backend/cmd/internal/routes/`.
 - Registrar entrypoint: `registrar/src/main/java/ofc/bot/RegisterMaster.java`.
 
 ## Bot Project Snapshot
@@ -87,6 +87,8 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - CodeQL workflow: `.github/workflows/codeql.yml`; scans Java/Kotlin and Go with explicit monorepo build steps.
 - Backend deployment is intentionally not wired at the mono-repo root yet.
 - Backend persistence defaults to `backend/cmd/data/oficina-services.db` when run from `backend/cmd/`; override with `DATABASE_PATH`.
+- Backend admin auth requires `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URL`, `OFICINA_OWNER_DISCORD_ID`, and `SESSION_SECRET`.
+- Use `SESSION_COOKIE_SECURE=false` only for local HTTP development; production cookies should remain secure.
 - Bot deployment secrets are service-scoped with the `OFICINA` segment, such as `SFTP_OFICINA_HOST` and `PTERO_OFICINA_SERVER_ID`.
 - Registrar deployment secrets are service-scoped with the `REGISTRY` segment, such as `SFTP_REGISTRY_HOST` and `PTERO_REGISTRY_SERVER_ID`.
 - `PTERO_API_KEY` remains shared unless a future deployment split requires service-specific API keys.

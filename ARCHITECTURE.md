@@ -102,6 +102,13 @@ The backend uses SQLite with WAL mode and embedded goose migrations. The default
 
 The repository layer uses GORM models mapped to migration-owned tables. Current persistence tables cover admin users, bot clients, event batches, message logs, punishments, config versions, config acknowledgements, and audit actions. Tests for persistence use real temporary SQLite databases with migrations applied, not mocks.
 
+## Backend Admin Auth
+Admin login uses Discord OAuth2 with the `identify` scope. The backend stores allowlisted admins in `users`; the configured `OFICINA_OWNER_DISCORD_ID` can bootstrap itself on first login and is the only account allowed to add or remove other admins. There is intentionally no role or permission system in this phase.
+
+Admin sessions are stored in `admin_sessions` with hashed session tokens, expiration timestamps, and last-seen timestamps. The browser receives an HttpOnly SameSite=Lax session cookie. `SESSION_COOKIE_SECURE` defaults to true and should only be disabled for local HTTP development.
+
+Auth routes live under `/api/auth/*`: Discord login start/callback, current admin lookup, and logout. Owner-only admin management lives under `/api/admin/users`.
+
 ## History Preservation
 This mono-repo was assembled with history-preserving subtree imports:
 - `OficinaMyuu/OficinaImagery` was imported under `backend/`.
