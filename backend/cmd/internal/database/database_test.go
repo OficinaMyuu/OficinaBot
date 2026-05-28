@@ -14,6 +14,31 @@ func TestOpenConfiguresSQLite(t *testing.T) {
 	assertPragma(t, db, "journal_mode", "wal")
 }
 
+func TestMigrateCreatesPersistenceTables(t *testing.T) {
+	db := openTestDatabase(t)
+	defer db.Close()
+
+	if err := db.Migrate(); err != nil {
+		t.Fatalf("migrate database: %v", err)
+	}
+
+	expectedTables := []string{
+		"users",
+		"bot_clients",
+		"event_batches",
+		"message_logs",
+		"punishments",
+		"config_versions",
+		"config_acknowledgements",
+		"audit_actions",
+	}
+	for _, table := range expectedTables {
+		t.Run(table, func(t *testing.T) {
+			assertTableExists(t, db, table)
+		})
+	}
+}
+
 func openTestDatabase(t *testing.T) *Database {
 	t.Helper()
 
@@ -22,6 +47,19 @@ func openTestDatabase(t *testing.T) *Database {
 		t.Fatalf("open database: %v", err)
 	}
 	return db
+}
+
+func assertTableExists(t *testing.T, db *Database, table string) {
+	t.Helper()
+
+	var name string
+	err := db.SQL.QueryRow(
+		"SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?",
+		table,
+	).Scan(&name)
+	if err != nil {
+		t.Fatalf("expected table %s to exist: %v", table, err)
+	}
 }
 
 func assertPragma(t *testing.T, db *Database, name, want string) {
