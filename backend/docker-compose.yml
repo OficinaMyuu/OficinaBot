@@ -1,6 +1,6 @@
 services:
   api:
-    image: ghcr.io/kileo13/oficinaservices/oficina-backend:latest # Replace kileo13/oficinaservices with your actual GitHub username/repo owner in lowercase
+    image: ghcr.io/kileo13/oficinaservices/oficina-backend:latest
     container_name: oficina-backend
     restart: unless-stopped
     ports:
@@ -12,5 +12,4 @@ services:
     environment:
       - DATABASE_PATH=/app/data/oficina-services.db
     labels:
-      # Tell the existing Watchtower instance on your server to monitor and auto-update this container
       - "com.centurylinklabs.watchtower.enable=true"
