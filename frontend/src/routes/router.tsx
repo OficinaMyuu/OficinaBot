@@ -9,6 +9,9 @@ import { FormField, Input, Switch, Textarea } from '../components/ui/Form'
 import Modal from '../components/ui/Modal'
 import { useToast } from '../components/ui/Toast'
 import { LoadingState, EmptyState, ErrorState } from '../components/ui/FeedbackStates'
+import AuthGuard from '../components/auth/AuthGuard'
+import AdminManagement from '../components/admin/AdminManagement'
+import Login from '../components/auth/Login'
 
 // Root route (outlet wrapper)
 const rootRoute = createRootRoute({
@@ -280,12 +283,6 @@ const OverviewComponent: React.FC = () => {
   )
 }
 
-const indexRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/',
-  component: OverviewComponent,
-})
-
 // ==========================================
 // 2. Logs Component & Route
 // ==========================================
@@ -464,12 +461,6 @@ const LogsComponent: React.FC = () => {
     </DashboardLayout>
   )
 }
-
-const logsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/logs',
-  component: LogsComponent,
-})
 
 // ==========================================
 // 3. Punishments Component & Route
@@ -707,14 +698,60 @@ const PunishmentsComponent: React.FC = () => {
   )
 }
 
+const indexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/',
+  component: () => (
+    <AuthGuard>
+      <OverviewComponent />
+    </AuthGuard>
+  ),
+})
+
+const logsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/logs',
+  component: () => (
+    <AuthGuard>
+      <LogsComponent />
+    </AuthGuard>
+  ),
+})
+
 const punishmentsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/punishments',
-  component: PunishmentsComponent,
+  component: () => (
+    <AuthGuard>
+      <PunishmentsComponent />
+    </AuthGuard>
+  ),
+})
+
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin',
+  component: () => (
+    <AuthGuard>
+      <AdminManagement />
+    </AuthGuard>
+  ),
+})
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  component: Login,
 })
 
 // Create route tree
-const routeTree = rootRoute.addChildren([indexRoute, logsRoute, punishmentsRoute])
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  logsRoute,
+  punishmentsRoute,
+  adminRoute,
+  loginRoute,
+])
 
 // Create router
 export const router = createRouter({ routeTree })
