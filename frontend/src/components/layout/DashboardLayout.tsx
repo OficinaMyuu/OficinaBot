@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import Button from '../ui/Button'
+import { useAuth } from '../../context/AuthContext'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -9,6 +10,7 @@ interface DashboardLayoutProps {
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, pageTitle }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const { user, logout } = useAuth()
 
   return (
     <div
@@ -159,6 +161,31 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, page
               >
                 <span style={{ color: 'var(--color-secondary)', opacity: 0.8 }}>#</span> punishments
               </Link>
+
+              {/* Owner-only Admin Management Link */}
+              {user?.isOwner && (
+                <Link
+                  to="/admin"
+                  activeProps={{
+                    style: { backgroundColor: 'var(--bg-hover)', color: 'var(--text-primary)' },
+                  }}
+                  inactiveProps={{ style: { color: 'var(--text-secondary)' } }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    transition: 'all 0.2s',
+                    fontWeight: '500',
+                  }}
+                >
+                  <span style={{ color: 'var(--color-secondary)', opacity: 0.8 }}>#</span>{' '}
+                  admin-management
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -192,7 +219,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, page
                 flexShrink: 0,
               }}
             >
-              A
+              {user?.username?.[0] || 'A'}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <span
@@ -204,7 +231,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, page
                   whiteSpace: 'nowrap',
                 }}
               >
-                Admin#0001
+                {user?.username || 'Admin#0001'}
               </span>
               <span
                 style={{
@@ -215,7 +242,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, page
                   whiteSpace: 'nowrap',
                 }}
               >
-                Server Owner
+                {user?.isOwner ? 'Server Owner' : 'Guild Admin'}
               </span>
             </div>
           </div>
@@ -223,7 +250,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, page
             variant="ghost"
             size="sm"
             style={{ padding: '4px', minWidth: 'auto', color: 'var(--text-muted)' }}
-            onClick={() => alert('Logout action!')}
+            onClick={logout}
             title="Log out"
           >
             ❌
