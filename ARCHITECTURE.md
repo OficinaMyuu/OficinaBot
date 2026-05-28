@@ -5,7 +5,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 
 ## Services
 - `bot/`: Java 21 Discord bot using JDA 6, Maven, SQLite, jOOQ, HikariCP, Quartz, OkHttp, and the OpenAI Java SDK.
-- `backend/`: Go HTTP backend that started as OficinaImagery and is expected to take on broader API responsibilities. Its current entrypoint is `backend/cmd/api/main.go`.
+- `backend/`: Go HTTP backend that started as OficinaImagery and is expected to take on broader API responsibilities. Its current entrypoint is `backend/cmd/api/main.go`, with server bootstrapping under `backend/cmd/internal/app/`.
 - `registrar/`: Java 17 Discord registration service using JDA 5 and Maven. Its entrypoint is `registrar/src/main/java/ofc/bot/RegisterMaster.java`.
 
 ## Repository Structure
@@ -91,6 +91,11 @@ Approval and rejection buttons use IDs prefixed with `nick-`, so the durable lis
 `UrlBuilder` is a small query-string utility for features that need to safely inspect or mutate URLs without hand-splicing strings. It preserves the original URI structure, stores decoded query parameters in insertion order, supports fluent updates through `set`, `add`, `remove`, and `clear`, and can build either a `URI` via `toUri()` or a string via `build()` and `toString()`. The utility is intentionally single-value per key; if a feature needs repeated query keys, extend it deliberately instead of quietly changing its semantics.
 
 `ThrottledAction<T>` is a generic latest-value coalescer. Each `post(T)` replaces the pending value, and the scheduled flush runs only the latest value for that interval. It owns a scheduler and exposes `shutdown()`/`close()` so long-lived features can release it when the related workflow ends.
+
+## Backend Boot Flow
+The backend entrypoint loads configuration, creates a signal-aware root context, builds the application server through `backend/cmd/internal/app`, and starts Echo through `Server.Start`. The app package owns Playwright installation/startup, route registration, and graceful shutdown. `Server.Close` explicitly releases the card renderer browser and Playwright runtime.
+
+HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, and the external video route uses an injected downloader. This keeps route behavior testable without launching Playwright or shelling out to `yt-dlp`.
 
 ## History Preservation
 This mono-repo was assembled with history-preserving subtree imports:

@@ -23,7 +23,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot repository locator: `bot/src/main/java/ofc/bot/domain/sqlite/repository/Repositories.java`
 - Bot file/bootstrap paths: `bot/src/main/java/ofc/bot/internal/data/BotFiles.java`
 - Bot DB-backed config lookup: `bot/src/main/java/ofc/bot/internal/data/BotProperties.java`
-- Backend entrypoint: `backend/cmd/api/main.go`; routes live under `backend/cmd/internal/routes/`.
+- Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; routes live under `backend/cmd/internal/routes/`.
 - Registrar entrypoint: `registrar/src/main/java/ofc/bot/RegisterMaster.java`.
 
 ## Bot Project Snapshot
