@@ -188,3 +188,46 @@ func normalizeLimit(limit int) int {
 	}
 	return limit
 }
+
+type AdminSessionRepository struct {
+	db *gorm.DB
+}
+
+func NewAdminSessionRepository(db *gorm.DB) *AdminSessionRepository {
+	return &AdminSessionRepository{db: db}
+}
+
+func (r *AdminSessionRepository) Create(ctx context.Context, session *AdminSession) error {
+	now := time.Now().UTC()
+	if session.CreatedAt.IsZero() {
+		session.CreatedAt = now
+	}
+	if session.LastSeenAt.IsZero() {
+		session.LastSeenAt = now
+	}
+	return r.db.WithContext(ctx).Create(session).Error
+}
+
+func (r *AdminSessionRepository) GetValid(ctx context.Context, tokenHash string, now time.Time) (*AdminSession, error) {
+	var session AdminSession
+	if err := r.db.WithContext(ctx).
+		Preload("User").
+		Where("token_hash = ? AND expires_at > ?", tokenHash, now.UTC()).
+		First(&session).
+		Error; err != nil {
+		return nil, err
+	}
+	return &session, nil
+}
+
+func (r *AdminSessionRepository) Touch(ctx context.Context, tokenHash string, seenAt time.Time) error {
+	return r.db.WithContext(ctx).
+		Model(&AdminSession{}).
+		Where("token_hash = ?", tokenHash).
+		Update("last_seen_at", seenAt.UTC()).
+		Error
+}
+
+func (r *AdminSessionRepository) Delete(ctx context.Context, tokenHash string) error {
+	return r.db.WithContext(ctx).Delete(&AdminSession{}, "token_hash = ?", tokenHash).Error
+}

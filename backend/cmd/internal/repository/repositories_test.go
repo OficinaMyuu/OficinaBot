@@ -177,6 +177,78 @@ func TestAuditActionRepositoryListsRecent(t *testing.T) {
 	}
 }
 
+func TestAdminSessionRepositoryReturnsOnlyValidSessions(t *testing.T) {
+	db := openMigratedDatabase(t)
+	ctx := context.Background()
+
+	if err := NewUserRepository(db.Gorm).Create(ctx, &User{DiscordID: "100", Username: "Leonardo"}); err != nil {
+		t.Fatalf("create user: %v", err)
+	}
+
+	repo := NewAdminSessionRepository(db.Gorm)
+	if err := repo.Create(ctx, &AdminSession{
+		TokenHash: "valid",
+		DiscordID: "100",
+		ExpiresAt: nowForTest.Add(time.Hour),
+	}); err != nil {
+		t.Fatalf("create valid session: %v", err)
+	}
+	if err := repo.Create(ctx, &AdminSession{
+		TokenHash: "expired",
+		DiscordID: "100",
+		ExpiresAt: nowForTest.Add(-time.Hour),
+	}); err != nil {
+		t.Fatalf("create expired session: %v", err)
+	}
+
+	session, err := repo.GetValid(ctx, "valid", nowForTest)
+	if err != nil {
+		t.Fatalf("get valid session: %v", err)
+	}
+	if session.User.Username != "Leonardo" {
+		t.Fatalf("expected preloaded user Leonardo, got %q", session.User.Username)
+	}
+	if _, err := repo.GetValid(ctx, "expired", nowForTest); err == nil {
+		t.Fatal("expected expired session lookup to fail")
+	}
+}
+
+func TestAdminSessionRepositoryTouchesAndDeletesSession(t *testing.T) {
+	db := openMigratedDatabase(t)
+	ctx := context.Background()
+
+	if err := NewUserRepository(db.Gorm).Create(ctx, &User{DiscordID: "100", Username: "Leonardo"}); err != nil {
+		t.Fatalf("create user: %v", err)
+	}
+
+	repo := NewAdminSessionRepository(db.Gorm)
+	if err := repo.Create(ctx, &AdminSession{
+		TokenHash: "session",
+		DiscordID: "100",
+		ExpiresAt: nowForTest.Add(time.Hour),
+	}); err != nil {
+		t.Fatalf("create session: %v", err)
+	}
+	if err := repo.Touch(ctx, "session", nowForTest); err != nil {
+		t.Fatalf("touch session: %v", err)
+	}
+
+	session, err := repo.GetValid(ctx, "session", nowForTest.Add(-time.Minute))
+	if err != nil {
+		t.Fatalf("get touched session: %v", err)
+	}
+	if !session.LastSeenAt.Equal(nowForTest) {
+		t.Fatalf("expected last seen at %v, got %v", nowForTest, session.LastSeenAt)
+	}
+
+	if err := repo.Delete(ctx, "session"); err != nil {
+		t.Fatalf("delete session: %v", err)
+	}
+	if _, err := repo.GetValid(ctx, "session", nowForTest.Add(-time.Minute)); err == nil {
+		t.Fatal("expected deleted session lookup to fail")
+	}
+}
+
 var nowForTest = mustParseTime("2026-05-27T12:00:00Z")
 
 func mustParseTime(value string) time.Time {

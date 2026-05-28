@@ -101,3 +101,16 @@ type AuditAction struct {
 func (AuditAction) TableName() string {
 	return "audit_actions"
 }
+
+type AdminSession struct {
+	TokenHash  string    `gorm:"column:token_hash;primaryKey"`
+	DiscordID  string    `gorm:"column:discord_id"`
+	CreatedAt  time.Time `gorm:"column:created_at"`
+	LastSeenAt time.Time `gorm:"column:last_seen_at"`
+	ExpiresAt  time.Time `gorm:"column:expires_at"`
+	User       User      `gorm:"foreignKey:DiscordID;references:DiscordID"`
+}
+
+func (AdminSession) TableName() string {
+	return "admin_sessions"
+}
