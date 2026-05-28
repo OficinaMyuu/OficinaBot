@@ -1,10 +1,17 @@
 package main
 
 import (
+	"context"
 	"oficina-img/internal/app"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	cfg, err := app.LoadConfig()
 	if err != nil {
 		panic(err)
@@ -16,7 +23,7 @@ func main() {
 	}
 	defer server.Close()
 
-	if err := server.Echo.Start(cfg.Address); err != nil {
-		server.Echo.Logger.Fatal(err)
+	if err := server.Start(ctx, cfg.Address); err != nil {
+		panic(err)
 	}
 }

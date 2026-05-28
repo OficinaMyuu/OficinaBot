@@ -1,7 +1,11 @@
 package app
 
 import (
+	"context"
 	"errors"
+	"net/http"
+	"time"
+
 	"github.com/labstack/echo/v4"
 	"github.com/playwright-community/playwright-go"
 	"oficina-img/internal/routes"
@@ -13,6 +17,8 @@ type Server struct {
 	playwright   *playwright.Playwright
 	cardRenderer *service.CardRenderer
 }
+
+const shutdownTimeout = 10 * time.Second
 
 func NewServer() (*Server, error) {
 	if err := playwright.Install(); err != nil {
@@ -39,6 +45,26 @@ func NewServer() (*Server, error) {
 	}, nil
 }
 
+func (s *Server) Start(ctx context.Context, address string) error {
+	started := make(chan error, 1)
+	go func() {
+		started <- s.Echo.Start(address)
+	}()
+
+	select {
+	case <-ctx.Done():
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		defer cancel()
+
+		if err := s.Echo.Shutdown(shutdownCtx); err != nil {
+			return err
+		}
+		return ignoreServerClosed(<-started)
+	case err := <-started:
+		return ignoreServerClosed(err)
+	}
+}
+
 func (s *Server) Close() error {
 	var err error
 	if s.cardRenderer != nil {
@@ -46,6 +72,13 @@ func (s *Server) Close() error {
 	}
 	if s.playwright != nil {
 		err = errors.Join(err, s.playwright.Stop())
+	}
+	return err
+}
+
+func ignoreServerClosed(err error) error {
+	if errors.Is(err, http.ErrServerClosed) {
+		return nil
 	}
 	return err
 }
