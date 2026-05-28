@@ -1,10 +1,12 @@
+name: oficina-services
+
 services:
   api:
     image: ghcr.io/kileo13/oficina-backend:latest
     container_name: oficina-backend
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "6781:8080"
     volumes:
       - ./data:/app/data
     env_file:
