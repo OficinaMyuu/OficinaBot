@@ -35,9 +35,8 @@ type Config struct {
 }
 
 func LoadConfig() (Config, error) {
-	if err := godotenv.Load(); err != nil {
-		return Config{}, err
-	}
+	// Load dotenv if it exists, but ignore errors if it is missing (as env vars are already injected in Docker/Prod)
+	_ = godotenv.Load()
 
 	return Config{
 		Address:             getEnv("ADDRESS", DefaultAddress),
