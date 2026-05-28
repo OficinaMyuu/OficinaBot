@@ -107,7 +107,18 @@ func NewEventBatchRepository(db *gorm.DB) *EventBatchRepository {
 
 func (r *EventBatchRepository) Create(ctx context.Context, batch *EventBatch) error {
 	setCreatedAt(&batch.ReceivedAt)
+	if batch.MetadataJSON == "" {
+		batch.MetadataJSON = "{}"
+	}
 	return r.db.WithContext(ctx).Create(batch).Error
+}
+
+func (r *EventBatchRepository) Exists(ctx context.Context, id string) (bool, error) {
+	var count int64
+	if err := r.db.WithContext(ctx).Model(&EventBatch{}).Where("id = ?", id).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 type MessageLogRepository struct {
@@ -126,6 +137,16 @@ func (r *MessageLogRepository) CreateMany(ctx context.Context, logs []MessageLog
 		}
 	}
 	return r.db.WithContext(ctx).Create(&logs).Error
+}
+
+func (r *MessageLogRepository) ListRecent(ctx context.Context, limit int) ([]MessageLog, error) {
+	var logs []MessageLog
+	err := r.db.WithContext(ctx).
+		Order("created_at DESC").
+		Limit(normalizeLimit(limit)).
+		Find(&logs).
+		Error
+	return logs, err
 }
 
 type PunishmentRepository struct {
@@ -264,4 +285,61 @@ func (r *AdminSessionRepository) Touch(ctx context.Context, tokenHash string, se
 
 func (r *AdminSessionRepository) Delete(ctx context.Context, tokenHash string) error {
 	return r.db.WithContext(ctx).Delete(&AdminSession{}, "token_hash = ?", tokenHash).Error
+}
+
+type RegistrationRepository struct {
+	db *gorm.DB
+}
+
+func NewRegistrationRepository(db *gorm.DB) *RegistrationRepository {
+	return &RegistrationRepository{db: db}
+}
+
+func (r *RegistrationRepository) CreateMany(ctx context.Context, registrations []Registration) error {
+	now := time.Now().UTC()
+	for i := range registrations {
+		if registrations[i].RegisteredAt.IsZero() {
+			registrations[i].RegisteredAt = now
+		}
+		if registrations[i].MetadataJSON == "" {
+			registrations[i].MetadataJSON = "{}"
+		}
+	}
+	return r.db.WithContext(ctx).Create(&registrations).Error
+}
+
+func (r *RegistrationRepository) ListRecent(ctx context.Context, limit int) ([]Registration, error) {
+	var registrations []Registration
+	err := r.db.WithContext(ctx).
+		Order("registered_at DESC").
+		Limit(normalizeLimit(limit)).
+		Find(&registrations).
+		Error
+	return registrations, err
+}
+
+type SyncHeartbeatRepository struct {
+	db *gorm.DB
+}
+
+func NewSyncHeartbeatRepository(db *gorm.DB) *SyncHeartbeatRepository {
+	return &SyncHeartbeatRepository{db: db}
+}
+
+func (r *SyncHeartbeatRepository) Create(ctx context.Context, heartbeat *SyncHeartbeat) error {
+	setCreatedAt(&heartbeat.CheckedAt)
+	if heartbeat.DetailsJSON == "" {
+		heartbeat.DetailsJSON = "{}"
+	}
+	return r.db.WithContext(ctx).Create(heartbeat).Error
+}
+
+func (r *SyncHeartbeatRepository) ListLatest(ctx context.Context, limit int) ([]SyncHeartbeat, error) {
+	var heartbeats []SyncHeartbeat
+	err := r.db.WithContext(ctx).
+		Order("checked_at DESC").
+		Limit(normalizeLimit(limit)).
+		Find(&heartbeats).
+		Error
+	return heartbeats, err
 }

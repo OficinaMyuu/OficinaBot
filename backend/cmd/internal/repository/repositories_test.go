@@ -115,6 +115,21 @@ func TestEventAndMessageRepositoriesPersistBatchLogs(t *testing.T) {
 	if count != 1 {
 		t.Fatalf("expected 1 message log, got %d", count)
 	}
+
+	recent, err := NewMessageLogRepository(db.Gorm).ListRecent(ctx, 10)
+	if err != nil {
+		t.Fatalf("list recent message logs: %v", err)
+	}
+	if len(recent) != 1 || recent[0].MessageID != "message" {
+		t.Fatalf("expected recent message log, got %+v", recent)
+	}
+	exists, err := NewEventBatchRepository(db.Gorm).Exists(ctx, "batch-1")
+	if err != nil {
+		t.Fatalf("check event batch exists: %v", err)
+	}
+	if !exists {
+		t.Fatal("expected event batch to exist")
+	}
 }
 
 func TestPunishmentRepositoryListsRecent(t *testing.T) {
@@ -275,6 +290,64 @@ func TestAdminSessionRepositoryTouchesAndDeletesSession(t *testing.T) {
 	}
 	if _, err := repo.GetValid(ctx, "session", nowForTest.Add(-time.Minute)); err == nil {
 		t.Fatal("expected deleted session lookup to fail")
+	}
+}
+
+func TestRegistrationRepositoryCreatesAndListsRecent(t *testing.T) {
+	db := openMigratedDatabase(t)
+	ctx := context.Background()
+
+	if err := NewBotClientRepository(db.Gorm).Create(ctx, &BotClient{Name: "registrar", TokenHash: "hash"}); err != nil {
+		t.Fatalf("create bot client: %v", err)
+	}
+	if err := NewEventBatchRepository(db.Gorm).Create(ctx, &EventBatch{ID: "batch-registrations", ClientName: "registrar", Kind: "registrations"}); err != nil {
+		t.Fatalf("create event batch: %v", err)
+	}
+
+	repo := NewRegistrationRepository(db.Gorm)
+	if err := repo.CreateMany(ctx, []Registration{{
+		BatchID:      "batch-registrations",
+		GuildID:      "guild",
+		UserID:       "user",
+		Username:     "Myuu",
+		RegisteredAt: nowForTest,
+	}}); err != nil {
+		t.Fatalf("create registrations: %v", err)
+	}
+
+	registrations, err := repo.ListRecent(ctx, 10)
+	if err != nil {
+		t.Fatalf("list registrations: %v", err)
+	}
+	if len(registrations) != 1 || registrations[0].Username != "Myuu" {
+		t.Fatalf("expected Myuu registration, got %+v", registrations)
+	}
+}
+
+func TestSyncHeartbeatRepositoryCreatesAndListsLatest(t *testing.T) {
+	db := openMigratedDatabase(t)
+	ctx := context.Background()
+
+	if err := NewBotClientRepository(db.Gorm).Create(ctx, &BotClient{Name: "bot", TokenHash: "hash"}); err != nil {
+		t.Fatalf("create bot client: %v", err)
+	}
+
+	repo := NewSyncHeartbeatRepository(db.Gorm)
+	if err := repo.Create(ctx, &SyncHeartbeat{
+		ClientName:  "bot",
+		Status:      "ok",
+		DetailsJSON: `{"latency_ms":12}`,
+		CheckedAt:   nowForTest,
+	}); err != nil {
+		t.Fatalf("create sync heartbeat: %v", err)
+	}
+
+	heartbeats, err := repo.ListLatest(ctx, 10)
+	if err != nil {
+		t.Fatalf("list sync heartbeats: %v", err)
+	}
+	if len(heartbeats) != 1 || heartbeats[0].Status != "ok" {
+		t.Fatalf("expected ok heartbeat, got %+v", heartbeats)
 	}
 }
 

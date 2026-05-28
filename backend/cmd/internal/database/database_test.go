@@ -32,6 +32,8 @@ func TestMigrateCreatesPersistenceTables(t *testing.T) {
 		"config_acknowledgements",
 		"audit_actions",
 		"admin_sessions",
+		"registrations",
+		"sync_heartbeats",
 	}
 	for _, table := range expectedTables {
 		t.Run(table, func(t *testing.T) {

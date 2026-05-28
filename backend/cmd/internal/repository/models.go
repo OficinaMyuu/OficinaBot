@@ -24,10 +24,11 @@ func (BotClient) TableName() string {
 }
 
 type EventBatch struct {
-	ID         string    `gorm:"column:id;primaryKey"`
-	ClientName string    `gorm:"column:client_name"`
-	Kind       string    `gorm:"column:kind"`
-	ReceivedAt time.Time `gorm:"column:received_at"`
+	ID           string    `gorm:"column:id;primaryKey"`
+	ClientName   string    `gorm:"column:client_name"`
+	Kind         string    `gorm:"column:kind"`
+	MetadataJSON string    `gorm:"column:metadata_json"`
+	ReceivedAt   time.Time `gorm:"column:received_at"`
 }
 
 func (EventBatch) TableName() string {
@@ -113,4 +114,30 @@ type AdminSession struct {
 
 func (AdminSession) TableName() string {
 	return "admin_sessions"
+}
+
+type Registration struct {
+	ID           int64     `gorm:"column:id;primaryKey;autoIncrement"`
+	BatchID      string    `gorm:"column:batch_id"`
+	GuildID      string    `gorm:"column:guild_id"`
+	UserID       string    `gorm:"column:user_id"`
+	Username     string    `gorm:"column:username"`
+	RegisteredAt time.Time `gorm:"column:registered_at"`
+	MetadataJSON string    `gorm:"column:metadata_json"`
+}
+
+func (Registration) TableName() string {
+	return "registrations"
+}
+
+type SyncHeartbeat struct {
+	ID          int64     `gorm:"column:id;primaryKey;autoIncrement"`
+	ClientName  string    `gorm:"column:client_name"`
+	Status      string    `gorm:"column:status"`
+	DetailsJSON string    `gorm:"column:details_json"`
+	CheckedAt   time.Time `gorm:"column:checked_at"`
+}
+
+func (SyncHeartbeat) TableName() string {
+	return "sync_heartbeats"
 }
