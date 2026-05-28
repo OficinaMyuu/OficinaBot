@@ -63,7 +63,9 @@ func NewServer(cfg Config) (*Server, error) {
 	}
 
 	e := echo.New()
-	registerRoutes(e, cfg, cardRenderer, newAuthService(cfg, db))
+	authService := newAuthService(cfg, db)
+	serviceAuthenticator := auth.NewServiceAuthenticator(repository.NewBotClientRepository(db.Gorm))
+	registerRoutes(e, cfg, cardRenderer, authService, serviceAuthenticator)
 	return &Server{
 		Echo:         e,
 		database:     db,
@@ -113,13 +115,14 @@ func ignoreServerClosed(err error) error {
 	return err
 }
 
-func registerRoutes(e *echo.Echo, cfg Config, cardRenderer routes.CardRenderer, authService *auth.Service) {
+func registerRoutes(e *echo.Echo, cfg Config, cardRenderer routes.CardRenderer, authService *auth.Service, serviceAuthenticator *auth.ServiceAuthenticator) {
 	e.Static("/static", "./static")
 
 	cardHandler := routes.NewCardHandler(cardRenderer)
 	externalHandler := routes.NewExternalHandler(service.NewExternalVideoService())
 	authHandler := routes.NewAuthHandler(authService, authCookieConfig(cfg))
 	adminHandler := routes.NewAdminHandler(authService, authCookieConfig(cfg))
+	serviceHandler := routes.NewServiceHandler()
 
 	e.POST("/api/levels/cards", cardHandler.GetLevelCard)
 	e.POST("/api/levels/roles", cardHandler.GetLevelsRoles)
@@ -133,6 +136,9 @@ func registerRoutes(e *echo.Echo, cfg Config, cardRenderer routes.CardRenderer, 
 	e.GET("/api/admin/users", adminHandler.ListUsers)
 	e.POST("/api/admin/users", adminHandler.AddUser)
 	e.DELETE("/api/admin/users/:discord_id", adminHandler.RemoveUser)
+
+	serviceGroup := e.Group("/api/service", routes.ServiceAuthMiddleware(serviceAuthenticator))
+	serviceGroup.GET("/me", serviceHandler.Me)
 }
 
 func newAuthService(cfg Config, db *database.Database) *auth.Service {
