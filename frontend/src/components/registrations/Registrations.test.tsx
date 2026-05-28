@@ -1,7 +1,7 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import React from 'react'
-import AdminManagement from './AdminManagement'
+import { RegistrationsComponent } from '../../routes/router'
 import { useAuth } from '../../context/AuthContext'
 import { ToastProvider } from '../ui/Toast'
 
@@ -23,29 +23,8 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
   }
 })
 
-describe('AdminManagement Component', () => {
-  it('blocks access and renders access restrained error if user is NOT the owner', () => {
-    vi.mocked(useAuth).mockReturnValue({
-      user: { id: '2', username: 'Moderator#0001', avatar: 'M', isOwner: false },
-      isAuthenticated: true,
-      isLoading: false,
-      isForbidden: false,
-      login: vi.fn(),
-      logout: vi.fn()
-    })
-
-    render(
-      <ToastProvider>
-        <AdminManagement />
-      </ToastProvider>
-    )
-
-    expect(screen.getByText('Access Restrained')).toBeInTheDocument()
-    expect(screen.getByText(/strictly reserved for the Primary Server Owner/i)).toBeInTheDocument()
-    expect(screen.queryByText('Allowlist New Admin')).not.toBeInTheDocument()
-  })
-
-  it('renders allowlist page and forms if user IS the owner', () => {
+describe('Registrations Component', () => {
+  it('renders registered member tag name and mock actions', () => {
     vi.mocked(useAuth).mockReturnValue({
       user: { id: '1', username: 'Leonardo#0001', avatar: 'L', isOwner: true },
       isAuthenticated: true,
@@ -57,12 +36,35 @@ describe('AdminManagement Component', () => {
 
     render(
       <ToastProvider>
-        <AdminManagement />
+        <RegistrationsComponent />
       </ToastProvider>
     )
 
-    expect(screen.getByText('Allowlist New Admin')).toBeInTheDocument()
-    expect(screen.getByText('Allowlisted Administrators')).toBeInTheDocument()
-    expect(screen.getAllByText('Leonardo#0001').length).toBeGreaterThan(0)
+    expect(screen.getByText('Member Registrations')).toBeInTheDocument()
+    expect(screen.getByText('MemberSpike#2211')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /approve/i })).toBeInTheDocument()
+  })
+
+  it('handles approve action correctly', () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: '1', username: 'Leonardo#0001', avatar: 'L', isOwner: true },
+      isAuthenticated: true,
+      isLoading: false,
+      isForbidden: false,
+      login: vi.fn(),
+      logout: vi.fn()
+    })
+
+    render(
+      <ToastProvider>
+        <RegistrationsComponent />
+      </ToastProvider>
+    )
+
+    const approveBtn = screen.getByRole('button', { name: /approve/i })
+    fireEvent.click(approveBtn)
+
+    expect(screen.getAllByText('APPROVED')).toHaveLength(2)
+    expect(screen.queryByRole('button', { name: /approve/i })).not.toBeInTheDocument()
   })
 })
