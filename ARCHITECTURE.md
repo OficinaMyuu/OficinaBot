@@ -121,6 +121,11 @@ Admin dashboard APIs live under `/api/dashboard/*` and require the admin session
 
 Config writes create immutable `config_versions` rows and audit actions. Bots poll `/api/service/configs/pending` for unapplied config versions and ACK each applied version through `/api/service/configs/:version_id/ack`. Polling is non-destructive; data is not removed just because a bot asked for it.
 
+## Backend Discord REST Metadata
+The backend has a REST-only Discord integration built with `discordgo` and authenticated by `DISCORD_BOT_TOKEN`. It creates a `discordgo.Session` for HTTP methods only and must not call `Session.Open()`, configure gateway intents, or connect to Discord websockets. The Discord-facing bots remain responsible for gateway events.
+
+Dashboard metadata endpoints expose trimmed guild, channel, role, and user DTOs under `/api/dashboard/discord/*`. Metadata is cached in-process for five minutes to reduce repeated Discord REST calls; the cache is intentionally local and disposable.
+
 ## History Preservation
 This mono-repo was assembled with history-preserving subtree imports:
 - `OficinaMyuu/OficinaImagery` was imported under `backend/`.

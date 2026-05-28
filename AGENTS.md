@@ -88,6 +88,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Backend deployment is intentionally not wired at the mono-repo root yet.
 - Backend persistence defaults to `backend/cmd/data/oficina-services.db` when run from `backend/cmd/`; override with `DATABASE_PATH`.
 - Backend admin auth requires `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URL`, `OFICINA_OWNER_DISCORD_ID`, and `SESSION_SECRET`.
+- Backend Discord REST metadata requires `DISCORD_BOT_TOKEN`; the backend must not call `discordgo.Session.Open()` or otherwise connect to the gateway.
 - Use `SESSION_COOKIE_SECURE=false` only for local HTTP development; production cookies should remain secure.
 - Backend service APIs live under `/api/service/*` and require `Authorization: Bearer <token>`; only token hashes are stored in `bot_clients`.
 - Backend dashboard APIs live under `/api/dashboard/*` and use the admin session cookie.
