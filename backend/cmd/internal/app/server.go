@@ -54,7 +54,9 @@ func registerRoutes(e *echo.Echo, cardRenderer routes.CardRenderer) {
 	e.Static("/static", "./static")
 
 	cardHandler := routes.NewCardHandler(cardRenderer)
+	externalHandler := routes.NewExternalHandler(service.NewExternalVideoService())
+
 	e.POST("/api/levels/cards", cardHandler.GetLevelCard)
 	e.POST("/api/levels/roles", cardHandler.GetLevelsRoles)
-	e.GET("/api/external/videos", routes.GetVideo)
+	e.GET("/api/external/videos", externalHandler.GetVideo)
 }

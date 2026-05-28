@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/labstack/echo/v4"
+	"io"
 	"net/http"
 	"net/url"
 	"oficina-img/internal/service"
@@ -12,17 +13,29 @@ import (
 // cause its name is not X, its Twitter.
 var Supported = []string{"instagram.com", "twitter.com", "x.com"}
 
-func GetVideo(c echo.Context) error {
+type VideoDownloader interface {
+	DownloadVideo(route string) (io.ReadCloser, *service.APIError)
+}
+
+type ExternalHandler struct {
+	downloader VideoDownloader
+}
+
+func NewExternalHandler(downloader VideoDownloader) *ExternalHandler {
+	return &ExternalHandler{downloader: downloader}
+}
+
+func (h *ExternalHandler) GetVideo(c echo.Context) error {
 	endpoint := c.QueryParam("url")
 	if endpoint == "" {
 		return c.JSON(400, service.ErrorURLNotPresent)
 	}
 
-	if !isValidURL(endpoint) {
+	if !IsSupportedVideoURL(endpoint) {
 		return c.JSON(400, service.ErrorDomainNotSupported(endpoint))
 	}
 
-	file, err := service.DownloadVideo(endpoint)
+	file, err := h.downloader.DownloadVideo(endpoint)
 	if err != nil {
 		return c.JSON(err.Status, err)
 	}
@@ -31,7 +44,7 @@ func GetVideo(c echo.Context) error {
 	return c.Stream(http.StatusOK, "video/mp4", file)
 }
 
-func isValidURL(route string) bool {
+func IsSupportedVideoURL(route string) bool {
 	parsed, err := url.Parse(route)
 	if err != nil || parsed.Host == "" {
 		return false
@@ -39,7 +52,7 @@ func isValidURL(route string) bool {
 
 	host := strings.ToLower(parsed.Host)
 	for _, domain := range Supported {
-		if strings.HasSuffix(host, domain) {
+		if host == domain || strings.HasSuffix(host, "."+domain) {
 			return true
 		}
 	}

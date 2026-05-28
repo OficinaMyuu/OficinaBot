@@ -14,7 +14,13 @@ import (
 // responses in this endpoint (8 MiB).
 const MaxPayloadBytes = 8 * 1024 * 1024
 
-func DownloadVideo(route string) (io.ReadCloser, *APIError) {
+type ExternalVideoService struct{}
+
+func NewExternalVideoService() *ExternalVideoService {
+	return &ExternalVideoService{}
+}
+
+func (s *ExternalVideoService) DownloadVideo(route string) (io.ReadCloser, *APIError) {
 	timestamp := time.Now().UnixNano()
 	filename := fmt.Sprintf("%d.mp4", timestamp)
 	filePath := filepath.Join(os.TempDir(), filename)
