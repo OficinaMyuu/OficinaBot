@@ -90,6 +90,8 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Backend admin auth requires `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URL`, `OFICINA_OWNER_DISCORD_ID`, and `SESSION_SECRET`.
 - Use `SESSION_COOKIE_SECURE=false` only for local HTTP development; production cookies should remain secure.
 - Backend service APIs live under `/api/service/*` and require `Authorization: Bearer <token>`; only token hashes are stored in `bot_clients`.
+- Backend dashboard APIs live under `/api/dashboard/*` and use the admin session cookie.
+- Service batch ingestion endpoints require caller-provided `batch_id` values and treat duplicate batches as successful no-ops.
 - Backend CORS defaults to `FRONTEND_ORIGIN=http://localhost:5173`, body limit defaults to `BODY_LIMIT=8M`, and cookie-backed mutating admin routes require CSRF headers.
 - Bot deployment secrets are service-scoped with the `OFICINA` segment, such as `SFTP_OFICINA_HOST` and `PTERO_OFICINA_SERVER_ID`.
 - Registrar deployment secrets are service-scoped with the `REGISTRY` segment, such as `SFTP_REGISTRY_HOST` and `PTERO_REGISTRY_SERVER_ID`.
