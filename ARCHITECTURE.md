@@ -109,6 +109,13 @@ Admin sessions are stored in `admin_sessions` with hashed session tokens, expira
 
 Auth routes live under `/api/auth/*`: Discord login start/callback, current admin lookup, and logout. Owner-only admin management lives under `/api/admin/users`.
 
+## Backend Service Auth
+Bot-to-backend APIs live under `/api/service/*` and use `Authorization: Bearer <token>`. The backend hashes bearer tokens with SHA-256 and compares them against `bot_clients.token_hash`; raw service tokens are not stored. Successful service authentication updates the client `last_seen_at` timestamp and stores the authenticated client in the Echo context for service handlers.
+
+The initial protected service endpoint is `/api/service/me`, which returns the authenticated client identity. Real ingestion, config polling, and ACK endpoints should be added under this same protected group.
+
+Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, CORS for the configured frontend origin, CSRF checks for cookie-backed mutating admin routes, and a basic in-memory rate limiter. CSRF is intentionally not applied to bearer-token service routes.
+
 ## History Preservation
 This mono-repo was assembled with history-preserving subtree imports:
 - `OficinaMyuu/OficinaImagery` was imported under `backend/`.
