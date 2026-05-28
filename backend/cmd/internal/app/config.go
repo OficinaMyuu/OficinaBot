@@ -3,9 +3,11 @@ package app
 import "github.com/joho/godotenv"
 
 const DefaultAddress = ":8080"
+const DefaultDatabasePath = "./data/oficina-services.db"
 
 type Config struct {
-	Address string
+	Address      string
+	DatabasePath string
 }
 
 func LoadConfig() (Config, error) {
@@ -14,6 +16,7 @@ func LoadConfig() (Config, error) {
 	}
 
 	return Config{
-		Address: DefaultAddress,
+		Address:      DefaultAddress,
+		DatabasePath: DefaultDatabasePath,
 	}, nil
 }
