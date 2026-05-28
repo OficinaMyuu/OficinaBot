@@ -23,6 +23,7 @@ type Config struct {
 	DiscordClientID     string
 	DiscordClientSecret string
 	DiscordRedirectURL  string
+	DiscordBotToken     string
 	FrontendRedirectURL string
 	FrontendOrigin      string
 	BodyLimit           string
@@ -44,6 +45,7 @@ func LoadConfig() (Config, error) {
 		DiscordClientID:     os.Getenv("DISCORD_CLIENT_ID"),
 		DiscordClientSecret: os.Getenv("DISCORD_CLIENT_SECRET"),
 		DiscordRedirectURL:  os.Getenv("DISCORD_REDIRECT_URL"),
+		DiscordBotToken:     os.Getenv("DISCORD_BOT_TOKEN"),
 		FrontendRedirectURL: getEnv("FRONTEND_REDIRECT_URL", DefaultFrontendRedirectURL),
 		FrontendOrigin:      getEnv("FRONTEND_ORIGIN", DefaultFrontendOrigin),
 		BodyLimit:           getEnv("BODY_LIMIT", DefaultBodyLimit),
@@ -65,6 +67,9 @@ func (c Config) ValidateAuth() error {
 	}
 	if c.DiscordRedirectURL == "" {
 		missing = append(missing, "DISCORD_REDIRECT_URL")
+	}
+	if c.DiscordBotToken == "" {
+		missing = append(missing, "DISCORD_BOT_TOKEN")
 	}
 	if c.OwnerDiscordID == "" {
 		missing = append(missing, "OFICINA_OWNER_DISCORD_ID")

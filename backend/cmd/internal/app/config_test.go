@@ -18,6 +18,7 @@ func TestConfigValidateAuthAcceptsRequiredSettings(t *testing.T) {
 		DiscordClientID:     "client-id",
 		DiscordClientSecret: "client-secret",
 		DiscordRedirectURL:  "http://localhost/callback",
+		DiscordBotToken:     "bot-token",
 		OwnerDiscordID:      "100",
 		SessionSecret:       "secret",
 		SessionTTL:          DefaultSessionTTL,
