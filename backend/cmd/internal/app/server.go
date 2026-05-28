@@ -8,31 +8,45 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/playwright-community/playwright-go"
+	"oficina-img/internal/database"
 	"oficina-img/internal/routes"
 	"oficina-img/internal/service"
 )
 
 type Server struct {
 	Echo         *echo.Echo
+	database     *database.Database
 	playwright   *playwright.Playwright
 	cardRenderer *service.CardRenderer
 }
 
 const shutdownTimeout = 10 * time.Second
 
-func NewServer() (*Server, error) {
+func NewServer(cfg Config) (*Server, error) {
+	db, err := database.Open(database.Config{Path: cfg.DatabasePath})
+	if err != nil {
+		return nil, err
+	}
+	if err := db.Migrate(); err != nil {
+		db.Close()
+		return nil, err
+	}
+
 	if err := playwright.Install(); err != nil {
+		db.Close()
 		return nil, err
 	}
 
 	pw, err := playwright.Run()
 	if err != nil {
+		db.Close()
 		return nil, err
 	}
 
 	cardRenderer, err := service.NewCardRenderer(pw)
 	if err != nil {
 		pw.Stop()
+		db.Close()
 		return nil, err
 	}
 
@@ -40,6 +54,7 @@ func NewServer() (*Server, error) {
 	registerRoutes(e, cardRenderer)
 	return &Server{
 		Echo:         e,
+		database:     db,
 		playwright:   pw,
 		cardRenderer: cardRenderer,
 	}, nil
@@ -72,6 +87,9 @@ func (s *Server) Close() error {
 	}
 	if s.playwright != nil {
 		err = errors.Join(err, s.playwright.Stop())
+	}
+	if s.database != nil {
+		err = errors.Join(err, s.database.Close())
 	}
 	return err
 }

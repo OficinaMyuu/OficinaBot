@@ -1,6 +1,10 @@
 package app
 
-import "github.com/joho/godotenv"
+import (
+	"os"
+
+	"github.com/joho/godotenv"
+)
 
 const DefaultAddress = ":8080"
 const DefaultDatabasePath = "./data/oficina-services.db"
@@ -16,7 +20,15 @@ func LoadConfig() (Config, error) {
 	}
 
 	return Config{
-		Address:      DefaultAddress,
-		DatabasePath: DefaultDatabasePath,
+		Address:      getEnv("ADDRESS", DefaultAddress),
+		DatabasePath: getEnv("DATABASE_PATH", DefaultDatabasePath),
 	}, nil
+}
+
+func getEnv(key, fallback string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
+	}
+	return value
 }
