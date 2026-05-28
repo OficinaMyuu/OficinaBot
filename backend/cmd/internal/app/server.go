@@ -12,6 +12,7 @@ import (
 	"golang.org/x/oauth2"
 	"oficina-img/internal/auth"
 	"oficina-img/internal/database"
+	discordmeta "oficina-img/internal/discord"
 	"oficina-img/internal/repository"
 	"oficina-img/internal/routes"
 	"oficina-img/internal/service"
@@ -67,7 +68,15 @@ func NewServer(cfg Config) (*Server, error) {
 	registerMiddleware(e, cfg)
 	authService := newAuthService(cfg, db)
 	serviceAuthenticator := auth.NewServiceAuthenticator(repository.NewBotClientRepository(db.Gorm))
-	registerRoutes(e, cfg, db, cardRenderer, authService, serviceAuthenticator)
+	discordClient, err := discordmeta.NewClient(cfg.DiscordBotToken)
+	if err != nil {
+		cardRenderer.Close()
+		pw.Stop()
+		db.Close()
+		return nil, err
+	}
+	metadataService := discordmeta.NewMetadataService(discordClient)
+	registerRoutes(e, cfg, db, cardRenderer, authService, serviceAuthenticator, metadataService)
 	return &Server{
 		Echo:         e,
 		database:     db,
@@ -133,7 +142,7 @@ func ignoreServerClosed(err error) error {
 	return err
 }
 
-func registerRoutes(e *echo.Echo, cfg Config, db *database.Database, cardRenderer routes.CardRenderer, authService *auth.Service, serviceAuthenticator *auth.ServiceAuthenticator) {
+func registerRoutes(e *echo.Echo, cfg Config, db *database.Database, cardRenderer routes.CardRenderer, authService *auth.Service, serviceAuthenticator *auth.ServiceAuthenticator, metadataService routes.DiscordMetadataService) {
 	e.Static("/static", "./static")
 
 	cardHandler := routes.NewCardHandler(cardRenderer)
@@ -160,6 +169,7 @@ func registerRoutes(e *echo.Echo, cfg Config, db *database.Database, cardRendere
 	)
 	configHandler := routes.NewConfigHandler(authService, authCookieConfig(cfg), configRepo, auditRepo)
 	configSyncHandler := routes.NewConfigSyncHandler(configRepo)
+	discordMetadataHandler := routes.NewDiscordMetadataHandler(authService, authCookieConfig(cfg), metadataService)
 
 	e.POST("/api/levels/cards", cardHandler.GetLevelCard)
 	e.POST("/api/levels/roles", cardHandler.GetLevelsRoles)
@@ -181,6 +191,10 @@ func registerRoutes(e *echo.Echo, cfg Config, db *database.Database, cardRendere
 	e.GET("/api/dashboard/audit-actions", dashboardHandler.AuditActions)
 	e.GET("/api/dashboard/configs", configHandler.ListConfigs)
 	e.POST("/api/dashboard/configs", configHandler.CreateConfig, csrfMiddleware(cfg))
+	e.GET("/api/dashboard/discord/guilds/:guild_id", discordMetadataHandler.Guild)
+	e.GET("/api/dashboard/discord/channels/:channel_id", discordMetadataHandler.Channel)
+	e.GET("/api/dashboard/discord/guilds/:guild_id/roles", discordMetadataHandler.GuildRoles)
+	e.GET("/api/dashboard/discord/users/:user_id", discordMetadataHandler.User)
 
 	serviceGroup := e.Group("/api/service", routes.ServiceAuthMiddleware(serviceAuthenticator))
 	serviceGroup.GET("/me", serviceHandler.Me)
