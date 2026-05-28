@@ -1016,6 +1016,22 @@ const registrationsRoute = createRoute({
 // ==========================================
 // 5. Config Component & Route (New!)
 // ==========================================
+interface ConfigVersionRecord {
+  version: string
+  status: 'PENDING' | 'ACKNOWLEDGED'
+  clientAck?: string
+  updatedAt: string
+}
+
+interface ConfigAuditRecord {
+  id: string
+  admin: string
+  action: string
+  target: string
+  details: string
+  timestamp: string
+}
+
 export const ConfigComponent: React.FC = () => {
   const { showToast } = useToast()
   
@@ -1029,7 +1045,42 @@ export const ConfigComponent: React.FC = () => {
   const [badWordsString, setBadWordsString] = useState('hack, cheats, spammer, hacktools')
   const [newBadWord, setNewBadWord] = useState('')
 
+  // Config Version and Audit Log states (Step 11)
+  const [currentVersion, setCurrentVersion] = useState(1024)
+  const [versions, setVersions] = useState<ConfigVersionRecord[]>([
+    { version: 'v1024', status: 'ACKNOWLEDGED', clientAck: 'OficinaBot-Shard#0', updatedAt: '01:20:00' },
+    { version: 'v1023', status: 'ACKNOWLEDGED', clientAck: 'OficinaBot-Shard#0', updatedAt: '01:10:00' },
+    { version: 'v1022', status: 'ACKNOWLEDGED', clientAck: 'RegistrarService', updatedAt: '01:05:00' }
+  ])
+  const [auditLogs, setAuditLogs] = useState<ConfigAuditRecord[]>([
+    { id: 'aud-01', admin: 'Leonardo#0001', action: 'CREATE', target: 'Automod Settings', details: 'Spam threshold rate set to 5', timestamp: '01:20:44' },
+    { id: 'aud-02', admin: 'Leonardo#0001', action: 'UPDATE', target: 'Bad Words blocklist', details: 'Added blockword "cheats"', timestamp: '01:18:22' },
+    { id: 'aud-03', admin: 'ModGuy#1232', action: 'UPDATE', target: 'Automod Settings', details: 'Anti-Spam Filter toggled ENABLED', timestamp: '01:10:12' }
+  ])
+
   const handleSaveAutomod = () => {
+    const nextVer = currentVersion + 1
+    setCurrentVersion(nextVer)
+    
+    // Add pending config version
+    const newVer: ConfigVersionRecord = {
+      version: `v${nextVer}`,
+      status: 'PENDING',
+      updatedAt: new Date().toTimeString().split(' ')[0]
+    }
+    setVersions(prev => [newVer, ...prev])
+
+    // Add audit entry
+    const newAudit: ConfigAuditRecord = {
+      id: `aud-${Math.random().toString(36).substring(2, 6)}`,
+      admin: 'Leonardo#0001',
+      action: 'UPDATE',
+      target: 'Automod Settings',
+      details: `Saved settings: Anti-spam: ${spamBlocker ? 'ON' : 'OFF'}, Spam limit: ${spamThreshold}`,
+      timestamp: new Date().toTimeString().split(' ')[0]
+    }
+    setAuditLogs(prev => [newAudit, ...prev])
+
     showToast('Automod configurations saved successfully!', 'success')
   }
 
@@ -1046,22 +1097,78 @@ export const ConfigComponent: React.FC = () => {
       return
     }
 
-    const updatedWords = [...currentWords, newBadWord.trim().toLowerCase()]
+    const wordToAdd = newBadWord.trim().toLowerCase()
+    const updatedWords = [...currentWords, wordToAdd]
     setBadWordsString(updatedWords.join(', '))
     setNewBadWord('')
-    showToast(`Added blocked word: "${newBadWord.trim()}"`, 'success')
+
+    const nextVer = currentVersion + 1
+    setCurrentVersion(nextVer)
+
+    // Add pending config version
+    const newVer: ConfigVersionRecord = {
+      version: `v${nextVer}`,
+      status: 'PENDING',
+      updatedAt: new Date().toTimeString().split(' ')[0]
+    }
+    setVersions(prev => [newVer, ...prev])
+
+    // Add audit entry
+    const newAudit: ConfigAuditRecord = {
+      id: `aud-${Math.random().toString(36).substring(2, 6)}`,
+      admin: 'Leonardo#0001',
+      action: 'UPDATE',
+      target: 'Bad Words blocklist',
+      details: `Added blockword "${wordToAdd}"`,
+      timestamp: new Date().toTimeString().split(' ')[0]
+    }
+    setAuditLogs(prev => [newAudit, ...prev])
+
+    showToast(`Added blocked word: "${wordToAdd}"`, 'success')
   }
 
   const handleSaveBadWords = () => {
+    const nextVer = currentVersion + 1
+    setCurrentVersion(nextVer)
+
+    // Add pending config version
+    const newVer: ConfigVersionRecord = {
+      version: `v${nextVer}`,
+      status: 'PENDING',
+      updatedAt: new Date().toTimeString().split(' ')[0]
+    }
+    setVersions(prev => [newVer, ...prev])
+
+    // Add audit entry
+    const newAudit: ConfigAuditRecord = {
+      id: `aud-${Math.random().toString(36).substring(2, 6)}`,
+      admin: 'Leonardo#0001',
+      action: 'UPDATE',
+      target: 'Bad Words blocklist',
+      details: `Synchronized blocklist (length: ${badWordsString.length} chars)`,
+      timestamp: new Date().toTimeString().split(' ')[0]
+    }
+    setAuditLogs(prev => [newAudit, ...prev])
+
     showToast('Bad words blocklist synchronized to local databases.', 'success')
   }
 
   const handleSyncToBot = () => {
     showToast('Broadcasting WAL configuration sync to OficinaBot clients...', 'info')
+    
+    // Simulate updating all PENDING config versions to ACKNOWLEDGED
     setTimeout(() => {
-      showToast('OficinaBot ACK: Synced configuration version 1024!', 'success')
+      setVersions(prev => prev.map(v => {
+        if (v.status === 'PENDING') {
+          return { ...v, status: 'ACKNOWLEDGED', clientAck: 'OficinaBot-Shard#0' }
+        }
+        return v
+      }))
+      showToast(`OficinaBot ACK: Synced configuration version ${currentVersion}!`, 'success')
     }, 1500)
   }
+
+  const pendingCount = versions.filter(v => v.status === 'PENDING').length
 
   return (
     <DashboardLayout pageTitle="Automod Config">
@@ -1078,8 +1185,20 @@ export const ConfigComponent: React.FC = () => {
           border: '1px solid var(--border-medium)'
         }}>
           <div>
-            <div style={{ fontWeight: 'bold', fontSize: '15px' }}>Pending Configuration Updates</div>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Bots poll config updates every 5 minutes automatically.</div>
+            <div style={{ fontWeight: 'bold', fontSize: '15px' }}>
+              Pending Configuration Updates
+            </div>
+            <div style={{ fontSize: '13px', marginTop: '4px' }}>
+              {pendingCount > 0 ? (
+                <span style={{ color: 'var(--color-warning)', fontWeight: '600' }}>
+                  ⚠️ {pendingCount} update{pendingCount > 1 ? 's' : ''} awaiting sync propagation
+                </span>
+              ) : (
+                <span style={{ color: 'var(--color-success)', fontWeight: '600' }}>
+                  ✓ All changes synchronized to active bot clients
+                </span>
+              )}
+            </div>
           </div>
           <Button onClick={handleSyncToBot}>
             Sync Config to Bots Now
@@ -1209,6 +1328,122 @@ export const ConfigComponent: React.FC = () => {
               </FormField>
             </form>
           </div>
+        </div>
+
+        {/* Dual Panel Sync & Audit Monitor Section (Step 11) */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+          gap: '24px',
+          alignItems: 'start'
+        }}>
+          
+          {/* Column 1: Config Version Sync Monitor */}
+          <div style={{
+            backgroundColor: 'var(--bg-panel)',
+            border: '1px solid var(--border-medium)',
+            borderRadius: '8px',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '16px', fontWeight: 'bold' }}>
+                Version Sync Monitor
+              </h3>
+              <span style={{
+                fontSize: '11px',
+                color: 'var(--color-info)',
+                backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                padding: '3px 8px',
+                borderRadius: '12px',
+                fontWeight: '500'
+              }}>
+                Active Sync Mode
+              </span>
+            </div>
+            
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+              ℹ️ <strong>Propagation Delay:</strong> Configuration updates broadcast asynchronously. Offline or polling bot nodes synchronize local databases every <strong>5 minutes</strong>.
+            </p>
+
+            <Table>
+              <Thead>
+                <Tr>
+                  <Th>Version</Th>
+                  <Th>Sync Status</Th>
+                  <Th>Acknowledge Client</Th>
+                  <Th style={{ textAlign: 'right' }}>Time</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {versions.map((v) => (
+                  <Tr key={v.version}>
+                    <Td style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{v.version}</Td>
+                    <Td>
+                      <span style={{
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        color: v.status === 'ACKNOWLEDGED' ? 'var(--color-success)' : 'var(--color-warning)',
+                        backgroundColor: v.status === 'ACKNOWLEDGED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                        border: `1px solid ${v.status === 'ACKNOWLEDGED' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)'}`
+                      }}>
+                        {v.status === 'ACKNOWLEDGED' ? 'ACKED' : 'PENDING'}
+                      </span>
+                    </Td>
+                    <Td style={{ fontFamily: 'monospace', fontSize: '12px' }}>
+                      {v.clientAck ? (
+                        <span style={{ color: 'var(--color-secondary)' }}>🤖 {v.clientAck}</span>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>awaiting sync...</span>
+                      )}
+                    </Td>
+                    <Td style={{ textAlign: 'right', color: 'var(--text-muted)', fontSize: '12px' }}>{v.updatedAt}</Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </div>
+
+          {/* Column 2: Configuration Audit Trail */}
+          <div style={{
+            backgroundColor: 'var(--bg-panel)',
+            border: '1px solid var(--border-medium)',
+            borderRadius: '8px',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}>
+            <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '16px', fontWeight: 'bold' }}>
+              Configuration Audit Trail
+            </h3>
+
+            <Table>
+              <Thead>
+                <Tr>
+                  <Th>Admin</Th>
+                  <Th>Target</Th>
+                  <Th>Change Description</Th>
+                  <Th style={{ textAlign: 'right' }}>Time</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {auditLogs.map((log) => (
+                  <Tr key={log.id}>
+                    <Td style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{log.admin}</Td>
+                    <Td style={{ color: 'var(--color-secondary)', fontSize: '12px' }}>{log.target}</Td>
+                    <Td style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{log.details}</Td>
+                    <Td style={{ textAlign: 'right', color: 'var(--text-muted)', fontSize: '12px' }}>{log.timestamp}</Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </div>
+          
         </div>
 
       </div>
