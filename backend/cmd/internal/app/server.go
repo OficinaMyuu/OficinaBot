@@ -8,10 +8,18 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/playwright-community/playwright-go"
+	"golang.org/x/oauth2"
+	"oficina-img/internal/auth"
 	"oficina-img/internal/database"
+	"oficina-img/internal/repository"
 	"oficina-img/internal/routes"
 	"oficina-img/internal/service"
 )
+
+var discordOAuthEndpoint = oauth2.Endpoint{
+	AuthURL:  "https://discord.com/oauth2/authorize",
+	TokenURL: "https://discord.com/api/oauth2/token",
+}
 
 type Server struct {
 	Echo         *echo.Echo
@@ -23,6 +31,10 @@ type Server struct {
 const shutdownTimeout = 10 * time.Second
 
 func NewServer(cfg Config) (*Server, error) {
+	if err := cfg.ValidateAuth(); err != nil {
+		return nil, err
+	}
+
 	db, err := database.Open(database.Config{Path: cfg.DatabasePath})
 	if err != nil {
 		return nil, err
@@ -51,7 +63,7 @@ func NewServer(cfg Config) (*Server, error) {
 	}
 
 	e := echo.New()
-	registerRoutes(e, cardRenderer)
+	registerRoutes(e, cfg, cardRenderer, newAuthService(cfg, db))
 	return &Server{
 		Echo:         e,
 		database:     db,
@@ -101,13 +113,53 @@ func ignoreServerClosed(err error) error {
 	return err
 }
 
-func registerRoutes(e *echo.Echo, cardRenderer routes.CardRenderer) {
+func registerRoutes(e *echo.Echo, cfg Config, cardRenderer routes.CardRenderer, authService *auth.Service) {
 	e.Static("/static", "./static")
 
 	cardHandler := routes.NewCardHandler(cardRenderer)
 	externalHandler := routes.NewExternalHandler(service.NewExternalVideoService())
+	authHandler := routes.NewAuthHandler(authService, authCookieConfig(cfg))
+	adminHandler := routes.NewAdminHandler(authService, authCookieConfig(cfg))
 
 	e.POST("/api/levels/cards", cardHandler.GetLevelCard)
 	e.POST("/api/levels/roles", cardHandler.GetLevelsRoles)
 	e.GET("/api/external/videos", externalHandler.GetVideo)
+
+	e.GET("/api/auth/discord/start", authHandler.StartDiscordLogin)
+	e.GET("/api/auth/discord/callback", authHandler.CompleteDiscordLogin)
+	e.GET("/api/auth/me", authHandler.CurrentUser)
+	e.POST("/api/auth/logout", authHandler.Logout)
+
+	e.GET("/api/admin/users", adminHandler.ListUsers)
+	e.POST("/api/admin/users", adminHandler.AddUser)
+	e.DELETE("/api/admin/users/:discord_id", adminHandler.RemoveUser)
+}
+
+func newAuthService(cfg Config, db *database.Database) *auth.Service {
+	oauthConfig := &oauth2.Config{
+		ClientID:     cfg.DiscordClientID,
+		ClientSecret: cfg.DiscordClientSecret,
+		RedirectURL:  cfg.DiscordRedirectURL,
+		Scopes:       []string{auth.DiscordIdentifyScope},
+		Endpoint:     discordOAuthEndpoint,
+	}
+
+	return auth.NewService(
+		auth.NewDiscordClient(oauthConfig),
+		repository.NewUserRepository(db.Gorm),
+		repository.NewAdminSessionRepository(db.Gorm),
+		auth.Config{
+			OwnerDiscordID: cfg.OwnerDiscordID,
+			SessionSecret:  cfg.SessionSecret,
+			SessionTTL:     cfg.SessionTTL,
+		},
+	)
+}
+
+func authCookieConfig(cfg Config) routes.AuthCookieConfig {
+	return routes.AuthCookieConfig{
+		SessionName:         cfg.SessionCookieName,
+		Secure:              cfg.SessionCookieSecure,
+		FrontendRedirectURL: cfg.FrontendRedirectURL,
+	}
 }
