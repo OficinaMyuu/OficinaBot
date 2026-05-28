@@ -6,7 +6,7 @@ export interface ApiError {
 class ApiClient {
   private baseUrl: string
 
-  constructor(baseUrl: string = '/api') {
+  constructor(baseUrl: string = import.meta.env.VITE_API_BASE_URL) {
     this.baseUrl = baseUrl
   }
 
