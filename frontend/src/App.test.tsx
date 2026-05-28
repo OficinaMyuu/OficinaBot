@@ -6,6 +6,6 @@ describe('App Component', () => {
   it('renders app overview layout successfully', async () => {
     render(<App />)
     expect(await screen.findByText('OficinaServices')).toBeInTheDocument()
-    expect(screen.getByText('Admin Dashboard')).toBeInTheDocument()
+    expect(screen.getByText('OficinaBot: Synced')).toBeInTheDocument()
   })
 })
