@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"gorm.io/gorm"
@@ -51,9 +52,38 @@ func (r *BotClientRepository) Create(ctx context.Context, client *BotClient) err
 	return r.db.WithContext(ctx).Create(client).Error
 }
 
+func (r *BotClientRepository) Upsert(ctx context.Context, client *BotClient) error {
+	existing, err := r.Get(ctx, client.Name)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return r.Create(ctx, client)
+		}
+		return err
+	}
+
+	updates := map[string]any{
+		"token_hash": client.TokenHash,
+	}
+	if client.LastSeenAt != nil {
+		updates["last_seen_at"] = client.LastSeenAt
+	}
+	return r.db.WithContext(ctx).
+		Model(existing).
+		Updates(updates).
+		Error
+}
+
 func (r *BotClientRepository) Get(ctx context.Context, name string) (*BotClient, error) {
 	var client BotClient
 	if err := r.db.WithContext(ctx).First(&client, "name = ?", name).Error; err != nil {
+		return nil, err
+	}
+	return &client, nil
+}
+
+func (r *BotClientRepository) GetByTokenHash(ctx context.Context, tokenHash string) (*BotClient, error) {
+	var client BotClient
+	if err := r.db.WithContext(ctx).First(&client, "token_hash = ?", tokenHash).Error; err != nil {
 		return nil, err
 	}
 	return &client, nil

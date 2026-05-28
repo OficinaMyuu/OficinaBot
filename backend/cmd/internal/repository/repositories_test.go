@@ -56,6 +56,35 @@ func TestBotClientRepositoryTouchesLastSeenAt(t *testing.T) {
 	}
 }
 
+func TestBotClientRepositoryUpsertsAndFindsByTokenHash(t *testing.T) {
+	db := openMigratedDatabase(t)
+	ctx := context.Background()
+	repo := NewBotClientRepository(db.Gorm)
+
+	if err := repo.Upsert(ctx, &BotClient{Name: "bot", TokenHash: "old-hash"}); err != nil {
+		t.Fatalf("upsert new bot client: %v", err)
+	}
+	if err := repo.Upsert(ctx, &BotClient{Name: "bot", TokenHash: "new-hash"}); err != nil {
+		t.Fatalf("upsert existing bot client: %v", err)
+	}
+
+	client, err := repo.GetByTokenHash(ctx, "new-hash")
+	if err != nil {
+		t.Fatalf("get client by token hash: %v", err)
+	}
+	if client.Name != "bot" {
+		t.Fatalf("expected bot client, got %+v", client)
+	}
+
+	var count int64
+	if err := db.Gorm.Table("bot_clients").Count(&count).Error; err != nil {
+		t.Fatalf("count bot clients: %v", err)
+	}
+	if count != 1 {
+		t.Fatalf("expected one bot client after upsert, got %d", count)
+	}
+}
+
 func TestEventAndMessageRepositoriesPersistBatchLogs(t *testing.T) {
 	db := openMigratedDatabase(t)
 	ctx := context.Background()
