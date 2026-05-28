@@ -191,6 +191,14 @@ func TestConfigVersionRepositoryTracksPendingAcknowledgements(t *testing.T) {
 	if len(pending) != 0 {
 		t.Fatalf("expected no pending configs after ack, got %d", len(pending))
 	}
+
+	recent, err := repo.ListRecent(ctx, 10)
+	if err != nil {
+		t.Fatalf("list recent configs: %v", err)
+	}
+	if len(recent) != 1 || recent[0].Key != "bad_words" {
+		t.Fatalf("expected bad_words config, got %+v", recent)
+	}
 }
 
 func TestAuditActionRepositoryListsRecent(t *testing.T) {

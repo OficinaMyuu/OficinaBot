@@ -185,6 +185,16 @@ func (r *ConfigVersionRepository) Create(ctx context.Context, version *ConfigVer
 	return r.db.WithContext(ctx).Create(version).Error
 }
 
+func (r *ConfigVersionRepository) ListRecent(ctx context.Context, limit int) ([]ConfigVersion, error) {
+	var versions []ConfigVersion
+	err := r.db.WithContext(ctx).
+		Order("id DESC").
+		Limit(normalizeLimit(limit)).
+		Find(&versions).
+		Error
+	return versions, err
+}
+
 func (r *ConfigVersionRepository) PendingForClient(ctx context.Context, clientName string) ([]ConfigVersion, error) {
 	var versions []ConfigVersion
 	err := r.db.WithContext(ctx).
