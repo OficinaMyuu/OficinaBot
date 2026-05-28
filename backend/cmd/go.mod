@@ -8,6 +8,7 @@ require (
 	github.com/labstack/gommon v0.4.2
 	github.com/playwright-community/playwright-go v0.5001.0
 	github.com/pressly/goose/v3 v3.24.1
+	golang.org/x/oauth2 v0.25.0
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
 )

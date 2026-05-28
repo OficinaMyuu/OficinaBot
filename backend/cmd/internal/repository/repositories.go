@@ -34,6 +34,10 @@ func (r *UserRepository) List(ctx context.Context) ([]User, error) {
 	return users, err
 }
 
+func (r *UserRepository) Delete(ctx context.Context, discordID string) error {
+	return r.db.WithContext(ctx).Delete(&User{}, "discord_id = ?", discordID).Error
+}
+
 type BotClientRepository struct {
 	db *gorm.DB
 }
