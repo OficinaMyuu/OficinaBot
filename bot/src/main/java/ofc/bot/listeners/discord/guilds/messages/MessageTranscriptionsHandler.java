@@ -93,6 +93,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
         if (transcription != null) {
             if (!isInCooldown(transcription)) {
                 channel.sendMessage(transcription.getTranscription())
+                        .setAllowedMentions(List.of())
                         .setMessageReference(messageId)
                         .queue();
             }
@@ -324,7 +325,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
             return;
         }
 
-        RestAction<Message> sendReq = ref.editMessage(chunks[0]);
+        RestAction<Message> sendReq = ref.editMessage(chunks[0]).setAllowedMentions(List.of());
         for (int i = 1; i < chunks.length; i++) {
             String msg = chunks[i];
             sendReq = sendReq.flatMap(s -> chan.sendMessage(msg));
