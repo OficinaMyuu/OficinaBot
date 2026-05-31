@@ -52,6 +52,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Change channel permission optimization: open `ChannelOptimizeCommand.java`, `ChannelPermissionOptimizer.java`, and `ChannelOptimizeApproveHandler.java`.
 - Change Oficina Dorme behavior: open `CreateMafiaGameCommand.java`, `MafiaInteractionListener.java`, and the rule helpers in `bot/src/main/java/ofc/bot/handlers/games/mafia/service/`.
 - Change giveaway behavior: open `bot/src/main/java/ofc/bot/commands/impl/slash/giveaway/`, then `bot/src/main/java/ofc/bot/handlers/giveaway/`, `GiveawayInteractionListener.java`, `GiveawayVoiceConditionListener.java`, and `GiveawayEndHandler.java`.
+- Change accumulator prize behavior: open `bot/src/main/java/ofc/bot/commands/impl/slash/accumulator/`, `bot/src/main/java/ofc/bot/handlers/accumulator/`, `AccumulatorInteractionListener.java`, and the `accumulator_prizes` table/repository.
 - Change persistence or schema: open `DB.java`, then the related table/entity/repository trio under `bot/src/main/java/ofc/bot/domain/`.
 - Debug config or startup failures: start with `Main.java`, `BotFiles.java`, `BotProperties.java`, and `DB.java`.
 - Debug command visibility/registration: start with `CommandsInitializer.java` and `SlashCommandsRegistryManager.java`.
@@ -59,6 +60,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 ## Bot Feature Map
 - Economy: `commands/impl/slash/economy/`, `listeners/discord/economy/`, `handlers/economy/`, `UserEconomyRepository`. `/rob` steals wallet only and fines bank on failure. `PolicyType.BLOCK_MONEY_GAINS` blocks automated money earnings only.
 - Color roles: `/colors` Components V2 store lives in `commands/impl/slash/colors/`; rendering lives in `handlers/shop/ColorRoleStoreMessageFactory.java`; final buy/remove actions stay in the shop button handlers.
+- Accumulator prizes: `/accumulator add/list` live in `commands/impl/slash/accumulator/`; durable list controls live in `listeners/discord/interactions/buttons/accumulator/`; rendering and payout orchestration live in `handlers/accumulator/`; rows live in `accumulator_prizes`.
 - Groups: `commands/impl/slash/groups/`, `listeners/discord/interactions/buttons/groups/`, `handlers/groups/`, `OficinaGroupRepository`.
 - Marriage/relationships: `commands/impl/slash/relationships/`, `MarriageRepository`, `MarriageRequestRepository`.
 - Reminders: `commands/impl/slash/reminders/`, `jobs/RemindersHandler.java`, `ReminderRepository`.
@@ -103,6 +105,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Do not assume a missing bot feature is unimplemented before checking central registration.
 - SQLite is configured with a single pooled connection on purpose; avoid "fixing" that casually.
 - Giveaway buttons are durable component ids prefixed with `giveaway:` and must not use `InteractionMemoryManager`.
+- Accumulator controls are durable component ids prefixed with `acc:v1:` and must not use `InteractionMemoryManager`; accumulator rows are never deleted, only moved from `PENDING` to `PAID` or `REJECTED`.
 - Color role ownership uses `color_roles_state.expires_at`; do not reintroduce fixed `updated_at + 60 days` expiration logic.
 - `ColorRoleRemotionHandler` deletes stale `color_roles_state` rows when an expired row points at a Discord role that no longer exists.
 
