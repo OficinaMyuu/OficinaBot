@@ -7,6 +7,8 @@ import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import ofc.bot.Main;
 import ofc.bot.commands.impl.slash.*;
 import ofc.bot.commands.impl.slash.additionals.AdditionalRolesCommand;
+import ofc.bot.commands.impl.slash.accumulator.AddAccumulatorPrizeCommand;
+import ofc.bot.commands.impl.slash.accumulator.ListAccumulatorPrizesCommand;
 import ofc.bot.commands.impl.slash.bets.BetTicTacToeCommand;
 import ofc.bot.commands.impl.slash.birthday.BirthdayAddCommand;
 import ofc.bot.commands.impl.slash.birthday.BirthdayRemoveCommand;
@@ -62,6 +64,7 @@ public final class CommandsInitializer {
     public static void initializeSlashCommands() {
         SlashCommandsRegistryManager registry = SlashCommandsRegistryManager.getManager();
         var emojiPermRepo = Repositories.getUserEmojiPermissionRepository();
+        var accPrizeRepo = Repositories.getAccumulatorPrizeRepository();
         var colorStateRepo = Repositories.getColorRoleStateRepository();
         var colorItemRepo = Repositories.getColorRoleItemRepository();
         var bckpRepo = Repositories.getFormerMemberRoleRepository();
@@ -93,6 +96,10 @@ public final class CommandsInitializer {
         // Additionals
         SlashCommand additionals = new EmptySlashCommand("additionals", "Gerencia recursos adicionais/misc do bot.", Permission.MANAGE_SERVER)
                 .addSubcommand(new AdditionalRolesCommand());
+
+        SlashCommand accumulator = new EmptySlashCommand("accumulator", "Accumulates event prizes for later approval.", Permission.BAN_MEMBERS)
+                .addSubcommand(new AddAccumulatorPrizeCommand(accPrizeRepo))
+                .addSubcommand(new ListAccumulatorPrizesCommand(accPrizeRepo));
 
         SlashCommand bets = new EmptySlashCommand("bets", "Aposte seu dinheiro.")
                 .addSubcommand(new BetTicTacToeCommand(ecoRepo));
@@ -235,6 +242,7 @@ public final class CommandsInitializer {
         registry.register(new WakeupCommand());
 
         // Compound Commands
+        registry.register(accumulator);
         registry.register(additionals);
         registry.register(bets);
         registry.register(birthday);

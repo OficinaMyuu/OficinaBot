@@ -6,6 +6,7 @@ import ofc.bot.commands.impl.slash.groups.LeaveGroupCommand;
 import ofc.bot.commands.impl.slash.tickets.MergeTicketCommand;
 import ofc.bot.domain.sqlite.repository.Repositories;
 import ofc.bot.handlers.cache.PolicyService;
+import ofc.bot.handlers.accumulator.AccumulatorPayoutService;
 import ofc.bot.handlers.giveaway.GiveawayServices;
 import ofc.bot.handlers.interactions.InteractionMemoryManager;
 import ofc.bot.handlers.interactions.buttons.ButtonInteractionGateway;
@@ -35,6 +36,7 @@ import ofc.bot.listeners.discord.guilds.voice.solo.SoloChannelsHandler;
 import ofc.bot.listeners.discord.interactions.GenericInteractionLocaleUpsert;
 import ofc.bot.listeners.discord.interactions.autocomplete.*;
 import ofc.bot.listeners.discord.interactions.buttons.WorkReminderHandler;
+import ofc.bot.listeners.discord.interactions.buttons.accumulator.AccumulatorInteractionListener;
 import ofc.bot.listeners.discord.interactions.buttons.bets.TicTacToeAcceptHandler;
 import ofc.bot.listeners.discord.interactions.buttons.channels.ChannelOptimizeApproveHandler;
 import ofc.bot.listeners.discord.interactions.buttons.giveaway.GiveawayInteractionListener;
@@ -211,6 +213,9 @@ public final class EntityInitializerManager {
     private static void registerDiscordListeners() {
         JDA api = Main.getApi();
         var msgTrscptRepo = Repositories.getMessageTranscriptionRepository();
+        var accPrizeRepo = Repositories.getAccumulatorPrizeRepository();
+        var colorStateRepo = Repositories.getColorRoleStateRepository();
+        var colorItemRepo = Repositories.getColorRoleItemRepository();
         var rolesRepo = Repositories.getFormerMemberRoleRepository();
         var pnshRepo = Repositories.getMemberPunishmentRepository();
         var usprefRepo = Repositories.getUserPreferenceRepository();
@@ -233,8 +238,10 @@ public final class EntityInitializerManager {
         var xpRepo = Repositories.getUserXPRepository();
         var userRepo = Repositories.getUserRepository();
         var giveawayService = GiveawayServices.create();
+        var accumulatorPayoutService = new AccumulatorPayoutService(accPrizeRepo, colorItemRepo, colorStateRepo);
 
         api.addEventListener(
+                new AccumulatorInteractionListener(accPrizeRepo, colorItemRepo, accumulatorPayoutService),
                 new AutoModerator(blckWordsRepo, pnshRepo, modActRepo, ticketRepo),
                 new AutoModLogger(),
                 new BlockDumbCommands(),
