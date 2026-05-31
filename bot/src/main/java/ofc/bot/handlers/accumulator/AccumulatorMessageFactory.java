@@ -223,7 +223,7 @@ public final class AccumulatorMessageFactory {
                     "%s**\nMembro: %s\nValor: `$%s`\nEconomia: %s\n-# Adicionado por %s.%s",
                     localizedType(prize.getType()),
                     target,
-                    Bot.fmtNum(prize.getAmount()),
+                    Bot.fmtNum(amountOrZero(prize)),
                     currency,
                     creator,
                     errorLine
@@ -241,11 +241,21 @@ public final class AccumulatorMessageFactory {
                 prize.getId(),
                 localizedType(prize.getType()),
                 target,
-                Bot.parsePeriod(prize.getColorDurationSeconds()),
+                Bot.parsePeriod(durationOrZero(prize)),
                 roleDisplay,
                 creator,
                 errorLine
         );
+    }
+
+    private static int amountOrZero(AccumulatorPrize prize) {
+        Integer amount = prize.getAmount();
+        return amount == null ? 0 : amount;
+    }
+
+    private static long durationOrZero(AccumulatorPrize prize) {
+        Long duration = prize.getColorDurationSeconds();
+        return duration == null ? 0L : duration;
     }
 
     private static SelectOption toOption(Guild guild, ColorRoleItem item) {

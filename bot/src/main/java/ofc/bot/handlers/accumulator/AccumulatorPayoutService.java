@@ -135,8 +135,7 @@ public class AccumulatorPayoutService {
     }
 
     private void validateMoney(AccumulatorPrize prize, List<String> errors) {
-        Integer amount = prize.getAmount();
-        if (!AccumulatorPrize.isValidAmount(amount)) {
+        if (!AccumulatorPrize.isValidAmount(prize.getAmount())) {
             errors.add("#" + prize.getId() + ": valor de dinheiro inválido.");
         }
 
@@ -175,8 +174,8 @@ public class AccumulatorPayoutService {
 
     private Runnable executeMoney(long guildId, AccumulatorPrize prize) {
         CurrencyType currency = prize.getCurrency();
-        Integer amount = prize.getAmount();
-        if (currency == null || amount == null) {
+        int amount = amountOrZero(prize);
+        if (currency == null || !AccumulatorPrize.isValidAmount(amount)) {
             throw new IllegalStateException("o prêmio #" + prize.getId() + " não está configurado");
         }
 
@@ -204,8 +203,12 @@ public class AccumulatorPayoutService {
 
     private Runnable executeColorRole(long guildId, Guild guild, AccumulatorPrize prize) {
         long userId = prize.getTargetId();
-        long roleId = prize.getColorRoleId();
-        long duration = prize.getColorDurationSeconds();
+        long roleId = colorRoleIdOrZero(prize);
+        long duration = colorDurationOrZero(prize);
+        if (roleId <= 0 || duration <= 0) {
+            throw new IllegalStateException("o prêmio #" + prize.getId() + " não está configurado");
+        }
+
         long now = Bot.unixNow();
         ColorRoleState existing = colorStateRepo.findByUserAndRoleId(userId, roleId);
         boolean hadRole = discordBridge.memberHasRole(guild, userId, roleId);
@@ -280,6 +283,21 @@ public class AccumulatorPayoutService {
 
     private long elapsed(long startNanos) {
         return (System.nanoTime() - startNanos) / 1_000_000L;
+    }
+
+    private int amountOrZero(AccumulatorPrize prize) {
+        Integer amount = prize.getAmount();
+        return amount == null ? 0 : amount;
+    }
+
+    private long colorRoleIdOrZero(AccumulatorPrize prize) {
+        Long roleId = prize.getColorRoleId();
+        return roleId == null ? 0L : roleId;
+    }
+
+    private long colorDurationOrZero(AccumulatorPrize prize) {
+        Long duration = prize.getColorDurationSeconds();
+        return duration == null ? 0L : duration;
     }
 
     private List<Integer> ids(List<AccumulatorPrize> prizes) {
