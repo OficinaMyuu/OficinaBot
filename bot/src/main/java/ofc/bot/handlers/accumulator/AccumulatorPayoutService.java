@@ -60,7 +60,7 @@ public class AccumulatorPayoutService {
     public synchronized AccumulatorApprovalReport approveOne(long guildId, Guild guild, int prizeId, long approverId) {
         AccumulatorPrize prize = prizeRepo.findPendingById(guildId, prizeId);
         if (prize == null) {
-            return AccumulatorApprovalReport.failure(1, 0, "Prize not found or already processed.", List.of());
+            return AccumulatorApprovalReport.failure(1, 0, "Prêmio não encontrado ou já processado.", List.of());
         }
         return approve(guildId, guild, List.of(prize), approverId);
     }
@@ -79,14 +79,14 @@ public class AccumulatorPayoutService {
         List<Integer> ids = ids(prizes);
 
         if (prizes.isEmpty()) {
-            return failure(startNanos, 0, "There are no pending prizes to approve.", List.of());
+            return failure(startNanos, 0, "Não há prêmios pendentes para aprovar.", List.of());
         }
 
         List<String> validationErrors = validate(guild, prizes);
         if (!validationErrors.isEmpty()) {
             String error = String.join("\n", validationErrors);
             prizeRepo.saveLastError(guildId, ids, Bot.limitStr(error, 500), Bot.unixNow());
-            return failure(startNanos, prizes.size(), "Nothing was paid because the pending box is not ready.", validationErrors);
+            return failure(startNanos, prizes.size(), "Nada foi pago porque a caixa de pendências ainda não está pronta.", validationErrors);
         }
 
         List<Runnable> rollbacks = new ArrayList<>();
@@ -98,21 +98,21 @@ public class AccumulatorPayoutService {
             long now = Bot.unixNow();
             int updated = prizeRepo.markPaid(guildId, ids, approverId, now);
             if (updated != prizes.size()) {
-                throw new IllegalStateException("Could not mark every prize as paid.");
+                throw new IllegalStateException("não foi possível marcar todos os prêmios como pagos");
             }
 
             return AccumulatorApprovalReport.success(
                     prizes.size(),
                     elapsed(startNanos),
-                    "Paid " + prizes.size() + " accumulated prize(s).",
-                    List.of("Approved by <@" + approverId + ">.")
+                    "Foram pagos " + prizes.size() + " prêmio(s) acumulado(s).",
+                    List.of("Aprovado por <@" + approverId + ">.")
             );
         } catch (RuntimeException e) {
             List<String> details = new ArrayList<>();
-            details.add("Payment failed: " + e.getMessage());
+            details.add("Falha no pagamento: " + e.getMessage());
             details.addAll(rollback(rollbacks));
             prizeRepo.saveLastError(guildId, ids, Bot.limitStr(String.join("\n", details), 500), Bot.unixNow());
-            return failure(startNanos, prizes.size(), "Nothing was marked as paid.", details);
+            return failure(startNanos, prizes.size(), "Nenhum prêmio foi marcado como pago.", details);
         }
     }
 
@@ -121,7 +121,7 @@ public class AccumulatorPayoutService {
 
         for (AccumulatorPrize prize : prizes) {
             if (!discordBridge.memberExists(guild, prize.getTargetId())) {
-                errors.add("#" + prize.getId() + ": member <@" + prize.getTargetId() + "> was not found.");
+                errors.add("#" + prize.getId() + ": o membro <@" + prize.getTargetId() + "> não foi encontrado.");
                 continue;
             }
 
@@ -136,33 +136,33 @@ public class AccumulatorPayoutService {
 
     private void validateMoney(AccumulatorPrize prize, List<String> errors) {
         Integer amount = prize.getAmount();
-        if (!AccumulatorInputParser.isValidAmount(amount)) {
-            errors.add("#" + prize.getId() + ": invalid money amount.");
+        if (!AccumulatorPrize.isValidAmount(amount)) {
+            errors.add("#" + prize.getId() + ": valor de dinheiro inválido.");
         }
 
         if (prize.getCurrency() == null) {
-            errors.add("#" + prize.getId() + ": choose a currency before approving.");
+            errors.add("#" + prize.getId() + ": escolha uma moeda antes de aprovar.");
         }
     }
 
     private void validateColorRole(Guild guild, AccumulatorPrize prize, List<String> errors) {
         Long roleId = prize.getColorRoleId();
         if (roleId == null) {
-            errors.add("#" + prize.getId() + ": choose a color role before approving.");
+            errors.add("#" + prize.getId() + ": escolha um cargo de cor antes de aprovar.");
             return;
         }
 
         if (colorItemRepo.findByRoleId(roleId) == null) {
-            errors.add("#" + prize.getId() + ": selected role is not a registered color role.");
+            errors.add("#" + prize.getId() + ": o cargo selecionado não é uma cor cadastrada.");
         }
 
         if (!discordBridge.roleExists(guild, roleId)) {
-            errors.add("#" + prize.getId() + ": selected color role no longer exists.");
+            errors.add("#" + prize.getId() + ": o cargo de cor selecionado não existe mais.");
         }
 
         Long duration = prize.getColorDurationSeconds();
         if (duration == null || duration <= 0) {
-            errors.add("#" + prize.getId() + ": invalid color role duration.");
+            errors.add("#" + prize.getId() + ": duração de cargo de cor inválida.");
         }
     }
 
@@ -177,7 +177,7 @@ public class AccumulatorPayoutService {
         CurrencyType currency = prize.getCurrency();
         Integer amount = prize.getAmount();
         if (currency == null || amount == null) {
-            throw new IllegalStateException("Prize #" + prize.getId() + " is not configured.");
+            throw new IllegalStateException("o prêmio #" + prize.getId() + " não está configurado");
         }
 
         PaymentManager payment = paymentProvider.apply(currency);
@@ -190,7 +190,7 @@ public class AccumulatorPayoutService {
         );
 
         if (account == null) {
-            throw new IllegalStateException("Economy update failed for prize #" + prize.getId() + ".");
+            throw new IllegalStateException("a economia falhou ao atualizar o prêmio #" + prize.getId());
         }
 
         return () -> payment.update(
@@ -198,7 +198,7 @@ public class AccumulatorPayoutService {
                 guildId,
                 0,
                 -amount,
-                "Rollback of accumulator prize #" + prize.getId()
+                "Reversão do prêmio accumulator #" + prize.getId()
         );
     }
 
@@ -268,7 +268,7 @@ public class AccumulatorPayoutService {
             try {
                 rollbacks.get(i).run();
             } catch (RuntimeException e) {
-                failures.add("Rollback failed: " + e.getMessage());
+                failures.add("Falha ao reverter: " + e.getMessage());
             }
         }
         return failures;

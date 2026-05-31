@@ -147,6 +147,10 @@ public class AccumulatorPrize extends OficinaRecord<AccumulatorPrize> {
         return this;
     }
 
+    public static boolean isValidAmount(@Nullable Integer amount) {
+        return amount != null && amount > 0 && amount <= MAX_AMOUNT;
+    }
+
     @NotNull
     @Override
     public AccumulatorPrize setLastUpdated(long timestamp) {

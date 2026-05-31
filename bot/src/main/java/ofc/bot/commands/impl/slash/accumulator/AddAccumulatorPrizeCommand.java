@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.AccumulatorPrize;
 import ofc.bot.domain.entity.enums.AccumulatorPrizeType;
 import ofc.bot.domain.sqlite.repository.AccumulatorPrizeRepository;
-import ofc.bot.handlers.accumulator.AccumulatorInputParser;
 import ofc.bot.handlers.accumulator.AccumulatorMessageFactory;
 import ofc.bot.handlers.giveaway.GiveawayInputParser;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
@@ -34,15 +33,21 @@ public class AddAccumulatorPrizeCommand extends SlashSubcommand {
     @Override
     public InteractionResult onCommand(@NotNull SlashCommandContext ctx) {
         AccumulatorPrizeType type = ctx.getSafeEnumOption("type", AccumulatorPrizeType.class);
-        User user = ctx.getOption("user", OptionMapping::getAsUser);
-        String entries = ctx.getOption("entries", OptionMapping::getAsString);
+        User target = ctx.getSafeOption("user", OptionMapping::getAsUser);
         Integer amount = ctx.getOption("amount", OptionMapping::getAsInt);
         String durationInput = ctx.getOption("duration", OptionMapping::getAsString);
 
-        if (type == AccumulatorPrizeType.MONEY && amount != null && !AccumulatorInputParser.isValidAmount(amount)) {
+        if (target == null) {
             return ctx.replyEmbeds(true, AccumulatorMessageFactory.failure(
-                    "Invalid amount",
-                    "Money prizes must be between 1 and " + AccumulatorPrize.MAX_AMOUNT + "."
+                    "Usuário inválido",
+                    "Escolha o usuário que deve receber o prêmio."
+            ));
+        }
+
+        if (type == AccumulatorPrizeType.MONEY && !AccumulatorPrize.isValidAmount(amount)) {
+            return ctx.replyEmbeds(true, AccumulatorMessageFactory.failure(
+                    "Valor inválido",
+                    "Prêmios em dinheiro devem ter valor entre 1 e " + AccumulatorPrize.MAX_AMOUNT + "."
             ));
         }
 
@@ -51,44 +56,34 @@ public class AddAccumulatorPrizeCommand extends SlashSubcommand {
             duration = GiveawayInputParser.parseDurationSeconds(durationInput);
             if (duration <= 0) {
                 return ctx.replyEmbeds(true, AccumulatorMessageFactory.failure(
-                        "Invalid duration",
-                        "Color role prizes need a valid duration. Examples: `7d`, `30d`, `2h`."
+                        "Duração inválida",
+                        "Prêmios de cargo de cor precisam de uma duração válida. Exemplos: `7d`, `30d`, `2h`."
                 ));
             }
-        }
-
-        AccumulatorInputParser.Result parsed = AccumulatorInputParser.parse(type, user, entries, amount);
-        if (!parsed.isOk()) {
-            return ctx.replyEmbeds(true, AccumulatorMessageFactory.failure(
-                    "Could not add prizes",
-                    Bot.limitStr(String.join("\n", parsed.errors()), 3500)
-            ));
         }
 
         long now = Bot.unixNow();
         long guildId = ctx.getGuildId();
         long createdBy = ctx.getUserId();
         Long colorDuration = type == AccumulatorPrizeType.COLOR_ROLE ? duration : null;
-        List<AccumulatorPrize> prizes = parsed.entries().stream()
-                .map(entry -> new AccumulatorPrize(
-                        guildId,
-                        entry.userId(),
-                        createdBy,
-                        type,
-                        type == AccumulatorPrizeType.MONEY ? entry.amount() : null,
-                        colorDuration,
-                        now
-                ))
-                .toList();
+        AccumulatorPrize prize = new AccumulatorPrize(
+                guildId,
+                target.getIdLong(),
+                createdBy,
+                type,
+                type == AccumulatorPrizeType.MONEY ? amount : null,
+                colorDuration,
+                now
+        );
 
         try {
-            prizeRepo.bulkSave(prizes);
-            return ctx.replyEmbeds(true, AccumulatorMessageFactory.addSuccess(ctx.getUser(), type, prizes.size()));
+            prizeRepo.save(prize);
+            return ctx.replyEmbeds(true, AccumulatorMessageFactory.addSuccess(ctx.getUser(), target, type));
         } catch (DataAccessException e) {
-            LOGGER.error("Could not accumulate {} prize(s) in guild {}", prizes.size(), guildId, e);
+            LOGGER.error("Could not accumulate {} prize for user {} in guild {}", type, target.getIdLong(), guildId, e);
             return ctx.replyEmbeds(true, AccumulatorMessageFactory.failure(
-                    "Could not add prizes",
-                    "The pending box could not be updated."
+                    "Não foi possível acumular o prêmio",
+                    "A caixa de prêmios pendentes não pôde ser atualizada."
             ));
         }
     }
@@ -106,10 +101,8 @@ public class AddAccumulatorPrizeCommand extends SlashSubcommand {
                 new OptionData(OptionType.STRING, "type", "Prize type.", true)
                         .addChoice(AccumulatorPrizeType.MONEY.getDisplay(), AccumulatorPrizeType.MONEY.name())
                         .addChoice(AccumulatorPrizeType.COLOR_ROLE.getDisplay(), AccumulatorPrizeType.COLOR_ROLE.name()),
-                new OptionData(OptionType.USER, "user", "Single winner to add."),
-                new OptionData(OptionType.STRING, "entries", "Bulk entries: one user id per line, or `<user> <amount>` for money.")
-                        .setRequiredLength(1, 4000),
-                new OptionData(OptionType.INTEGER, "amount", "Money amount used by single entries or as the bulk default.")
+                new OptionData(OptionType.USER, "user", "Winner to add.", true),
+                new OptionData(OptionType.INTEGER, "amount", "Money amount.")
                         .setRequiredRange(1, AccumulatorPrize.MAX_AMOUNT),
                 new OptionData(OptionType.STRING, "duration", "Color role duration. Examples: 7d, 30d, 2h.")
                         .setRequiredLength(1, 40)

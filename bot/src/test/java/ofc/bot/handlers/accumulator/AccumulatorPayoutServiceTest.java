@@ -47,7 +47,7 @@ class AccumulatorPayoutServiceTest {
             assertEquals(0, report.paid());
             assertEquals(2, repos.prizes.countPending(1L));
             assertEquals(0, payment.bank(10L));
-            assertTrue(report.details().getFirst().contains("choose a color role"));
+            assertTrue(report.details().getFirst().contains("escolha um cargo de cor"));
         }
     }
 
