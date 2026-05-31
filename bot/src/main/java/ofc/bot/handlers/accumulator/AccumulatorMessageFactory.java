@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class AccumulatorMessageFactory {
-    public static final int PAGE_SIZE = 6;
+    public static final int PAGE_SIZE = 4;
     private static final String PREFIX = "acc";
     private static final String VERSION = "v1";
     private static final Color ACCENT_COLOR = Bot.Colors.DEFAULT;
@@ -42,8 +42,8 @@ public final class AccumulatorMessageFactory {
         List<ContainerChildComponent> children = new ArrayList<>();
 
         children.add(TextDisplay.of(String.format("""
-                ### Caixa de prêmios
-                Prêmios pendentes: `%s`.
+                ### Caixa de Prêmios
+                Premiações pendentes: `%s`.
                 """.strip(), Bot.fmtNum(page.getRowCount()))));
         children.add(divider());
 
@@ -57,7 +57,7 @@ public final class AccumulatorMessageFactory {
             }
         }
 
-        children.add(TextDisplay.of(String.format("Pag %s/%s", page.getPage(), page.getPageCount())));
+        children.add(TextDisplay.of(String.format("Pág. %s/%s", page.getPage(), page.getPageCount())));
         Container container = Container.of(children).withAccentColor(ACCENT_COLOR);
         ActionRow actions = ActionRow.of(
                 Button.secondary(pageId(page.getPageIndex() - 1), Bot.Emojis.GRAY_ARROW_LEFT)
@@ -188,7 +188,7 @@ public final class AccumulatorMessageFactory {
             buttons.add(Button.secondary(colorButtonId(prize.getId(), pageIndex), label));
         }
 
-        buttons.add(Button.of(ButtonStyle.DANGER, rejectId(prize.getId(), pageIndex), "Rejeitar", Bot.Emojis.TRASH));
+        buttons.add(Button.danger(rejectId(prize.getId(), pageIndex), Bot.Emojis.TRASH));
         return buttons;
     }
 
@@ -220,8 +220,7 @@ public final class AccumulatorMessageFactory {
         if (prize.getType() == AccumulatorPrizeType.MONEY) {
             String currency = prize.getCurrency() == null ? "não escolhida" : prize.getCurrency().getFormatted();
             return String.format(
-                    "**#%d - %s**\nAlvo: %s\nValor: `$%s`\nMoeda: %s\n-# Adicionado por %s.%s",
-                    prize.getId(),
+                    "%s**\nMembro: %s\nValor: `$%s`\nEconomia: %s\n-# Adicionado por %s.%s",
                     localizedType(prize.getType()),
                     target,
                     Bot.fmtNum(prize.getAmount()),
