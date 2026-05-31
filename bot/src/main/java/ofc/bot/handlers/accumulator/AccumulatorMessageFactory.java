@@ -220,7 +220,8 @@ public final class AccumulatorMessageFactory {
         if (prize.getType() == AccumulatorPrizeType.MONEY) {
             String currency = prize.getCurrency() == null ? "não escolhida" : prize.getCurrency().getFormatted();
             return String.format(
-                    "%s**\nMembro: %s\nValor: `$%s`\nEconomia: %s\n-# Adicionado por %s.%s",
+                    "**#%d - %s**\nMembro: %s\nValor: `$%s`\nEconomia: %s\n-# Adicionado por %s.%s",
+                    prize.getId(),
                     localizedType(prize.getType()),
                     target,
                     Bot.fmtNum(amountOrZero(prize)),
@@ -237,7 +238,7 @@ public final class AccumulatorMessageFactory {
                 : role.getAsMention();
 
         return String.format(
-                "**#%d - %s**\nAlvo: %s\nDuração: `%s`\nCor: %s\n-# Adicionado por %s.%s",
+                "**#%d - %s**\nMembro: %s\nDuração: `%s`\nCor: %s\n-# Adicionado por %s.%s",
                 prize.getId(),
                 localizedType(prize.getType()),
                 target,
