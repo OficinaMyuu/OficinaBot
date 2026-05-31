@@ -42,13 +42,13 @@ public final class AccumulatorMessageFactory {
         List<ContainerChildComponent> children = new ArrayList<>();
 
         children.add(TextDisplay.of(String.format("""
-                ### Accumulator
-                Pending prizes: `%s`.
+                ### Caixa de prêmios
+                Prêmios pendentes: `%s`.
                 """.strip(), Bot.fmtNum(page.getRowCount()))));
         children.add(divider());
 
         if (page.isEmpty()) {
-            children.add(TextDisplay.of("*No pending prizes.*"));
+            children.add(TextDisplay.of("*Nenhum prêmio pendente.*"));
         } else {
             for (AccumulatorPrize prize : page.getEntities()) {
                 children.add(Section.of(payButton(prize, page.getPageIndex()), TextDisplay.of(formatPrize(guild, prize))));
@@ -64,7 +64,7 @@ public final class AccumulatorMessageFactory {
                         .withDisabled(page.getPageIndex() <= 0),
                 Button.secondary(pageId(page.getPageIndex() + 1), Bot.Emojis.GRAY_ARROW_RIGHT)
                         .withDisabled(!page.hasMore()),
-                Button.success(approveAllId(page.getPageIndex()), "Approve All")
+                Button.success(approveAllId(page.getPageIndex()), "Aprovar Tudo")
                         .withDisabled(page.getRowCount() <= 0)
         );
 
@@ -80,7 +80,7 @@ public final class AccumulatorMessageFactory {
             List<ColorRoleItem> colorRoles
     ) {
         StringSelectMenu.Builder builder = StringSelectMenu.create(colorSelectId(prizeId, pageIndex, channelId, messageId))
-                .setPlaceholder("Choose a color role")
+                .setPlaceholder("Escolha um cargo de cor")
                 .setRequiredRange(1, 1);
 
         colorRoles.stream()
@@ -92,12 +92,12 @@ public final class AccumulatorMessageFactory {
         return builder.build();
     }
 
-    public static MessageEmbed addSuccess(User user, AccumulatorPrizeType type, int count) {
+    public static MessageEmbed addSuccess(User user, User target, AccumulatorPrizeType type) {
         return new OficinaEmbed()
                 .setAuthor(user.getName(), null, user.getEffectiveAvatarUrl())
                 .setColor(EmbedFactory.OK_GREEN)
-                .setTitle("Accumulator updated")
-                .setDescf("Added `%s` %s prize(s) to the pending box.", Bot.fmtNum(count), type.getDisplay())
+                .setTitle("Caixa de prêmios atualizada")
+                .setDescf("Prêmio de **%s** adicionado para %s.", localizedType(type), target.getAsMention())
                 .build();
     }
 
@@ -111,7 +111,7 @@ public final class AccumulatorMessageFactory {
 
     public static MessageEmbed setupSuccess(String description) {
         return new OficinaEmbed()
-                .setTitle("Accumulator updated")
+                .setTitle("Caixa de prêmios atualizada")
                 .setColor(EmbedFactory.OK_GREEN)
                 .setDesc(description)
                 .build();
@@ -120,18 +120,18 @@ public final class AccumulatorMessageFactory {
     public static MessageEmbed approvalReport(AccumulatorApprovalReport report, User user) {
         Color color = report.successful() ? EmbedFactory.OK_GREEN : EmbedFactory.DANGER_RED;
         String details = report.details().isEmpty()
-                ? "No additional details."
+                ? "Nenhum detalhe adicional."
                 : Bot.limitStr(String.join("\n", report.details()), MessageEmbed.DESCRIPTION_MAX_LENGTH - 500);
 
         return new OficinaEmbed()
                 .setAuthor(user.getName(), null, user.getEffectiveAvatarUrl())
-                .setTitle(report.successful() ? "Accumulator payout complete" : "Accumulator payout failed")
+                .setTitle(report.successful() ? "Pagamento concluído" : "Pagamento falhou")
                 .setColor(color)
                 .setDesc(report.summary())
-                .addField("Requested", Bot.fmtNum(report.requested()), true)
-                .addField("Paid", Bot.fmtNum(report.paid()), true)
-                .addField("Elapsed", report.elapsedMillis() + " ms", true)
-                .addField("Report", details, false)
+                .addField("Solicitados", Bot.fmtNum(report.requested()), true)
+                .addField("Pagos", Bot.fmtNum(report.paid()), true)
+                .addField("Tempo", report.elapsedMillis() + " ms", true)
+                .addField("Relatório", details, false)
                 .build();
     }
 
@@ -184,16 +184,16 @@ public final class AccumulatorMessageFactory {
             buttons.add(currencyButton(prize, pageIndex, CurrencyType.OFICINA));
             buttons.add(currencyButton(prize, pageIndex, CurrencyType.UNBELIEVABOAT));
         } else {
-            String label = prize.getColorRoleId() == null ? "Set Color" : "Change Color";
+            String label = prize.getColorRoleId() == null ? "Definir Cor" : "Trocar Cor";
             buttons.add(Button.secondary(colorButtonId(prize.getId(), pageIndex), label));
         }
 
-        buttons.add(Button.of(ButtonStyle.DANGER, rejectId(prize.getId(), pageIndex), "Reject", Bot.Emojis.TRASH));
+        buttons.add(Button.of(ButtonStyle.DANGER, rejectId(prize.getId(), pageIndex), "Rejeitar", Bot.Emojis.TRASH));
         return buttons;
     }
 
     private static Button payButton(AccumulatorPrize prize, int pageIndex) {
-        return Button.success(payId(prize.getId(), pageIndex), "Pay")
+        return Button.success(payId(prize.getId(), pageIndex), "Pagar")
                 .withDisabled(!isReady(prize));
     }
 
@@ -215,14 +215,14 @@ public final class AccumulatorMessageFactory {
         String lastError = prize.getLastError();
         String errorLine = lastError == null || lastError.isBlank()
                 ? ""
-                : "\n-# Last error: " + Bot.limitStr(lastError.replace("\n", " "), 120);
+                : "\n-# Último erro: " + Bot.limitStr(lastError.replace("\n", " "), 120);
 
         if (prize.getType() == AccumulatorPrizeType.MONEY) {
-            String currency = prize.getCurrency() == null ? "not chosen" : prize.getCurrency().getFormatted();
+            String currency = prize.getCurrency() == null ? "não escolhida" : prize.getCurrency().getFormatted();
             return String.format(
-                    "**#%d - %s**\nTarget: %s\nAmount: `$%s`\nCurrency: %s\n-# Added by %s.%s",
+                    "**#%d - %s**\nAlvo: %s\nValor: `$%s`\nMoeda: %s\n-# Adicionado por %s.%s",
                     prize.getId(),
-                    prize.getType().getDisplay(),
+                    localizedType(prize.getType()),
                     target,
                     Bot.fmtNum(prize.getAmount()),
                     currency,
@@ -234,13 +234,13 @@ public final class AccumulatorMessageFactory {
         Long roleId = prize.getColorRoleId();
         Role role = roleId == null ? null : guild.getRoleById(roleId);
         String roleDisplay = role == null
-                ? roleId == null ? "not chosen" : "missing role `" + roleId + "`"
+                ? roleId == null ? "não escolhido" : "cargo ausente `" + roleId + "`"
                 : role.getAsMention();
 
         return String.format(
-                "**#%d - %s**\nTarget: %s\nDuration: `%s`\nColor: %s\n-# Added by %s.%s",
+                "**#%d - %s**\nAlvo: %s\nDuração: `%s`\nCor: %s\n-# Adicionado por %s.%s",
                 prize.getId(),
-                prize.getType().getDisplay(),
+                localizedType(prize.getType()),
                 target,
                 Bot.parsePeriod(prize.getColorDurationSeconds()),
                 roleDisplay,
@@ -253,6 +253,13 @@ public final class AccumulatorMessageFactory {
         Role role = guild.getRoleById(item.getRoleId());
         String label = role == null ? Long.toString(item.getRoleId()) : role.getName();
         return SelectOption.of(Bot.limitStr(label, 100), Long.toString(item.getRoleId()));
+    }
+
+    private static String localizedType(AccumulatorPrizeType type) {
+        return switch (type) {
+            case MONEY -> "Dinheiro";
+            case COLOR_ROLE -> "Cargo de cor";
+        };
     }
 
     private static Separator divider() {

@@ -54,13 +54,13 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
         Guild guild = event.getGuild();
         Member member = event.getMember();
         if (guild == null || member == null) {
-            event.reply("This button can only be used in a server.").setEphemeral(true).queue();
+            event.reply("Este botão só pode ser usado em um servidor.").setEphemeral(true).queue();
             return;
         }
 
         String[] parts = AccumulatorMessageFactory.parts(customId);
         if (parts.length < 4) {
-            event.reply("Invalid accumulator control.").setEphemeral(true).queue();
+            event.reply("Controle da caixa de prêmios inválido.").setEphemeral(true).queue();
             return;
         }
 
@@ -72,7 +72,7 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
             case "reject" -> handleReject(event, guild, member, parts);
             case "pay" -> handlePay(event, guild, member, parts);
             case "all" -> handleApproveAll(event, guild, member, parts);
-            default -> event.reply("Unknown accumulator control.").setEphemeral(true).queue();
+            default -> event.reply("Controle da caixa de prêmios desconhecido.").setEphemeral(true).queue();
         }
     }
 
@@ -91,7 +91,7 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
         Guild guild = event.getGuild();
         Member member = event.getMember();
         if (guild == null || member == null || event.getValues().isEmpty()) {
-            event.reply("Invalid color role selection.").setEphemeral(true).queue();
+            event.reply("Seleção de cargo de cor inválida.").setEphemeral(true).queue();
             return;
         }
 
@@ -101,7 +101,7 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
         Long messageId = parseLong(parts[6]);
         Long roleId = parseLong(event.getValues().getFirst());
         if (prizeId == null || page == null || channelId == null || messageId == null || roleId == null) {
-            event.reply("Invalid color role selection.").setEphemeral(true).queue();
+            event.reply("Seleção de cargo de cor inválida.").setEphemeral(true).queue();
             return;
         }
 
@@ -110,24 +110,24 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
             AccumulatorPrize prize = prizeRepo.findPendingById(guild.getIdLong(), prizeId);
             if (prize == null) {
                 event.getHook().editOriginalEmbeds(AccumulatorMessageFactory.failure(
-                        "Could not update prize",
-                        "Prize not found or already processed."
+                        "Não foi possível atualizar o prêmio",
+                        "Prêmio não encontrado ou já processado."
                 )).queue();
                 return;
             }
 
             if (!canConfigure(member, prize)) {
                 event.getHook().editOriginalEmbeds(AccumulatorMessageFactory.failure(
-                        "Missing permission",
-                        "Only the member who added this prize or users with Manage Server can change it."
+                        "Permissão insuficiente",
+                        "Só quem adicionou este prêmio ou usuários com Gerenciar Servidor podem alterá-lo."
                 )).queue();
                 return;
             }
 
             if (colorItemRepo.findByRoleId(roleId) == null || guild.getRoleById(roleId) == null) {
                 event.getHook().editOriginalEmbeds(AccumulatorMessageFactory.failure(
-                        "Invalid color role",
-                        "The selected role is not available as a color role."
+                        "Cargo de cor inválido",
+                        "O cargo selecionado não está disponível como cargo de cor."
                 )).queue();
                 return;
             }
@@ -135,28 +135,28 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
             boolean updated = prizeRepo.updateColorRole(guild.getIdLong(), prizeId, roleId, Bot.unixNow());
             if (!updated) {
                 event.getHook().editOriginalEmbeds(AccumulatorMessageFactory.failure(
-                        "Could not update prize",
-                        "Prize not found or already processed."
+                        "Não foi possível atualizar o prêmio",
+                        "Prêmio não encontrado ou já processado."
                 )).queue();
                 return;
             }
 
             refreshMessage(guild, channelId, messageId, page);
             event.getHook().editOriginalEmbeds(AccumulatorMessageFactory.setupSuccess(
-                    "Color role set for prize `#" + prizeId + "`."
+                    "Cargo de cor definido para o prêmio `#" + prizeId + "`."
             )).setComponents(List.of()).queue();
         });
     }
 
     private void handlePage(ButtonInteractionEvent event, Member member, String[] parts) {
         if (!member.hasPermission(Permission.BAN_MEMBERS) && !member.hasPermission(Permission.MANAGE_SERVER)) {
-            event.reply("You cannot use this accumulator list.").setEphemeral(true).queue();
+            event.reply("Você não pode usar esta lista de prêmios.").setEphemeral(true).queue();
             return;
         }
 
         Integer page = parseInt(parts[3]);
         if (page == null) {
-            event.reply("Invalid page.").setEphemeral(true).queue();
+            event.reply("Página inválida.").setEphemeral(true).queue();
             return;
         }
 
@@ -169,13 +169,13 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
         Integer page = parts.length > 4 ? parseInt(parts[4]) : null;
         CurrencyType currency = parts.length > 5 ? CurrencyType.fromName(parts[5]) : null;
         if (prizeId == null || page == null || currency == null) {
-            event.reply("Invalid currency action.").setEphemeral(true).queue();
+            event.reply("Ação de moeda inválida.").setEphemeral(true).queue();
             return;
         }
 
         AccumulatorPrize prize = prizeRepo.findPendingById(guild.getIdLong(), prizeId);
         if (prize == null) {
-            event.replyEmbeds(AccumulatorMessageFactory.failure("Could not update prize", "Prize not found or already processed."))
+            event.replyEmbeds(AccumulatorMessageFactory.failure("Não foi possível atualizar o prêmio", "Prêmio não encontrado ou já processado."))
                     .setEphemeral(true)
                     .queue();
             return;
@@ -183,8 +183,8 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
 
         if (!canConfigure(member, prize)) {
             event.replyEmbeds(AccumulatorMessageFactory.failure(
-                    "Missing permission",
-                    "Only the member who added this prize or users with Manage Server can change it."
+                    "Permissão insuficiente",
+                    "Só quem adicionou este prêmio ou usuários com Gerenciar Servidor podem alterá-lo."
             )).setEphemeral(true).queue();
             return;
         }
@@ -194,8 +194,8 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
             boolean updated = prizeRepo.updateCurrency(guild.getIdLong(), prizeId, currency, Bot.unixNow());
             refreshMessage(event.getMessage(), guild, page);
             event.getHook().editOriginalEmbeds(updated
-                    ? AccumulatorMessageFactory.setupSuccess("Currency set for prize `#" + prizeId + "`.")
-                    : AccumulatorMessageFactory.failure("Could not update prize", "Prize not found or already processed.")
+                    ? AccumulatorMessageFactory.setupSuccess("Moeda definida para o prêmio `#" + prizeId + "`.")
+                    : AccumulatorMessageFactory.failure("Não foi possível atualizar o prêmio", "Prêmio não encontrado ou já processado.")
             ).queue();
         });
     }
@@ -204,13 +204,13 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
         Integer prizeId = parts.length > 3 ? parseInt(parts[3]) : null;
         Integer page = parts.length > 4 ? parseInt(parts[4]) : null;
         if (prizeId == null || page == null) {
-            event.reply("Invalid color role action.").setEphemeral(true).queue();
+            event.reply("Ação de cargo de cor inválida.").setEphemeral(true).queue();
             return;
         }
 
         AccumulatorPrize prize = prizeRepo.findPendingById(guild.getIdLong(), prizeId);
         if (prize == null) {
-            event.replyEmbeds(AccumulatorMessageFactory.failure("Could not update prize", "Prize not found or already processed."))
+            event.replyEmbeds(AccumulatorMessageFactory.failure("Não foi possível atualizar o prêmio", "Prêmio não encontrado ou já processado."))
                     .setEphemeral(true)
                     .queue();
             return;
@@ -218,8 +218,8 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
 
         if (!canConfigure(member, prize)) {
             event.replyEmbeds(AccumulatorMessageFactory.failure(
-                    "Missing permission",
-                    "Only the member who added this prize or users with Manage Server can change it."
+                    "Permissão insuficiente",
+                    "Só quem adicionou este prêmio ou usuários com Gerenciar Servidor podem alterá-lo."
             )).setEphemeral(true).queue();
             return;
         }
@@ -229,13 +229,13 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
                 .toList();
         if (colorRoles.isEmpty()) {
             event.replyEmbeds(AccumulatorMessageFactory.failure(
-                    "No color roles",
-                    "No configured color role is currently available."
+                    "Nenhum cargo de cor",
+                    "Nenhum cargo de cor configurado está disponível agora."
             )).setEphemeral(true).queue();
             return;
         }
 
-        event.replyEmbeds(AccumulatorMessageFactory.setupSuccess("Choose the color role for prize `#" + prizeId + "`."))
+        event.replyEmbeds(AccumulatorMessageFactory.setupSuccess("Escolha o cargo de cor para o prêmio `#" + prizeId + "`."))
                 .setEphemeral(true)
                 .setComponents(ActionRow.of(AccumulatorMessageFactory.colorRoleMenu(
                         prizeId,
@@ -252,13 +252,13 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
         Integer prizeId = parts.length > 3 ? parseInt(parts[3]) : null;
         Integer page = parts.length > 4 ? parseInt(parts[4]) : null;
         if (prizeId == null || page == null) {
-            event.reply("Invalid reject action.").setEphemeral(true).queue();
+            event.reply("Ação de rejeição inválida.").setEphemeral(true).queue();
             return;
         }
 
         AccumulatorPrize prize = prizeRepo.findPendingById(guild.getIdLong(), prizeId);
         if (prize == null) {
-            event.replyEmbeds(AccumulatorMessageFactory.failure("Could not reject prize", "Prize not found or already processed."))
+            event.replyEmbeds(AccumulatorMessageFactory.failure("Não foi possível rejeitar o prêmio", "Prêmio não encontrado ou já processado."))
                     .setEphemeral(true)
                     .queue();
             return;
@@ -266,8 +266,8 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
 
         if (!canConfigure(member, prize)) {
             event.replyEmbeds(AccumulatorMessageFactory.failure(
-                    "Missing permission",
-                    "Only the member who added this prize or users with Manage Server can reject it."
+                    "Permissão insuficiente",
+                    "Só quem adicionou este prêmio ou usuários com Gerenciar Servidor podem rejeitá-lo."
             )).setEphemeral(true).queue();
             return;
         }
@@ -277,8 +277,8 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
             boolean updated = prizeRepo.reject(guild.getIdLong(), prizeId, member.getIdLong(), Bot.unixNow());
             refreshMessage(event.getMessage(), guild, page);
             event.getHook().editOriginalEmbeds(updated
-                    ? AccumulatorMessageFactory.setupSuccess("Prize `#" + prizeId + "` was rejected.")
-                    : AccumulatorMessageFactory.failure("Could not reject prize", "Prize not found or already processed.")
+                    ? AccumulatorMessageFactory.setupSuccess("Prêmio `#" + prizeId + "` rejeitado.")
+                    : AccumulatorMessageFactory.failure("Não foi possível rejeitar o prêmio", "Prêmio não encontrado ou já processado.")
             ).queue();
         });
     }
@@ -287,14 +287,14 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
         Integer prizeId = parts.length > 3 ? parseInt(parts[3]) : null;
         Integer page = parts.length > 4 ? parseInt(parts[4]) : null;
         if (prizeId == null || page == null) {
-            event.reply("Invalid pay action.").setEphemeral(true).queue();
+            event.reply("Ação de pagamento inválida.").setEphemeral(true).queue();
             return;
         }
 
         if (!member.hasPermission(Permission.MANAGE_SERVER)) {
             event.replyEmbeds(AccumulatorMessageFactory.failure(
-                    "Missing permission",
-                    "Only users with Manage Server can pay accumulated prizes."
+                    "Permissão insuficiente",
+                    "Só usuários com Gerenciar Servidor podem pagar prêmios acumulados."
             )).setEphemeral(true).queue();
             return;
         }
@@ -310,14 +310,14 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
     private void handleApproveAll(ButtonInteractionEvent event, Guild guild, Member member, String[] parts) {
         Integer page = parseInt(parts[3]);
         if (page == null) {
-            event.reply("Invalid approve-all action.").setEphemeral(true).queue();
+            event.reply("Ação de aprovar tudo inválida.").setEphemeral(true).queue();
             return;
         }
 
         if (!member.hasPermission(Permission.MANAGE_SERVER)) {
             event.replyEmbeds(AccumulatorMessageFactory.failure(
-                    "Missing permission",
-                    "Only users with Manage Server can approve all accumulated prizes."
+                    "Permissão insuficiente",
+                    "Só usuários com Gerenciar Servidor podem aprovar todos os prêmios acumulados."
             )).setEphemeral(true).queue();
             return;
         }

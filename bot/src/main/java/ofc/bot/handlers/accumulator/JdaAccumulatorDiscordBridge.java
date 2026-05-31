@@ -39,7 +39,7 @@ public class JdaAccumulatorDiscordBridge implements AccumulatorDiscordBridge {
     private Member requireMember(Guild guild, long userId) {
         Member member = findMember(guild, userId);
         if (member == null) {
-            throw new IllegalStateException("Member not found: " + userId);
+            throw new IllegalStateException("Membro não encontrado: " + userId);
         }
         return member;
     }
@@ -47,7 +47,7 @@ public class JdaAccumulatorDiscordBridge implements AccumulatorDiscordBridge {
     private Role requireRole(Guild guild, long roleId) {
         Role role = guild.getRoleById(roleId);
         if (role == null) {
-            throw new IllegalStateException("Role not found: " + roleId);
+            throw new IllegalStateException("Cargo não encontrado: " + roleId);
         }
         return role;
     }

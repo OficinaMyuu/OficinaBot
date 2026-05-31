@@ -26,10 +26,10 @@ class AccumulatorMessageFactoryTest {
 
         Container container = (Container) components.getFirst();
         assertEquals(-5618690, container.getAccentColorRaw());
-        assertTrue(container.getComponents().getFirst().asTextDisplay().getContent().contains("Pending prizes"));
+        assertTrue(container.getComponents().getFirst().asTextDisplay().getContent().contains("Prêmios pendentes"));
 
         Section section = container.getComponents().get(2).asSection();
-        assertEquals("Pay", section.getAccessory().asButton().getLabel());
+        assertEquals("Pagar", section.getAccessory().asButton().getLabel());
         assertFalse(section.getAccessory().asButton().isDisabled());
         assertTrue(section.getContentComponents().getFirst().asTextDisplay().getContent().contains("$1.000"));
 
@@ -39,7 +39,7 @@ class AccumulatorMessageFactoryTest {
         assertEquals(ButtonStyle.DANGER, row.getButtons().get(2).getStyle());
 
         ActionRow topLevel = (ActionRow) components.get(1);
-        assertEquals("Approve All", topLevel.getButtons().get(2).getLabel());
+        assertEquals("Aprovar Tudo", topLevel.getButtons().get(2).getLabel());
         assertFalse(topLevel.getButtons().get(2).isDisabled());
     }
 
