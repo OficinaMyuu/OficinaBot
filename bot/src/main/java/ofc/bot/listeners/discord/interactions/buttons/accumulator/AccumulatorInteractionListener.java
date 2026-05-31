@@ -95,19 +95,19 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
             return;
         }
 
-        Integer prizeId = parseInt(parts[3]);
-        Integer page = parseInt(parts[4]);
-        Long channelId = parseLong(parts[5]);
-        Long messageId = parseLong(parts[6]);
-        Long roleId = parseLong(event.getValues().getFirst());
-        if (prizeId == null || page == null || channelId == null || messageId == null || roleId == null) {
+        ParsedInt prizeId = parseInt(parts[3]);
+        ParsedInt page = parseInt(parts[4]);
+        ParsedLong channelId = parseLong(parts[5]);
+        ParsedLong messageId = parseLong(parts[6]);
+        ParsedLong roleId = parseLong(event.getValues().getFirst());
+        if (!prizeId.valid() || !page.valid() || !channelId.valid() || !messageId.valid() || !roleId.valid()) {
             event.reply("Seleção de cargo de cor inválida.").setEphemeral(true).queue();
             return;
         }
 
         event.deferReply(true).queue();
         EXECUTOR.execute(() -> {
-            AccumulatorPrize prize = prizeRepo.findPendingById(guild.getIdLong(), prizeId);
+            AccumulatorPrize prize = prizeRepo.findPendingById(guild.getIdLong(), prizeId.value());
             if (prize == null) {
                 event.getHook().editOriginalEmbeds(AccumulatorMessageFactory.failure(
                         "Não foi possível atualizar o prêmio",
@@ -124,7 +124,7 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
                 return;
             }
 
-            if (colorItemRepo.findByRoleId(roleId) == null || guild.getRoleById(roleId) == null) {
+            if (colorItemRepo.findByRoleId(roleId.value()) == null || guild.getRoleById(roleId.value()) == null) {
                 event.getHook().editOriginalEmbeds(AccumulatorMessageFactory.failure(
                         "Cargo de cor inválido",
                         "O cargo selecionado não está disponível como cargo de cor."
@@ -132,7 +132,7 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
                 return;
             }
 
-            boolean updated = prizeRepo.updateColorRole(guild.getIdLong(), prizeId, roleId, Bot.unixNow());
+            boolean updated = prizeRepo.updateColorRole(guild.getIdLong(), prizeId.value(), roleId.value(), Bot.unixNow());
             if (!updated) {
                 event.getHook().editOriginalEmbeds(AccumulatorMessageFactory.failure(
                         "Não foi possível atualizar o prêmio",
@@ -141,9 +141,9 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
                 return;
             }
 
-            refreshMessage(guild, channelId, messageId, page);
+            refreshMessage(guild, channelId.value(), messageId.value(), page.value());
             event.getHook().editOriginalEmbeds(AccumulatorMessageFactory.setupSuccess(
-                    "Cargo de cor definido para o prêmio `#" + prizeId + "`."
+                    "Cargo de cor definido para o prêmio `#" + prizeId.value() + "`."
             )).setComponents(List.of()).queue();
         });
     }
@@ -154,26 +154,26 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
             return;
         }
 
-        Integer page = parseInt(parts[3]);
-        if (page == null) {
+        ParsedInt page = parseInt(parts[3]);
+        if (!page.valid()) {
             event.reply("Página inválida.").setEphemeral(true).queue();
             return;
         }
 
         event.deferEdit().queue();
-        EXECUTOR.execute(() -> refreshMessage(event.getMessage(), event.getGuild(), page));
+        EXECUTOR.execute(() -> refreshMessage(event.getMessage(), event.getGuild(), page.value()));
     }
 
     private void handleCurrency(ButtonInteractionEvent event, Guild guild, Member member, String[] parts) {
-        Integer prizeId = parts.length > 3 ? parseInt(parts[3]) : null;
-        Integer page = parts.length > 4 ? parseInt(parts[4]) : null;
+        ParsedInt prizeId = parts.length > 3 ? parseInt(parts[3]) : ParsedInt.invalid();
+        ParsedInt page = parts.length > 4 ? parseInt(parts[4]) : ParsedInt.invalid();
         CurrencyType currency = parts.length > 5 ? CurrencyType.fromName(parts[5]) : null;
-        if (prizeId == null || page == null || currency == null) {
+        if (!prizeId.valid() || !page.valid() || currency == null) {
             event.reply("Ação de moeda inválida.").setEphemeral(true).queue();
             return;
         }
 
-        AccumulatorPrize prize = prizeRepo.findPendingById(guild.getIdLong(), prizeId);
+        AccumulatorPrize prize = prizeRepo.findPendingById(guild.getIdLong(), prizeId.value());
         if (prize == null) {
             event.replyEmbeds(AccumulatorMessageFactory.failure("Não foi possível atualizar o prêmio", "Prêmio não encontrado ou já processado."))
                     .setEphemeral(true)
@@ -189,26 +189,22 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
             return;
         }
 
-        event.deferReply(true).queue();
+        event.deferEdit().queue();
         EXECUTOR.execute(() -> {
-            boolean updated = prizeRepo.updateCurrency(guild.getIdLong(), prizeId, currency, Bot.unixNow());
-            refreshMessage(event.getMessage(), guild, page);
-            event.getHook().editOriginalEmbeds(updated
-                    ? AccumulatorMessageFactory.setupSuccess("Moeda definida para o prêmio `#" + prizeId + "`.")
-                    : AccumulatorMessageFactory.failure("Não foi possível atualizar o prêmio", "Prêmio não encontrado ou já processado.")
-            ).queue();
+            prizeRepo.updateCurrency(guild.getIdLong(), prizeId.value(), currency, Bot.unixNow());
+            refreshMessage(event.getMessage(), guild, page.value());
         });
     }
 
     private void handleColorPrompt(ButtonInteractionEvent event, Guild guild, Member member, String[] parts) {
-        Integer prizeId = parts.length > 3 ? parseInt(parts[3]) : null;
-        Integer page = parts.length > 4 ? parseInt(parts[4]) : null;
-        if (prizeId == null || page == null) {
+        ParsedInt prizeId = parts.length > 3 ? parseInt(parts[3]) : ParsedInt.invalid();
+        ParsedInt page = parts.length > 4 ? parseInt(parts[4]) : ParsedInt.invalid();
+        if (!prizeId.valid() || !page.valid()) {
             event.reply("Ação de cargo de cor inválida.").setEphemeral(true).queue();
             return;
         }
 
-        AccumulatorPrize prize = prizeRepo.findPendingById(guild.getIdLong(), prizeId);
+        AccumulatorPrize prize = prizeRepo.findPendingById(guild.getIdLong(), prizeId.value());
         if (prize == null) {
             event.replyEmbeds(AccumulatorMessageFactory.failure("Não foi possível atualizar o prêmio", "Prêmio não encontrado ou já processado."))
                     .setEphemeral(true)
@@ -235,11 +231,11 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
             return;
         }
 
-        event.replyEmbeds(AccumulatorMessageFactory.setupSuccess("Escolha o cargo de cor para o prêmio `#" + prizeId + "`."))
+        event.replyEmbeds(AccumulatorMessageFactory.setupSuccess("Escolha o cargo de cor para o prêmio `#" + prizeId.value() + "`."))
                 .setEphemeral(true)
                 .setComponents(ActionRow.of(AccumulatorMessageFactory.colorRoleMenu(
-                        prizeId,
-                        page,
+                        prizeId.value(),
+                        page.value(),
                         event.getChannelIdLong(),
                         event.getMessageIdLong(),
                         guild,
@@ -249,14 +245,14 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
     }
 
     private void handleReject(ButtonInteractionEvent event, Guild guild, Member member, String[] parts) {
-        Integer prizeId = parts.length > 3 ? parseInt(parts[3]) : null;
-        Integer page = parts.length > 4 ? parseInt(parts[4]) : null;
-        if (prizeId == null || page == null) {
+        ParsedInt prizeId = parts.length > 3 ? parseInt(parts[3]) : ParsedInt.invalid();
+        ParsedInt page = parts.length > 4 ? parseInt(parts[4]) : ParsedInt.invalid();
+        if (!prizeId.valid() || !page.valid()) {
             event.reply("Ação de rejeição inválida.").setEphemeral(true).queue();
             return;
         }
 
-        AccumulatorPrize prize = prizeRepo.findPendingById(guild.getIdLong(), prizeId);
+        AccumulatorPrize prize = prizeRepo.findPendingById(guild.getIdLong(), prizeId.value());
         if (prize == null) {
             event.replyEmbeds(AccumulatorMessageFactory.failure("Não foi possível rejeitar o prêmio", "Prêmio não encontrado ou já processado."))
                     .setEphemeral(true)
@@ -274,19 +270,19 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
 
         event.deferReply(true).queue();
         EXECUTOR.execute(() -> {
-            boolean updated = prizeRepo.reject(guild.getIdLong(), prizeId, member.getIdLong(), Bot.unixNow());
-            refreshMessage(event.getMessage(), guild, page);
+            boolean updated = prizeRepo.reject(guild.getIdLong(), prizeId.value(), member.getIdLong(), Bot.unixNow());
+            refreshMessage(event.getMessage(), guild, page.value());
             event.getHook().editOriginalEmbeds(updated
-                    ? AccumulatorMessageFactory.setupSuccess("Prêmio `#" + prizeId + "` rejeitado.")
+                    ? AccumulatorMessageFactory.setupSuccess("Prêmio `#" + prizeId.value() + "` rejeitado.")
                     : AccumulatorMessageFactory.failure("Não foi possível rejeitar o prêmio", "Prêmio não encontrado ou já processado.")
             ).queue();
         });
     }
 
     private void handlePay(ButtonInteractionEvent event, Guild guild, Member member, String[] parts) {
-        Integer prizeId = parts.length > 3 ? parseInt(parts[3]) : null;
-        Integer page = parts.length > 4 ? parseInt(parts[4]) : null;
-        if (prizeId == null || page == null) {
+        ParsedInt prizeId = parts.length > 3 ? parseInt(parts[3]) : ParsedInt.invalid();
+        ParsedInt page = parts.length > 4 ? parseInt(parts[4]) : ParsedInt.invalid();
+        if (!prizeId.valid() || !page.valid()) {
             event.reply("Ação de pagamento inválida.").setEphemeral(true).queue();
             return;
         }
@@ -301,15 +297,15 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
 
         event.deferReply(true).queue();
         EXECUTOR.execute(() -> {
-            AccumulatorApprovalReport report = payoutService.approveOne(guild, prizeId, member.getIdLong());
-            refreshMessage(event.getMessage(), guild, page);
+            AccumulatorApprovalReport report = payoutService.approveOne(guild, prizeId.value(), member.getIdLong());
+            refreshMessage(event.getMessage(), guild, page.value());
             event.getHook().editOriginalEmbeds(AccumulatorMessageFactory.approvalReport(report, event.getUser())).queue();
         });
     }
 
     private void handleApproveAll(ButtonInteractionEvent event, Guild guild, Member member, String[] parts) {
-        Integer page = parseInt(parts[3]);
-        if (page == null) {
+        ParsedInt page = parseInt(parts[3]);
+        if (!page.valid()) {
             event.reply("Ação de aprovar tudo inválida.").setEphemeral(true).queue();
             return;
         }
@@ -325,7 +321,7 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
         event.deferReply(true).queue();
         EXECUTOR.execute(() -> {
             AccumulatorApprovalReport report = payoutService.approveAll(guild, member.getIdLong());
-            refreshMessage(event.getMessage(), guild, page);
+            refreshMessage(event.getMessage(), guild, page.value());
             event.getHook().editOriginalEmbeds(AccumulatorMessageFactory.approvalReport(report, event.getUser())).queue();
         });
     }
@@ -367,19 +363,39 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
         return page;
     }
 
-    private Integer parseInt(String value) {
+    private ParsedInt parseInt(String value) {
         try {
-            return Integer.parseInt(value);
+            return ParsedInt.valid(Integer.parseInt(value));
         } catch (NumberFormatException e) {
-            return null;
+            return ParsedInt.invalid();
         }
     }
 
-    private Long parseLong(String value) {
+    private ParsedLong parseLong(String value) {
         try {
-            return Long.parseLong(value);
+            return ParsedLong.valid(Long.parseLong(value));
         } catch (NumberFormatException e) {
-            return null;
+            return ParsedLong.invalid();
+        }
+    }
+
+    private record ParsedInt(int value, boolean valid) {
+        private static ParsedInt valid(int value) {
+            return new ParsedInt(value, true);
+        }
+
+        private static ParsedInt invalid() {
+            return new ParsedInt(0, false);
+        }
+    }
+
+    private record ParsedLong(long value, boolean valid) {
+        private static ParsedLong valid(long value) {
+            return new ParsedLong(value, true);
+        }
+
+        private static ParsedLong invalid() {
+            return new ParsedLong(0L, false);
         }
     }
 }
