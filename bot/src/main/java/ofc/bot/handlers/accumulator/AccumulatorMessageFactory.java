@@ -117,7 +117,7 @@ public final class AccumulatorMessageFactory {
                 .build();
     }
 
-    public static MessageEmbed approvalReport(AccumulatorApprovalReport report, User user) {
+    public static MessageEmbed approvalReport(AccumulatorApprovalReport report, Guild guild, User user) {
         Color color = report.successful() ? EmbedFactory.OK_GREEN : EmbedFactory.DANGER_RED;
         String details = report.details().isEmpty()
                 ? "Nenhum detalhe adicional."
@@ -128,10 +128,11 @@ public final class AccumulatorMessageFactory {
                 .setTitle(report.successful() ? "Pagamento concluído" : "Pagamento falhou")
                 .setColor(color)
                 .setDesc(report.summary())
-                .addField("Solicitados", Bot.fmtNum(report.requested()), true)
-                .addField("Pagos", Bot.fmtNum(report.paid()), true)
-                .addField("Tempo", report.elapsedMillis() + " ms", true)
-                .addField("Relatório", details, false)
+                .addField("🎯 Solicitados", Bot.fmtNum(report.requested()), true)
+                .addField("✅ Pagos", Bot.fmtNum(report.paid()), true)
+                .addField("⏱️ Tempo", report.elapsedMillis() + " ms", true)
+                .addField("📄 Relatório", details, false)
+                .setFooter(guild.getName(), guild.getIconUrl())
                 .build();
     }
 
@@ -214,23 +215,18 @@ public final class AccumulatorMessageFactory {
     private static String formatPrize(Guild guild, AccumulatorPrize prize) {
         String target = "<@" + prize.getTargetId() + ">";
         String creator = "<@" + prize.getCreatedBy() + ">";
-        String lastError = prize.getLastError();
-        String errorLine = lastError == null || lastError.isBlank()
-                ? ""
-                : "\n-# Último erro: " + Bot.limitStr(lastError.replace("\n", " "), 120);
 
         if (prize.getType() == AccumulatorPrizeType.MONEY) {
             CurrencyType currency = prize.getCurrency();
             String fmtCurrency = currency == null ? "não escolhida" : currency.getName();
             return String.format(
-                    "**#%d - %s**\nMembro: %s\nValor: `$%s`\nEconomia: %s\n-# Adicionado por %s.%s",
+                    "**#%d - %s**\nMembro: %s\nValor: `$%s`\nEconomia: %s\n-# Adicionado por %s.",
                     prize.getId(),
                     localizedType(prize.getType()),
                     target,
                     Bot.fmtNum(amountOrZero(prize)),
                     fmtCurrency,
-                    creator,
-                    errorLine
+                    creator
             );
         }
 
@@ -241,14 +237,13 @@ public final class AccumulatorMessageFactory {
                 : role.getAsMention();
 
         return String.format(
-                "**#%d - %s**\nMembro: %s\nDuração: `%s`\nCor: %s\n-# Adicionado por %s.%s",
+                "**#%d - %s**\nMembro: %s\nDuração: `%s`\nCor: %s\n-# Adicionado por %s.",
                 prize.getId(),
                 localizedType(prize.getType()),
                 target,
                 Bot.parsePeriod(durationOrZero(prize)),
                 roleDisplay,
-                creator,
-                errorLine
+                creator
         );
     }
 

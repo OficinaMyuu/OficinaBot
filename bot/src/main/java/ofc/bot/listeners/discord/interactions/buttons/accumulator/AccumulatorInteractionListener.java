@@ -2,9 +2,7 @@ package ofc.bot.listeners.discord.interactions.buttons.accumulator;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -268,14 +266,10 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
             return;
         }
 
-        event.deferReply(true).queue();
+        event.deferEdit().queue();
         EXECUTOR.execute(() -> {
-            boolean updated = prizeRepo.reject(guild.getIdLong(), prizeId.value(), member.getIdLong(), Bot.unixNow());
+            prizeRepo.reject(guild.getIdLong(), prizeId.value(), member.getIdLong(), Bot.unixNow());
             refreshMessage(event.getMessage(), guild, page.value());
-            event.getHook().editOriginalEmbeds(updated
-                    ? AccumulatorMessageFactory.setupSuccess("Prêmio `#" + prizeId.value() + "` rejeitado.")
-                    : AccumulatorMessageFactory.failure("Não foi possível rejeitar o prêmio", "Prêmio não encontrado ou já processado.")
-            ).queue();
         });
     }
 
@@ -295,11 +289,15 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
             return;
         }
 
-        event.deferReply(true).queue();
+        event.deferReply(false).queue();
         EXECUTOR.execute(() -> {
             AccumulatorApprovalReport report = payoutService.approveOne(guild, prizeId.value(), member.getIdLong());
             refreshMessage(event.getMessage(), guild, page.value());
-            event.getHook().editOriginalEmbeds(AccumulatorMessageFactory.approvalReport(report, event.getUser())).queue();
+
+            MessageEmbed embedReport = AccumulatorMessageFactory.approvalReport(report, guild, event.getUser());
+            event.getHook()
+                    .editOriginalEmbeds(embedReport)
+                    .queue();
         });
     }
 
@@ -318,11 +316,15 @@ public class AccumulatorInteractionListener extends ListenerAdapter {
             return;
         }
 
-        event.deferReply(true).queue();
+        event.deferReply(false).queue();
         EXECUTOR.execute(() -> {
             AccumulatorApprovalReport report = payoutService.approveAll(guild, member.getIdLong());
             refreshMessage(event.getMessage(), guild, page.value());
-            event.getHook().editOriginalEmbeds(AccumulatorMessageFactory.approvalReport(report, event.getUser())).queue();
+
+            MessageEmbed embedReport = AccumulatorMessageFactory.approvalReport(report, guild, event.getUser());
+            event.getHook()
+                    .editOriginalEmbeds(embedReport)
+                    .queue();
         });
     }
 

@@ -4,6 +4,9 @@ import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.section.Section;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.User;
 import ofc.bot.domain.entity.AccumulatorPrize;
 import ofc.bot.domain.entity.enums.AccumulatorPrizeType;
 import ofc.bot.domain.tables.AccumulatorPrizesTable;
@@ -11,6 +14,7 @@ import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.paginations.Paginator;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Proxy;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -79,6 +83,18 @@ class AccumulatorMessageFactoryTest {
         assertTrue(section.getContentComponents().getFirst().asTextDisplay().getContent().contains("`0s`"));
     }
 
+    @Test
+    void shouldPrefixApprovalReportFieldsWithEmojis() {
+        AccumulatorApprovalReport report = AccumulatorApprovalReport.success(2, 15, "Pago.", List.of());
+
+        MessageEmbed embed = AccumulatorMessageFactory.approvalReport(report, guild(), user());
+
+        assertEquals("🎯 Solicitados", embed.getFields().get(0).getName());
+        assertEquals("✅ Pagos", embed.getFields().get(1).getName());
+        assertEquals("⏱️ Tempo", embed.getFields().get(2).getName());
+        assertEquals("📄 Relatório", embed.getFields().get(3).getName());
+    }
+
     private AccumulatorPrize money(int id, Integer amount, CurrencyType currency) {
         AccumulatorPrize prize = new AccumulatorPrize(
                 1L,
@@ -107,5 +123,27 @@ class AccumulatorMessageFactoryTest {
         prize.set(AccumulatorPrizesTable.ACCUMULATOR_PRIZES.ID, id);
         prize.setColorRoleId(roleId);
         return prize;
+    }
+
+    private Guild guild() {
+        return proxy(Guild.class);
+    }
+
+    private User user() {
+        return proxy(User.class);
+    }
+
+    private <T> T proxy(Class<T> type) {
+        Object proxy = Proxy.newProxyInstance(
+                type.getClassLoader(),
+                new Class<?>[]{type},
+                (instance, method, args) -> switch (method.getName()) {
+                    case "getName" -> "Oficina";
+                    case "getEffectiveAvatarUrl", "getIconUrl" -> null;
+                    case "toString" -> type.getSimpleName() + "Proxy";
+                    default -> throw new UnsupportedOperationException(method.getName());
+                }
+        );
+        return type.cast(proxy);
     }
 }
