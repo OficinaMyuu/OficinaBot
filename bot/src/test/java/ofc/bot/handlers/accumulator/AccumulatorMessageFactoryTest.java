@@ -36,6 +36,9 @@ class AccumulatorMessageFactoryTest {
         ActionRow row = container.getComponents().get(3).asActionRow();
         assertEquals(3, row.getButtons().size());
         assertEquals(ButtonStyle.PRIMARY, row.getButtons().getFirst().getStyle());
+        assertTrue(row.getButtons().getFirst().isDisabled());
+        assertEquals(ButtonStyle.SECONDARY, row.getButtons().get(1).getStyle());
+        assertFalse(row.getButtons().get(1).isDisabled());
         assertEquals(ButtonStyle.DANGER, row.getButtons().get(2).getStyle());
 
         ActionRow topLevel = (ActionRow) components.get(1);

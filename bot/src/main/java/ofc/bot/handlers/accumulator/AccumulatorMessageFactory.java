@@ -198,8 +198,10 @@ public final class AccumulatorMessageFactory {
     }
 
     private static Button currencyButton(AccumulatorPrize prize, int pageIndex, CurrencyType currency) {
-        ButtonStyle style = currency == prize.getCurrency() ? ButtonStyle.PRIMARY : ButtonStyle.SECONDARY;
-        return Button.of(style, currencyId(prize.getId(), pageIndex, currency), currency.getName(), currency.getEmoji());
+        boolean selected = currency == prize.getCurrency();
+        ButtonStyle style = selected ? ButtonStyle.PRIMARY : ButtonStyle.SECONDARY;
+        return Button.of(style, currencyId(prize.getId(), pageIndex, currency), currency.getName(), currency.getEmoji())
+                .withDisabled(selected);
     }
 
     private static boolean isReady(AccumulatorPrize prize) {
