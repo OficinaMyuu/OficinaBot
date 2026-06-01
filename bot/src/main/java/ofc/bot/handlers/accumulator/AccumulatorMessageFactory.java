@@ -218,14 +218,15 @@ public final class AccumulatorMessageFactory {
                 : "\n-# Último erro: " + Bot.limitStr(lastError.replace("\n", " "), 120);
 
         if (prize.getType() == AccumulatorPrizeType.MONEY) {
-            String currency = prize.getCurrency() == null ? "não escolhida" : prize.getCurrency().getFormatted();
+            CurrencyType currency = prize.getCurrency();
+            String fmtCurrency = currency == null ? "não escolhida" : currency.getName();
             return String.format(
                     "**#%d - %s**\nMembro: %s\nValor: `$%s`\nEconomia: %s\n-# Adicionado por %s.%s",
                     prize.getId(),
                     localizedType(prize.getType()),
                     target,
                     Bot.fmtNum(amountOrZero(prize)),
-                    currency,
+                    fmtCurrency,
                     creator,
                     errorLine
             );
