@@ -96,7 +96,6 @@ public final class AccumulatorMessageFactory {
         return new OficinaEmbed()
                 .setAuthor(user.getName(), null, user.getEffectiveAvatarUrl())
                 .setColor(EmbedFactory.OK_GREEN)
-                .setTitle("Caixa de prêmios atualizada")
                 .setDescf("Prêmio de **%s** adicionado para %s.", localizedType(type), target.getAsMention())
                 .build();
     }
