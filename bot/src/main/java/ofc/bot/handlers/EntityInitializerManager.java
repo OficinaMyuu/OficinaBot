@@ -3,6 +3,7 @@ package ofc.bot.handlers;
 import net.dv8tion.jda.api.JDA;
 import ofc.bot.Main;
 import ofc.bot.commands.impl.slash.groups.LeaveGroupCommand;
+import ofc.bot.commands.impl.slash.bets.BetRouletteCommand;
 import ofc.bot.commands.impl.slash.tickets.MergeTicketCommand;
 import ofc.bot.domain.sqlite.repository.Repositories;
 import ofc.bot.handlers.cache.PolicyService;
@@ -281,6 +282,7 @@ public final class EntityInitializerManager {
                 new OficinaGroupAutocompletion(grpRepo),
                 new OutageCommandsDisclaimer(),
                 new ResourceAutocompletion(userRepo),
+                new BetRouletteCommand.RouletteBetAutocompletion(),
                 new SlashCommandsGateway(cmdRepo, appBanRepo),
                 new SoloChannelsHandler(),
                 new ToggleRankupPingsCommandHandler(usprefRepo, userRepo),

@@ -9,6 +9,7 @@ import ofc.bot.commands.impl.slash.*;
 import ofc.bot.commands.impl.slash.additionals.AdditionalRolesCommand;
 import ofc.bot.commands.impl.slash.accumulator.AddAccumulatorPrizeCommand;
 import ofc.bot.commands.impl.slash.accumulator.ListAccumulatorPrizesCommand;
+import ofc.bot.commands.impl.slash.bets.BetRouletteCommand;
 import ofc.bot.commands.impl.slash.bets.BetTicTacToeCommand;
 import ofc.bot.commands.impl.slash.birthday.BirthdayAddCommand;
 import ofc.bot.commands.impl.slash.birthday.BirthdayRemoveCommand;
@@ -82,6 +83,8 @@ public final class CommandsInitializer {
         var grpRepo = Repositories.getOficinaGroupRepository();
         var emjRepo = Repositories.getMemberEmojiRepository();
         var ecoRepo = Repositories.getUserEconomyRepository();
+        var betRepo = Repositories.getBetGameRepository();
+        var betUsersRepo = Repositories.getGameParticipantRepository();
         var grpBotRepo = Repositories.getGroupBotRepository();
         var tmpBanRepo = Repositories.getTempBanRepository();
         var bdayRepo = Repositories.getBirthdayRepository();
@@ -102,6 +105,7 @@ public final class CommandsInitializer {
                 .addSubcommand(new ListAccumulatorPrizesCommand(accPrizeRepo));
 
         SlashCommand bets = new EmptySlashCommand("bets", "Aposte seu dinheiro.")
+                .addSubcommand(new BetRouletteCommand(ecoRepo, betRepo, betUsersRepo))
                 .addSubcommand(new BetTicTacToeCommand(ecoRepo));
 
         // Birhday
