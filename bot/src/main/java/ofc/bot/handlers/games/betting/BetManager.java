@@ -6,8 +6,8 @@ import java.util.Map;
 
 public final class BetManager {
     private static final BetManager INSTANCE = new BetManager();
-    // Mapping <UserID, Bet>
-    private final Map<Long, Bet<?>> active = new HashMap<>();
+    // Mapping <UserID, active bet/session>
+    private final Map<Long, Object> active = new HashMap<>();
 
     private BetManager() {}
 
@@ -16,10 +16,14 @@ public final class BetManager {
     }
 
     public synchronized void addBet(long userId, Bet<?> bet) {
+        addSession(userId, bet);
+    }
+
+    public synchronized void addSession(long userId, Object session) {
         if (active.containsKey(userId))
             throw new IllegalArgumentException("User " + userId + " is already betting");
 
-        active.put(userId, bet);
+        active.put(userId, session);
     }
 
     public synchronized void addBets(Bet<?> bet, Collection<Long> userIds) {
@@ -38,5 +42,9 @@ public final class BetManager {
 
     public boolean isBetting(long userId) {
         return this.active.containsKey(userId);
+    }
+
+    public synchronized Object getActive(long userId) {
+        return this.active.get(userId);
     }
 }
