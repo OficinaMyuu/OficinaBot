@@ -48,12 +48,17 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - Button/modal/menu/autocomplete routing is centralized under `bot/src/main/java/ofc/bot/handlers/interactions/`.
 - Scheduled jobs live under `bot/src/main/java/ofc/bot/jobs/`.
 
+## Bot Tickets
+Ticket creation sends a durable initial message with add-member, remove-member, and close controls. Close opens the existing close-reason modal. Add/remove member controls are handled by durable component IDs in `TicketMemberManagementHandler` instead of the temporary interaction memory manager, because ticket messages can outlive a bot process restart. Adding skips users that already have ticket access. Removing deletes only explicit member permission overrides, skips the ticket initiator, and ignores administrators.
+
 ## Bot Economy
 Automated income is split by economy provider: `ChatMoneyHandler` credits Oficina wallet money for eligible guild messages, while `VoiceChatMoneyHandler` credits UnbelievaBoat cash or bank money for eligible voice activity. Both paths honor `PolicyType.BLOCK_MONEY_GAINS` through `AutomatedMoneyGainPolicy`, matching blocked users, roles, or channels. The policy is intentionally limited to automated income and does not block explicit command rewards such as `/daily` and `/work`, nor manual or claim-based prize fulfillment such as giveaway money claims.
 
 UnbelievaBoat access is intentionally isolated behind `UnbelievaBoatClient` and `UnbelievaBoatRequester`. The client owns guild-scoped economy operations and sends the configured raw API token in the `Authorization` header, matching UnbelievaBoat's documented auth format. The requester owns HTTP retry behavior: successful responses may pause when `X-RateLimit-Remaining` is nearly exhausted, while HTTP 429 responses retry with the JSON `retry_after` delay first, then `X-RateLimit-Reset`, then local exponential backoff.
 
 `/rob` only steals from the target user's wallet. The failure probability follows the UnbelievaBoat-style formula `robber net worth / (target wallet + robber net worth)`, clamped to `20%` through `80%`. On success, the stolen amount is the success probability multiplied by the target wallet and rounded up. On failure, the robber is fined using the UnbelievaBoat crime default range of `20%` through `40%` of their net worth. The fine is applied to bank balance, because wallet cannot be negative while bank balance is allowed to represent debt.
+
+`/bets roulette` is a timed, channel-scoped betting lobby modeled after UnbelievaBoat roulette. The first accepted bet opens a 30-second shared spin; other users, and the same user, can place more bets in that lobby before the ball lands. Supported spaces are red/black, even/odd, 1-18/19-36, 1st/2nd/3rd columns, 1-12/13-24/25-36 dozens, and exact numbers 0 through 36. Stakes are deducted from bank immediately and accepted amounts range from 100 to 1,000,000. Winners receive `stake * multiplier` back to bank on settlement, using x2, x3, or x36 according to the selected space. Completed spins reuse the existing `bet_games` and `games_participants` tables with `GameType.ROULETTE`.
 
 ## Bot Moderation
 Automod warnings are persisted before the current threshold is resolved through `AutomodActionRepository`. When the configured threshold resolves to `KICK`, the Discord kick is queued first, and cleanup runs only after JDA reports that kick as successful. Cleanup deletes the user's XP row from `users_xp` and resets every configured economy account to zero, currently Oficina Bank and UnbelievaBoat.

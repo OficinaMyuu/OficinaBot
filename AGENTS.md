@@ -51,6 +51,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Change color role shop behavior: open `ColorsCommand.java`, `ColorRoleStoreMessageFactory.java`, `ColorRoleRefundPolicy.java`, and the shop button handlers under `bot/src/main/java/ofc/bot/listeners/discord/interactions/buttons/shop/`.
 - Change channel permission optimization: open `ChannelOptimizeCommand.java`, `ChannelPermissionOptimizer.java`, and `ChannelOptimizeApproveHandler.java`.
 - Change Oficina Dorme behavior: open `CreateMafiaGameCommand.java`, `MafiaInteractionListener.java`, and the rule helpers in `bot/src/main/java/ofc/bot/handlers/games/mafia/service/`.
+- Change roulette betting behavior: open `BetRouletteCommand.java` and the roulette helpers under `bot/src/main/java/ofc/bot/handlers/games/betting/roulette/`.
 - Change giveaway behavior: open `bot/src/main/java/ofc/bot/commands/impl/slash/giveaway/`, then `bot/src/main/java/ofc/bot/handlers/giveaway/`, `GiveawayInteractionListener.java`, `GiveawayVoiceConditionListener.java`, and `GiveawayEndHandler.java`.
 - Change accumulator prize behavior: open `bot/src/main/java/ofc/bot/commands/impl/slash/accumulator/`, `bot/src/main/java/ofc/bot/handlers/accumulator/`, `AccumulatorInteractionListener.java`, and the `accumulator_prizes` table/repository.
 - Change persistence or schema: open `DB.java`, then the related table/entity/repository trio under `bot/src/main/java/ofc/bot/domain/`.
@@ -69,7 +70,8 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Levels/XP: `commands/impl/slash/levels/`, `UsersXPHandler.java`, `VoiceXPHandler.java`, `LevelManager.java`.
 - Automated money income: `ChatMoneyHandler.java`, `VoiceChatMoneyHandler.java`, and `AutomatedMoneyGainPolicy.java`.
 - Tickets: `commands/impl/slash/tickets/`, modal/button handlers under `listeners/discord/interactions/.../tickets/`.
-- Mafia/bets/games: `commands/impl/slash/mafia/`, `commands/impl/slash/bets/`, `handlers/games/`.
+  Initial ticket messages expose durable add/remove member buttons plus close; member add/remove handling lives in `listeners/discord/interactions/buttons/tickets/TicketMemberManagementHandler.java`.
+- Mafia/bets/games: `commands/impl/slash/mafia/`, `commands/impl/slash/bets/`, `handlers/games/`. `/bets roulette` uses a timed channel lobby, bank-only stakes, and UnbelievaBoat-style roulette spaces under `handlers/games/betting/roulette/`.
 - Giveaways: `/giveaway create/end/reroll`, `handlers/giveaway/`, `GiveawayInteractionListener.java`, `GiveawayVoiceConditionListener.java`, `GiveawayEndHandler.java`, and the `giveaways`, `giveaway_entries`, and `giveaway_winners` tables.
 - Oficina Dorme internals: `handlers/games/mafia/service/`, `handlers/games/mafia/domain/`, `handlers/games/mafia/discord/`, `MafiaInteractionListener.java`, `MafiaLifecycleListener.java`, and `game_mafia_logs`.
 - Nickname changes: `NickCommand.java`, `handlers/nick/`, `NicknameUpdateRequestGuard.java`, `listeners/discord/interactions/buttons/nick/`, and `nickname_update_requests`.
@@ -108,6 +110,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Accumulator controls are durable component ids prefixed with `acc:v1:` and must not use `InteractionMemoryManager`; accumulator rows are never deleted, only moved from `PENDING` to `PAID` or `REJECTED`.
 - Color role ownership uses `color_roles_state.expires_at`; do not reintroduce fixed `updated_at + 60 days` expiration logic.
 - `ColorRoleRemotionHandler` deletes stale `color_roles_state` rows when an expired row points at a Discord role that no longer exists.
+- Roulette stakes are deducted from bank when accepted, then winners receive `stake * multiplier` back to bank when the shared spin resolves. Do not change this to wallet or total balance unless the whole betting policy is deliberately revised.
 
 ## Documentation
 - Keep only this root `AGENTS.md`; do not add service-level copies.
