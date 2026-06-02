@@ -55,6 +55,7 @@ import ofc.bot.listeners.discord.interactions.buttons.shop.OpenColorRolePurchase
 import ofc.bot.listeners.discord.interactions.buttons.shop.OpenColorRoleRemovalConfirmationHandler;
 import ofc.bot.listeners.discord.interactions.buttons.tickets.CloseTicketHandler;
 import ofc.bot.listeners.discord.interactions.buttons.tickets.DownloadTicketMessagesHandler;
+import ofc.bot.listeners.discord.interactions.buttons.tickets.TicketMemberManagementHandler;
 import ofc.bot.listeners.discord.interactions.dm.DirectMessageReceived;
 import ofc.bot.listeners.discord.interactions.menus.ChoosableRolesListener;
 import ofc.bot.listeners.discord.interactions.modals.ChoosableRolesHandler;
@@ -285,6 +286,7 @@ public final class EntityInitializerManager {
                 new ToggleRankupPingsCommandHandler(usprefRepo, userRepo),
                 new SteamScamBlocker(),
                 new StudyRoleHandler(),
+                new TicketMemberManagementHandler(ticketRepo),
                 new UnbanTempBanCleaner(tmpBanRepo),
                 new UserGlobalNameUpdateLogger(namesRepo, userRepo),
                 new UserNameUpdateLogger(namesRepo, userRepo),

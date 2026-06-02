@@ -34,12 +34,16 @@ import static net.dv8tion.jda.api.Permission.*;
 @InteractionHandler(scope = Scopes.Tickets.CREATE_TICKET, autoResponseType = AutoResponseType.THINKING_EPHEMERAL)
 public class TicketCreationHandler implements InteractionListener<ModalSubmitContext> {
     public static final String CLOSE_BUTTON_ID = "close-ticket";
+    public static final String ADD_MEMBERS_BUTTON_ID = "ticket-members:add";
+    public static final String REMOVE_MEMBERS_BUTTON_ID = "ticket-members:remove";
     public static final long TICKET_ALLOWED_PERMS;
     public static final long TICKET_BLOCKED_PERMS;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TicketCreationHandler.class);
     private static final String CHANNEL_NAME_FORMAT = "%02d｜%s";
     private static final Button CLOSE_TICKET_BUTTON;
+    private static final Button ADD_MEMBERS_BUTTON;
+    private static final Button REMOVE_MEMBERS_BUTTON;
     private static final long STAFF_ALLOW_PERMS;
     private final SupportTicketRepository ticketRepo;
 
@@ -97,7 +101,7 @@ public class TicketCreationHandler implements InteractionListener<ModalSubmitCon
 
             TextChannel chan = creation.complete();
             chan.sendMessageEmbeds(initialEmbed)
-                    .addComponents(ActionRow.of(CLOSE_TICKET_BUTTON))
+                    .addComponents(ActionRow.of(ADD_MEMBERS_BUTTON, REMOVE_MEMBERS_BUTTON, CLOSE_TICKET_BUTTON))
                     .queue();
 
             return chan;
@@ -118,11 +122,15 @@ public class TicketCreationHandler implements InteractionListener<ModalSubmitCon
 
     static {
         final Emoji lockEmoji = Emoji.fromUnicode("\uD83D\uDD12");
+        final Emoji addEmoji = Emoji.fromUnicode("\u2795");
+        final Emoji removeEmoji = Emoji.fromUnicode("\u2796");
         TICKET_ALLOWED_PERMS = Permission.getRaw(VIEW_CHANNEL, MESSAGE_ATTACH_FILES, MESSAGE_EMBED_LINKS);
         TICKET_BLOCKED_PERMS = Permission.getRaw(MESSAGE_EXT_STICKER, MESSAGE_EXT_EMOJI, VOICE_USE_EXTERNAL_SOUNDS);
 
         STAFF_ALLOW_PERMS = Permission.getRaw(VIEW_CHANNEL, MESSAGE_MANAGE, MESSAGE_ATTACH_FILES);
 
+        ADD_MEMBERS_BUTTON = Button.of(ButtonStyle.SUCCESS, ADD_MEMBERS_BUTTON_ID, "Adicionar Membros", addEmoji);
+        REMOVE_MEMBERS_BUTTON = Button.of(ButtonStyle.SECONDARY, REMOVE_MEMBERS_BUTTON_ID, "Remover Membros", removeEmoji);
         CLOSE_TICKET_BUTTON = Button.of(ButtonStyle.DANGER, CLOSE_BUTTON_ID, "Fechar Ticket", lockEmoji);
     }
 }
