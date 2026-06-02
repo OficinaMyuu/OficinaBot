@@ -51,6 +51,8 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 ## Bot Economy
 Automated income is split by economy provider: `ChatMoneyHandler` credits Oficina wallet money for eligible guild messages, while `VoiceChatMoneyHandler` credits UnbelievaBoat cash or bank money for eligible voice activity. Both paths honor `PolicyType.BLOCK_MONEY_GAINS` through `AutomatedMoneyGainPolicy`, matching blocked users, roles, or channels. The policy is intentionally limited to automated income and does not block explicit command rewards such as `/daily` and `/work`, nor manual or claim-based prize fulfillment such as giveaway money claims.
 
+UnbelievaBoat access is intentionally isolated behind `UnbelievaBoatClient` and `UnbelievaBoatRequester`. The client owns guild-scoped economy operations and sends the configured raw API token in the `Authorization` header, matching UnbelievaBoat's documented auth format. The requester owns HTTP retry behavior: successful responses may pause when `X-RateLimit-Remaining` is nearly exhausted, while HTTP 429 responses retry with the JSON `retry_after` delay first, then `X-RateLimit-Reset`, then local exponential backoff.
+
 `/rob` only steals from the target user's wallet. The failure probability follows the UnbelievaBoat-style formula `robber net worth / (target wallet + robber net worth)`, clamped to `20%` through `80%`. On success, the stolen amount is the success probability multiplied by the target wallet and rounded up. On failure, the robber is fined using the UnbelievaBoat crime default range of `20%` through `40%` of their net worth. The fine is applied to bank balance, because wallet cannot be negative while bank balance is allowed to represent debt.
 
 ## Bot Moderation

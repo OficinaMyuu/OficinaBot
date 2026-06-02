@@ -10,16 +10,41 @@ import ofc.bot.handlers.requests.requester.impl.UnbelievaBoatRequester;
 import java.lang.reflect.Type;
 
 public class UnbelievaBoatClient implements PaymentManager {
-    private static final UnbelievaBoatRequester REQUESTER = new UnbelievaBoatRequester();
     private static final UnsupportedOperationException NO_GUILD_EXCEPTION;
     private static final Gson GSON;
     private final String token;
+    private final UnbelievaBoatRequester requester;
 
+    /**
+     * Creates an UnbelievaBoat economy client using the provided API token.
+     * <p>
+     * UnbelievaBoat expects the raw token in the {@code Authorization} header,
+     * without a bearer prefix.
+     *
+     * @param token the UnbelievaBoat API token.
+     * @throws IllegalArgumentException if {@code token} is blank.
+     */
     public UnbelievaBoatClient(String token) {
-        Checks.notNull(token, "Token");
-        this.token = token;
+        this(token, new UnbelievaBoatRequester());
     }
 
+    UnbelievaBoatClient(String token, UnbelievaBoatRequester requester) {
+        Checks.notEmpty(token, "Token");
+        if (token.isBlank())
+            throw new IllegalArgumentException("Token may not be blank");
+
+        Checks.notNull(requester, "Requester");
+        this.token = token;
+        this.requester = requester;
+    }
+
+    /**
+     * Parses an UnbelievaBoat balance response into this bot's bank account abstraction.
+     *
+     * @param guildId the guild the response belongs to.
+     * @param json the UnbelievaBoat JSON response body, or {@code null}.
+     * @return a parsed bank account, or {@code null} when {@code json} is {@code null}.
+     */
     public static BankAccount fromJson(long guildId, String json) {
         if (json == null) return null;
 
@@ -28,50 +53,88 @@ public class UnbelievaBoatClient implements PaymentManager {
         return acc;
     }
 
+    /**
+     * Fetches a user's UnbelievaBoat balance in a guild.
+     *
+     * @param userId the Discord user id.
+     * @param guildId the Discord guild id.
+     * @return the current bank account, or {@code null} if UnbelievaBoat did not return a successful response.
+     * @throws UnsupportedOperationException if {@code guildId} is zero.
+     */
     public BankAccount get(long userId, long guildId) {
-        if (guildId == 0)
-            throw NO_GUILD_EXCEPTION;
+        validateGuildId(guildId);
 
         String json = makeRequest(Route.UnbelievaBoat.GET_BALANCE, null, guildId, userId);
         return fromJson(guildId, json);
     }
 
+    /**
+     * Replaces a user's UnbelievaBoat cash and bank balances in a guild.
+     *
+     * @param userId the Discord user id.
+     * @param guildId the Discord guild id.
+     * @param cash the new cash balance.
+     * @param bank the new bank balance.
+     * @param reason the optional audit reason sent to UnbelievaBoat.
+     * @return the updated bank account, or {@code null} if UnbelievaBoat did not return a successful response.
+     * @throws UnsupportedOperationException if {@code guildId} is zero.
+     */
     public BankAccount set(long userId, long guildId, long cash, long bank, String reason) {
-        if (guildId == 0)
-            throw NO_GUILD_EXCEPTION;
+        validateGuildId(guildId);
 
-        DataObject reqBody = DataObject.empty()
-                .put("cash", cash)
-                .put("bank", bank)
-                .put("reason", reason);
-
+        DataObject reqBody = createBalanceBody(cash, bank, reason);
         String json = makeRequest(Route.UnbelievaBoat.SET_BALANCE, reqBody, guildId, userId);
         return fromJson(guildId, json);
     }
 
+    /**
+     * Adds to, or subtracts from, a user's UnbelievaBoat cash and bank balances in a guild.
+     *
+     * @param userId the Discord user id.
+     * @param guildId the Discord guild id.
+     * @param cash the cash delta.
+     * @param bank the bank delta.
+     * @param reason the optional audit reason sent to UnbelievaBoat.
+     * @return the updated bank account, or {@code null} if UnbelievaBoat did not return a successful response.
+     * @throws UnsupportedOperationException if {@code guildId} is zero.
+     */
     @Override
     public BankAccount update(long userId, long guildId, long cash, long bank, String reason) {
-        if (guildId == 0)
-            throw NO_GUILD_EXCEPTION;
+        validateGuildId(guildId);
 
-        DataObject reqBody = DataObject.empty()
-                .put("cash", cash)
-                .put("bank", bank)
-                .put("reason", reason);
-
+        DataObject reqBody = createBalanceBody(cash, bank, reason);
         String json = makeRequest(Route.UnbelievaBoat.UPDATE_BALANCE, reqBody, guildId, userId);
         return fromJson(guildId, json);
     }
 
+    /**
+     * Returns the currency type handled by this client.
+     *
+     * @return {@link CurrencyType#UNBELIEVABOAT}.
+     */
     @Override
     public CurrencyType getCurrencyType() {
         return CurrencyType.UNBELIEVABOAT;
     }
 
+    /**
+     * Attempts to charge a user from their UnbelievaBoat cash and bank balances.
+     * <p>
+     * The method first verifies the current balance, applies a negative update,
+     * and rolls the update back if UnbelievaBoat returns a negative balance.
+     *
+     * @param userId the Discord user id.
+     * @param guildId the Discord guild id.
+     * @param cash the cash amount to remove.
+     * @param bank the bank amount to remove.
+     * @param reason the optional audit reason sent to UnbelievaBoat.
+     * @return the charge result and rollback action.
+     * @throws IllegalArgumentException if {@code cash} or {@code bank} are negative.
+     * @throws UnsupportedOperationException if {@code guildId} is zero.
+     */
     @Override
     public BankAction charge(long userId, long guildId, long cash, long bank, String reason) {
-        if (guildId == 0)
-            throw NO_GUILD_EXCEPTION;
+        validateGuildId(guildId);
 
         Checks.notNegative(cash, "Cash");
         Checks.notNegative(bank, "Bank");
@@ -111,11 +174,23 @@ public class UnbelievaBoatClient implements PaymentManager {
                 && acc.getBank() >= bank;
     }
 
+    private void validateGuildId(long guildId) {
+        if (guildId == 0)
+            throw NO_GUILD_EXCEPTION;
+    }
+
+    private DataObject createBalanceBody(long cash, long bank, String reason) {
+        return DataObject.empty()
+                .put("cash", cash)
+                .put("bank", bank)
+                .put("reason", reason);
+    }
+
     private String makeRequest(Route route, DataObject body, Object... path) {
         return route.create(path)
                 .addHeader("Authorization", token)
                 .setBody(body)
-                .send(REQUESTER, (map, code) -> map.isOk() ? map.asString() : null);
+                .send(this.requester, (map, code) -> map.isOk() ? map.asString() : null);
     }
 
     private static class LongInfinityDeserializer implements JsonDeserializer<Long> {

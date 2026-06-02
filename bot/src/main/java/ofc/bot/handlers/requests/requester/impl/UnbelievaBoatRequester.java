@@ -11,99 +11,171 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 
 public class UnbelievaBoatRequester implements Requester {
-    private static final HttpRequestException MAX_RETRIES_EXCEPTION = new HttpRequestException(
-            "Max retry attempts reached due to rate limiting.");
     private static final Logger LOGGER = LoggerFactory.getLogger(UnbelievaBoatRequester.class);
-    private static final OkHttpClient client = new OkHttpClient();
-    private static final Gson gson = new Gson();
+    private static final OkHttpClient DEFAULT_CLIENT = new OkHttpClient();
+    private static final Gson GSON = new Gson();
     private static final int RATE_LIMIT_CODE = 429;
     private static final int MAX_RETRIES = 5;
     private static final long DEFAULT_DELAY_MS = 1000;
+    private final OkHttpClient client;
+    private final Sleeper sleeper;
+    private final int maxRetries;
+    private final long defaultDelayMs;
 
+    /**
+     * Creates a requester configured for UnbelievaBoat's API retry behavior.
+     */
+    public UnbelievaBoatRequester() {
+        this(DEFAULT_CLIENT, Thread::sleep, MAX_RETRIES, DEFAULT_DELAY_MS);
+    }
+
+    UnbelievaBoatRequester(OkHttpClient client, Sleeper sleeper, int maxRetries, long defaultDelayMs) {
+        this.client = client;
+        this.sleeper = sleeper;
+        this.maxRetries = maxRetries;
+        this.defaultDelayMs = defaultDelayMs;
+    }
+
+    /**
+     * Executes a request and retries HTTP 429 responses using UnbelievaBoat's rate-limit metadata.
+     *
+     * @param supplier supplies a fresh OkHttp request for each attempt.
+     * @return the final response body, status flag, and HTTP status code.
+     * @throws HttpRequestException when the request fails, the retry budget is exhausted,
+     *                              or the retry sleep is interrupted.
+     */
     @NotNull
     @Override
     public RequestMapper makeRequest(@NotNull Supplier<Request> supplier) throws HttpRequestException {
         int attempt = 0;
 
-        while (attempt < MAX_RETRIES) {
+        while (attempt < this.maxRetries) {
             attempt++;
 
             Request req = supplier.get();
-            try (Response resp = client.newCall(req).execute()) {
-                ResponseBody body = resp.body();
+            try (Response resp = this.client.newCall(req).execute()) {
                 int code = resp.code();
-                byte[] bytes = body == null ? new byte[0] : body.bytes();
-
-                checkRateLimitHeaders(resp.headers());
+                byte[] bytes = readBody(resp);
 
                 if (!resp.isSuccessful()) {
-                    LOGGER.warn("We did not receive a successful status code {} from the server: {}", code, new String(bytes));
+                    LOGGER.warn("UnbelievaBoat request to \"{}\" returned HTTP {}: {}",
+                            req.url(), code, new String(bytes, StandardCharsets.UTF_8));
                 }
 
                 if (code != RATE_LIMIT_CODE) {
+                    delayIfApproachingRateLimit(resp.headers());
                     return new RequestMapper(bytes, resp.isSuccessful(), code);
                 }
 
-                // We hit a rate-limit, nooo :/
-                long delay = getDelayFromResponse(resp, attempt);
-                LOGGER.warn("Received HTTP 429 (rate limited) on attempt {} of {}. Retrying (maybe) after {}ms...",
-                        attempt, MAX_RETRIES, delay);
+                long delay = getRetryDelay(resp.headers(), bytes, attempt);
+                LOGGER.warn("Received HTTP 429 (rate limited) on attempt {} of {}. Retrying after {}ms.",
+                        attempt, this.maxRetries, delay);
 
-                Thread.sleep(delay);
-            } catch (IOException | InterruptedException e) {
+                sleep(delay);
+            } catch (IOException e) {
                 throw new HttpRequestException(e);
             }
         }
-        throw MAX_RETRIES_EXCEPTION;
+        throw new HttpRequestException("Max retry attempts reached due to rate limiting.");
     }
 
-    private void checkRateLimitHeaders(Headers headers) {
+    private byte[] readBody(Response response) throws IOException {
+        ResponseBody body = response.body();
+        return body == null ? new byte[0] : body.bytes();
+    }
+
+    private void delayIfApproachingRateLimit(Headers headers) {
         String remainingStr = headers.get("X-RateLimit-Remaining");
-        String resetStr = headers.get("X-RateLimit-Reset");
+        if (remainingStr == null) {
+            return;
+        }
 
-        if (remainingStr != null && resetStr != null) {
-            try {
-                int remaining = Integer.parseInt(remainingStr);
-                long resetEpochMs = Long.parseLong(resetStr);
-                if (remaining <= 1) {
-                    long delay = resetEpochMs - System.currentTimeMillis();
-                    if (delay > 0) {
-                        LOGGER.warn("Approaching rate limit: only {} requests remaining. Delaying {}ms until reset.", remaining, delay);
-                        Thread.sleep(delay);
-                    }
-                }
-            } catch (NumberFormatException | InterruptedException e) {
-                LOGGER.warn("Error parsing rate limit headers.", e);
+        try {
+            int remaining = Integer.parseInt(remainingStr);
+            long delay = getResetDelay(headers);
+            if (remaining <= 1 && delay > 0) {
+                LOGGER.warn("Approaching UnbelievaBoat rate limit: only {} requests remaining. Delaying {}ms until reset.",
+                        remaining, delay);
+                sleep(delay);
             }
+        } catch (NumberFormatException e) {
+            LOGGER.warn("Could not parse UnbelievaBoat rate-limit headers.", e);
         }
     }
 
-    private long getDelayFromResponse(Response resp, int attempt) {
-        long delay = DEFAULT_DELAY_MS;
-
-        try (ResponseBody body = resp.body()) {
-            if (body != null) {
-                String json = body.string();
-                JsonObject obj = gson.fromJson(json, JsonObject.class);
-
-                if (obj != null && obj.has("retry_after")) {
-                    delay = obj.get("retry_after").getAsLong();
-                }
-
-                if (obj != null && obj.has("global") && obj.get("global").getAsBoolean()) {
-                    LOGGER.warn("Global rate limit encountered");
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.warn("Could not parse retry_after from the 429 response, falling back to default delay.", e);
-            // Fall back to an exponential backoff
-            delay = DEFAULT_DELAY_MS * (1L << attempt);
+    private long getRetryDelay(Headers headers, byte[] body, int attempt) {
+        Long retryAfter = getRetryAfterFromBody(body);
+        if (retryAfter != null && retryAfter > 0) {
+            return retryAfter;
         }
 
-        // Fallback if delay is negative
-        return delay > 0 ? delay : DEFAULT_DELAY_MS * (1L << attempt);
+        long resetDelay = getResetDelay(headers);
+        if (resetDelay > 0) {
+            return resetDelay;
+        }
+
+        return getBackoffDelay(attempt);
+    }
+
+    private Long getRetryAfterFromBody(byte[] body) {
+        if (body.length == 0) {
+            return null;
+        }
+
+        try {
+            String json = new String(body, StandardCharsets.UTF_8);
+            JsonObject obj = GSON.fromJson(json, JsonObject.class);
+
+            if (obj == null) {
+                return null;
+            }
+
+            if (obj.has("global") && obj.get("global").getAsBoolean()) {
+                LOGGER.warn("Global UnbelievaBoat rate limit encountered.");
+            }
+
+            return obj.has("retry_after") ? obj.get("retry_after").getAsLong() : null;
+        } catch (Exception e) {
+            LOGGER.warn("Could not parse retry_after from UnbelievaBoat 429 response body.", e);
+            return null;
+        }
+    }
+
+    private long getResetDelay(Headers headers) {
+        String resetStr = headers.get("X-RateLimit-Reset");
+        if (resetStr == null) {
+            return 0;
+        }
+
+        try {
+            return Long.parseLong(resetStr) - System.currentTimeMillis();
+        } catch (NumberFormatException e) {
+            LOGGER.warn("Could not parse UnbelievaBoat X-RateLimit-Reset header.", e);
+            return 0;
+        }
+    }
+
+    private long getBackoffDelay(int attempt) {
+        return this.defaultDelayMs * (1L << Math.max(0, attempt - 1));
+    }
+
+    private void sleep(long delayMs) {
+        long delay = delayMs > 0 ? delayMs : this.defaultDelayMs;
+
+        try {
+            this.sleeper.sleep(delay);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new HttpRequestException(e);
+        }
+    }
+
+    @FunctionalInterface
+    interface Sleeper {
+        void sleep(long delayMs) throws InterruptedException;
     }
 }
