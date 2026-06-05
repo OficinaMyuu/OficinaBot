@@ -74,7 +74,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Mafia/bets/games: `commands/impl/slash/mafia/`, `commands/impl/slash/bets/`, `handlers/games/`. `/bets roulette` uses a timed channel lobby, bank-only stakes, and UnbelievaBoat-style roulette spaces under `handlers/games/betting/roulette/`.
 - Giveaways: `/giveaway create/end/reroll`, `handlers/giveaway/`, `GiveawayInteractionListener.java`, `GiveawayVoiceConditionListener.java`, `GiveawayEndHandler.java`, and the `giveaways`, `giveaway_entries`, and `giveaway_winners` tables.
 - Oficina Dorme internals: `handlers/games/mafia/service/`, `handlers/games/mafia/domain/`, `handlers/games/mafia/discord/`, `MafiaInteractionListener.java`, `MafiaLifecycleListener.java`, and `game_mafia_logs`.
-- Nickname changes: `NickCommand.java`, `handlers/nick/`, `NicknameUpdateRequestGuard.java`, `listeners/discord/interactions/buttons/nick/`, and `nickname_update_requests`.
+- Nickname changes: `NickCommand.java`, `handlers/nick/`, `NicknameUpdateRequestGuard.java`, `listeners/discord/guilds/members/*NicknameEmojiEnforcementListener.java`, `listeners/discord/interactions/buttons/nick/`, and `nickname_update_requests`.
 - Generic throttled updates: `handlers/ThrottledAction.java`.
 
 ## Builds And Tests
@@ -111,6 +111,8 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Color role ownership uses `color_roles_state.expires_at`; do not reintroduce fixed `updated_at + 60 days` expiration logic.
 - `ColorRoleRemotionHandler` deletes stale `color_roles_state` rows when an expired row points at a Discord role that no longer exists.
 - Roulette stakes are deducted from bank when accepted, then winners receive `stake * multiplier` back to bank when the shared spin resolves. Do not change this to wallet or total balance unless the whole betting policy is deliberately revised.
+- `/nick` rejects unauthorized staff emojis outright; do not reintroduce the old "send anyway" confirmation flow.
+- Nickname emoji enforcement is event-driven for guild nickname updates, global-name updates, nickname resets, and member joins. Staff members from `Staff.isStaff(Member)`, emoji owners, explicitly authorized users, and unowned emojis are allowed. When sanitizing would leave an empty nickname, fallback replacements come from `Bot.getArray("nicks.replacements")`.
 
 ## Documentation
 - Keep only this root `AGENTS.md`; do not add service-level copies.
