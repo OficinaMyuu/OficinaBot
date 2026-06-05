@@ -1,10 +1,12 @@
 package ofc.bot.handlers.nick;
 
 import com.vdurmont.emoji.EmojiParser;
+import net.dv8tion.jda.api.entities.Member;
 import ofc.bot.domain.entity.MemberEmoji;
 import ofc.bot.domain.entity.UserEmojiPermission;
 import ofc.bot.domain.sqlite.repository.MemberEmojiRepository;
 import ofc.bot.domain.sqlite.repository.UserEmojiPermissionRepository;
+import ofc.bot.util.content.Staff;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -22,6 +24,15 @@ public class NicknameEmojiPolicy {
     ) {
         this.memberEmojiRepo = Objects.requireNonNull(memberEmojiRepo);
         this.emojiPermissionRepo = Objects.requireNonNull(emojiPermissionRepo);
+    }
+
+    public NicknameEmojiReport inspect(@NotNull Member target, @NotNull String nickname) {
+        NicknameEmojiReport report = inspect(target.getIdLong(), nickname);
+        if (!Staff.isStaff(target)) {
+            return report;
+        }
+
+        return new NicknameEmojiReport(nickname, report.emojis(), List.of(), List.of());
     }
 
     public NicknameEmojiReport inspect(long targetUserId, @NotNull String nickname) {

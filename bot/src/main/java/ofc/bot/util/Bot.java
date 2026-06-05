@@ -156,6 +156,18 @@ public final class Bot {
         return val == null ? null : mapper.apply(val);
     }
 
+    public static String[] getArray(String key) {
+        String value = get(key);
+        if (value == null || value.isBlank()) {
+            return new String[0];
+        }
+
+        return Arrays.stream(value.split(";"))
+                .map(String::strip)
+                .filter(part -> !part.isBlank())
+                .toArray(String[]::new);
+    }
+
     public static String getSafe(String key) {
         String value = get(key);
         if (value == null)
