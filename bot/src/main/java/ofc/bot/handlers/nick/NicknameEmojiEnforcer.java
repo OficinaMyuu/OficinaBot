@@ -39,6 +39,7 @@ public class NicknameEmojiEnforcer {
             return;
         }
 
+        LOGGER.info("Enforcing user {} to sanitized username, reason: {}", member.getId(), reason);
         member.modifyNickname(sanitized.get())
                 .reason(reason)
                 .queue(null, error -> LOGGER.warn(
