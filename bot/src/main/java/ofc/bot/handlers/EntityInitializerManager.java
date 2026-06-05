@@ -14,8 +14,9 @@ import ofc.bot.handlers.interactions.buttons.ButtonInteractionGateway;
 import ofc.bot.handlers.interactions.commands.SlashCommandsGateway;
 import ofc.bot.handlers.interactions.commands.slash.CommandsInitializer;
 import ofc.bot.handlers.interactions.modals.ModalInteractionGateway;
+import ofc.bot.handlers.nick.NicknameEmojiEnforcer;
 import ofc.bot.handlers.nick.NicknameEmojiPolicy;
-import ofc.bot.handlers.nick.NicknameRequestDispatcher;
+import ofc.bot.handlers.nick.NicknameEmojiSanitizer;
 import ofc.bot.jobs.*;
 import ofc.bot.jobs.groups.LateGroupsChecker;
 import ofc.bot.jobs.income.VoiceChatMoneyHandler;
@@ -27,7 +28,9 @@ import ofc.bot.listeners.discord.economy.ChatMoneyHandler;
 import ofc.bot.listeners.discord.guilds.BlockDumbCommands;
 import ofc.bot.listeners.discord.guilds.UnbanTempBanCleaner;
 import ofc.bot.listeners.discord.guilds.mafia.MafiaLifecycleListener;
+import ofc.bot.listeners.discord.guilds.members.MemberJoinNicknameEmojiEnforcementListener;
 import ofc.bot.listeners.discord.guilds.members.MemberJoinUpsert;
+import ofc.bot.listeners.discord.guilds.members.MemberNameEmojiEnforcementListener;
 import ofc.bot.listeners.discord.guilds.messages.*;
 import ofc.bot.listeners.discord.guilds.reactionroles.BotChangelogRoleHandler;
 import ofc.bot.listeners.discord.guilds.reactionroles.StudyRoleHandler;
@@ -44,7 +47,6 @@ import ofc.bot.listeners.discord.interactions.buttons.giveaway.GiveawayInteracti
 import ofc.bot.listeners.discord.interactions.buttons.groups.*;
 import ofc.bot.listeners.discord.interactions.buttons.mafia.MafiaInteractionListener;
 import ofc.bot.listeners.discord.interactions.buttons.nick.NicknameApprovalButtonListener;
-import ofc.bot.listeners.discord.interactions.buttons.nick.NicknameSendAnywayHandler;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.*;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.infractions.DeleteInfraction;
 import ofc.bot.listeners.discord.interactions.buttons.pagination.infractions.InfractionsPageUpdate;
@@ -143,7 +145,6 @@ public final class EntityInitializerManager {
         var betUsersRepo = Repositories.getGameParticipantRepository();
         var pnshRepo = Repositories.getMemberPunishmentRepository();
         var msgVrsRepo = Repositories.getMessageVersionRepository();
-        var nickReqRepo = Repositories.getNicknameUpdateRequestRepository();
         var mreqRepo = Repositories.getMarriageRequestRepository();
         var namesRepo = Repositories.getUserNameUpdateRepository();
         var ticketRepo = Repositories.getSupportTicketRepository();
@@ -182,7 +183,6 @@ public final class EntityInitializerManager {
                 new ColorRolePurchaseHandler(colorStateRepo),
                 new ColorRoleRemoveHandler(colorStateRepo),
                 new ChannelOptimizeApproveHandler(),
-                new NicknameSendAnywayHandler(new NicknameRequestDispatcher(nickReqRepo)),
 
                 // Groups' commands confirmation handlers
                 new GroupBotAddHandler(),
@@ -241,6 +241,8 @@ public final class EntityInitializerManager {
         var userRepo = Repositories.getUserRepository();
         var giveawayService = GiveawayServices.create();
         var accumulatorPayoutService = new AccumulatorPayoutService(accPrizeRepo, colorItemRepo, colorStateRepo);
+        var nicknamePolicy = new NicknameEmojiPolicy(memberEmojiRepo, emojiPermRepo);
+        var nicknameEnforcer = new NicknameEmojiEnforcer(new NicknameEmojiSanitizer(nicknamePolicy));
 
         api.addEventListener(
                 new AccumulatorInteractionListener(accPrizeRepo, colorItemRepo, accumulatorPayoutService),
@@ -266,7 +268,9 @@ public final class EntityInitializerManager {
                 new MafiaLifecycleListener(),
                 new MafiaInteractionListener(),
                 new MentionLoggerHandler(mentionLogRepo),
+                new MemberJoinNicknameEmojiEnforcementListener(nicknameEnforcer),
                 new MemberJoinUpsert(),
+                new MemberNameEmojiEnforcementListener(nicknameEnforcer),
                 new MemberNickUpdateLogger(namesRepo, userRepo),
                 new MemberRolesBackup(rolesRepo, xpRepo),
                 new MergeTicketCommand.TicketMergeAutocompletionHandler(ticketRepo),
@@ -278,7 +282,7 @@ public final class EntityInitializerManager {
                 new MessageTranscriptionsHandler(msgTrscptRepo, appBanRepo),
                 new MessageUpdatedLogger(msgVrsRepo),
                 new NicknameApprovalButtonListener(nickReqRepo),
-                new NicknameUpdateRequestGuard(new NicknameEmojiPolicy(memberEmojiRepo, emojiPermRepo)),
+                new NicknameUpdateRequestGuard(nicknamePolicy),
                 new OficinaGroupAutocompletion(grpRepo),
                 new OutageCommandsDisclaimer(),
                 new ResourceAutocompletion(userRepo),

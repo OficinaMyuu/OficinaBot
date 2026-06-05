@@ -45,7 +45,7 @@ public class NicknameUpdateRequestGuard extends ListenerAdapter {
 
         Message message = event.getMessage();
         String nickname = message.getContentRaw().strip();
-        NicknameEmojiPolicy.NicknameEmojiReport report = emojiPolicy.inspect(member.getIdLong(), nickname);
+        NicknameEmojiPolicy.NicknameEmojiReport report = emojiPolicy.inspect(member, nickname);
 
         if (!report.hasTooManyEmojis() && !report.hasUnauthorizedStaffEmojis()) {
             return;
