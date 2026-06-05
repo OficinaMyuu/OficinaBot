@@ -1076,23 +1076,6 @@ public final class EmbedFactory {
                 .build();
     }
 
-    public static MessageEmbed embedNicknameUnauthorizedConfirmation(
-            Member target,
-            String nickname,
-            NicknameEmojiPolicy.NicknameEmojiReport report
-    ) {
-        OficinaEmbed builder = new OficinaEmbed();
-
-        return builder
-                .setAuthor(target.getEffectiveName(), null, target.getEffectiveAvatarUrl())
-                .setColor(Color.YELLOW)
-                .setTitle("Confirmar envio")
-                .setDesc("Encontrei emoji de staff sem autorização para este membro. Se este pedido foi intencional, confirme o envio mesmo assim.")
-                .addField("Apelido solicitado", escapeUsernameSpecialChars(nickname), false)
-                .addField("Emojis sem autorização", report.unauthorizedSummary(), false)
-                .build();
-    }
-
     public static MessageEmbed embedNicknameApprovalPending(
             Member target,
             User submittedBy,
