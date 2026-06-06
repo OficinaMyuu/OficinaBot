@@ -358,13 +358,13 @@ public final class EntityContextFactory {
     }
 
     public static List<Button> createCountingReleasePaymentButtons(User user) {
-        ButtonContext payOfc = ButtonContext.success("Oficina", CurrencyType.OFICINA.getEmoji())
+        ButtonContext payOfc = ButtonContext.success("Pagar com Oficina", CurrencyType.OFICINA.getEmoji())
                 .setScope(Scopes.Userinfo.RELEASE_COUNTING_PUNISHMENT)
                 .addUser(user.getIdLong())
                 .put("currency", CurrencyType.OFICINA)
                 .put("user", user);
 
-        ButtonContext payUnb = ButtonContext.success("UnbelievaBoat", CurrencyType.UNBELIEVABOAT.getEmoji())
+        ButtonContext payUnb = ButtonContext.success("Pagar com UnbelievaBoat", CurrencyType.UNBELIEVABOAT.getEmoji())
                 .setScope(Scopes.Userinfo.RELEASE_COUNTING_PUNISHMENT)
                 .addUser(user.getIdLong())
                 .put("currency", CurrencyType.UNBELIEVABOAT)

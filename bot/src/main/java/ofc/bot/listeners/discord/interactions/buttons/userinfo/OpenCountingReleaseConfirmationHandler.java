@@ -46,7 +46,7 @@ public class OpenCountingReleaseConfirmationHandler implements InteractionListen
             return Status.ROLE_NOT_FOUND;
         }
 
-        MessageEmbed embed = EmbedFactory.embedCountingReleasePurchase(guild, user, role);
+        MessageEmbed embed = EmbedFactory.embedCountingReleasePurchase(guild, user);
         List<Button> buttons = EntityContextFactory.createCountingReleasePaymentButtons(user);
 
         ctx.create()

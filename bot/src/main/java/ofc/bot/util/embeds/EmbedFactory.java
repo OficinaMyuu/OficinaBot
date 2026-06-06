@@ -432,28 +432,23 @@ public final class EmbedFactory {
                 .build();
     }
 
-    public static MessageEmbed embedCountingReleasePurchase(Guild guild, User user, Role role) {
+    public static MessageEmbed embedCountingReleasePurchase(Guild guild, User user) {
         EmbedBuilder builder = new EmbedBuilder();
 
         return builder
                 .setTitle("Liberar Contagem")
-                .setDescription("Deseja remover sua punicao da contagem?")
+                .setDescription("Deseja remover sua punição da contagem?")
                 .setThumbnail(user.getEffectiveAvatarUrl())
-                .setColor(Bot.Colors.DISCORD)
+                .setColor(Bot.Colors.DEFAULT)
                 .addField("\uD83D\uDCB0 Valor", Bot.fmtMoney(CountingReleaseService.PRICE), true)
-                .addField("\uD83D\uDCB3 Cobranca", "Banco", true)
-                .addField("\uD83C\uDFB1 Cargo", role.getAsMention(), true)
+                .addField("\uD83D\uDCB3 Cobrança", "Bank", true)
                 .setFooter(guild.getName(), guild.getIconUrl())
                 .build();
     }
 
     public static MessageEmbed embedCountingReleaseSuccess(User user, Role role, CurrencyType currency) {
         EmbedBuilder builder = new EmbedBuilder();
-        String desc = String.format(
-                "Cargo %s removido com sucesso. Cobranca: %s no banco.",
-                role.getAsMention(),
-                currency.getName()
-        );
+        String desc = String.format("Cargo %s removido com sucesso.", role.getAsMention());
 
         return builder
                 .setAuthor(user.getName(), null, user.getEffectiveAvatarUrl())
