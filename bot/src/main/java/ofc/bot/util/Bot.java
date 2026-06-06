@@ -520,5 +520,6 @@ public final class Bot {
         public static final Emoji PLAY = Emoji.fromUnicode("▶");
         public static final Emoji TRASH = Emoji.fromUnicode("\uD83D\uDDD1");
         public static final Emoji MONEY_BAG = Emoji.fromUnicode("\uD83D\uDCB0");
+        public static final Emoji EIGHT_BALL = Emoji.fromUnicode("\uD83C\uDFB1");
     }
 }

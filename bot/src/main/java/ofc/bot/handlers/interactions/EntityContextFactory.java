@@ -346,6 +346,34 @@ public final class EntityContextFactory {
         return List.of(payOfc.getEntity(), payUnb.getEntity());
     }
 
+    public static Button createCountingReleaseButton(Member target) {
+        User user = target.getUser();
+        ButtonContext release = ButtonContext.secondary("Liberar Contagem", Bot.Emojis.EIGHT_BALL)
+                .setScope(Scopes.Userinfo.OPEN_COUNTING_RELEASE_CONFIRMATION)
+                .addUser(user.getIdLong())
+                .put("user", user);
+
+        INTERACTION_MANAGER.save(release);
+        return release.getEntity();
+    }
+
+    public static List<Button> createCountingReleasePaymentButtons(User user) {
+        ButtonContext payOfc = ButtonContext.success("Oficina", CurrencyType.OFICINA.getEmoji())
+                .setScope(Scopes.Userinfo.RELEASE_COUNTING_PUNISHMENT)
+                .addUser(user.getIdLong())
+                .put("currency", CurrencyType.OFICINA)
+                .put("user", user);
+
+        ButtonContext payUnb = ButtonContext.success("UnbelievaBoat", CurrencyType.UNBELIEVABOAT.getEmoji())
+                .setScope(Scopes.Userinfo.RELEASE_COUNTING_PUNISHMENT)
+                .addUser(user.getIdLong())
+                .put("currency", CurrencyType.UNBELIEVABOAT)
+                .put("user", user);
+
+        INTERACTION_MANAGER.save(payOfc, payUnb);
+        return List.of(payOfc.getEntity(), payUnb.getEntity());
+    }
+
     public static Button createGroupChannelConfirm(OficinaGroup group, ChannelType channelType, int price) {
         return createGroupItemPaymentConfirm(
                 group,

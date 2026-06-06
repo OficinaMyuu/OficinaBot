@@ -1,6 +1,7 @@
 package ofc.bot.commands.impl.slash.userinfo;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.User.Profile;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -11,6 +12,7 @@ import ofc.bot.domain.entity.enums.Gender;
 import ofc.bot.domain.sqlite.repository.*;
 import ofc.bot.domain.viewmodels.MarriageView;
 import ofc.bot.domain.viewmodels.UserinfoView;
+import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
@@ -59,8 +61,12 @@ public class UserinfoCommand extends SlashCommand {
             long userId = target.getIdLong();
             UserinfoView userinfo = fetchUserinfo(userId);
             MessageEmbed embed = embed(userinfo, target, profile);
+            Button releaseCounting = EntityContextFactory.createCountingReleaseButton(target);
 
-            ctx.replyEmbeds(embed);
+            ctx.create()
+                    .setEmbeds(embed)
+                    .setActionRows(releaseCounting)
+                    .send();
         }));
 
         return Status.OK;

@@ -35,6 +35,11 @@ public final class Scopes {
         public static final String OPEN_COLOR_ROLE_REMOVAL_CONFIRMATION = "OPEN_COLOR_ROLE_REMOVAL_CONFIRMATION";
     }
 
+    public static class Userinfo {
+        public static final String OPEN_COUNTING_RELEASE_CONFIRMATION = "OPEN_COUNTING_RELEASE_CONFIRMATION";
+        public static final String RELEASE_COUNTING_PUNISHMENT = "RELEASE_COUNTING_PUNISHMENT";
+    }
+
     public static class Bets {
         public static final String TICTACTOE_GAME   = "TICTACTOE_GAME";
         public static final String CREATE_TICTACTOE = "CREATE_TICTACTOE";
