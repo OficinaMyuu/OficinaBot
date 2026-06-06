@@ -64,6 +64,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Accumulator prizes: `/accumulator add/list` live in `commands/impl/slash/accumulator/`; durable list controls live in `listeners/discord/interactions/buttons/accumulator/`; rendering and payout orchestration live in `handlers/accumulator/`; rows live in `accumulator_prizes`.
 - Groups: `commands/impl/slash/groups/`, `listeners/discord/interactions/buttons/groups/`, `handlers/groups/`, `OficinaGroupRepository`.
 - Marriage/relationships: `commands/impl/slash/relationships/`, `MarriageRepository`, `MarriageRequestRepository`.
+- Userinfo: `commands/impl/slash/userinfo/`, with the counting punishment release buttons under `listeners/discord/interactions/buttons/userinfo/`; the release role id is read from `fun.counting.punishments.role.id` and purchases charge bank through `PaymentManagerProvider`.
 - Reminders: `commands/impl/slash/reminders/`, `jobs/RemindersHandler.java`, `ReminderRepository`.
 - Moderation: `commands/impl/slash/moderation/`, `listeners/discord/moderation/`, `handlers/moderation/`, punishment repositories.
 - Events: `ToggleEventsCommand.java`, configured by `channels.events.text.id` and `channels.events.voice.id`.
