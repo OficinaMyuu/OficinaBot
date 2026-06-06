@@ -59,6 +59,8 @@ import ofc.bot.listeners.discord.interactions.buttons.shop.OpenColorRoleRemovalC
 import ofc.bot.listeners.discord.interactions.buttons.tickets.CloseTicketHandler;
 import ofc.bot.listeners.discord.interactions.buttons.tickets.DownloadTicketMessagesHandler;
 import ofc.bot.listeners.discord.interactions.buttons.tickets.TicketMemberManagementHandler;
+import ofc.bot.listeners.discord.interactions.buttons.userinfo.CountingReleasePurchaseHandler;
+import ofc.bot.listeners.discord.interactions.buttons.userinfo.OpenCountingReleaseConfirmationHandler;
 import ofc.bot.listeners.discord.interactions.dm.DirectMessageReceived;
 import ofc.bot.listeners.discord.interactions.menus.ChoosableRolesListener;
 import ofc.bot.listeners.discord.interactions.modals.ChoosableRolesHandler;
@@ -182,6 +184,8 @@ public final class EntityInitializerManager {
                 new OpenColorRoleRemovalConfirmationHandler(colorStateRepo),
                 new ColorRolePurchaseHandler(colorStateRepo),
                 new ColorRoleRemoveHandler(colorStateRepo),
+                new OpenCountingReleaseConfirmationHandler(),
+                new CountingReleasePurchaseHandler(),
                 new ChannelOptimizeApproveHandler(),
 
                 // Groups' commands confirmation handlers

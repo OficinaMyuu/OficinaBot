@@ -17,6 +17,7 @@ import ofc.bot.handlers.channels.ChannelPermissionOptimizer;
 import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.nick.NicknameEmojiPolicy;
 import ofc.bot.handlers.paginations.PageItem;
+import ofc.bot.handlers.userinfo.CountingReleaseService;
 import ofc.bot.util.Bot;
 import ofc.bot.util.OficinaEmbed;
 
@@ -427,6 +428,36 @@ public final class EmbedFactory {
         return builder
                 .setAuthor(user.getName(), null, user.getEffectiveAvatarUrl())
                 .setColor(color)
+                .setDescription(desc)
+                .build();
+    }
+
+    public static MessageEmbed embedCountingReleasePurchase(Guild guild, User user, Role role) {
+        EmbedBuilder builder = new EmbedBuilder();
+
+        return builder
+                .setTitle("Liberar Contagem")
+                .setDescription("Deseja remover sua punicao da contagem?")
+                .setThumbnail(user.getEffectiveAvatarUrl())
+                .setColor(Bot.Colors.DISCORD)
+                .addField("\uD83D\uDCB0 Valor", Bot.fmtMoney(CountingReleaseService.PRICE), true)
+                .addField("\uD83D\uDCB3 Cobranca", "Banco", true)
+                .addField("\uD83C\uDFB1 Cargo", role.getAsMention(), true)
+                .setFooter(guild.getName(), guild.getIconUrl())
+                .build();
+    }
+
+    public static MessageEmbed embedCountingReleaseSuccess(User user, Role role, CurrencyType currency) {
+        EmbedBuilder builder = new EmbedBuilder();
+        String desc = String.format(
+                "Cargo %s removido com sucesso. Cobranca: %s no banco.",
+                role.getAsMention(),
+                currency.getName()
+        );
+
+        return builder
+                .setAuthor(user.getName(), null, user.getEffectiveAvatarUrl())
+                .setColor(OK_GREEN)
                 .setDescription(desc)
                 .build();
     }
