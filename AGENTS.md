@@ -69,7 +69,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Moderation: `commands/impl/slash/moderation/`, `listeners/discord/moderation/`, `handlers/moderation/`, punishment repositories.
 - Events: `ToggleEventsCommand.java`, configured by `channels.events.text.id` and `channels.events.voice.id`.
 - Levels/XP: `commands/impl/slash/levels/`, `UsersXPHandler.java`, `VoiceXPHandler.java`, `LevelManager.java`.
-- Automated money income: `ChatMoneyHandler.java`, `VoiceChatMoneyHandler.java`, and `AutomatedMoneyGainPolicy.java`.
+- Automated money income: `ChatMoneyHandler.java`, `VoiceChatMoneyHandler.java`, and `AutomatedMoneyGainPolicy.java`. Voice channels listed in `income.voice.bank-channel-ids` pay UnbelievaBoat income to bank with the voice multiplier instead of cash.
 - Tickets: `commands/impl/slash/tickets/`, modal/button handlers under `listeners/discord/interactions/.../tickets/`.
   Initial ticket messages expose durable add/remove member buttons plus close; member add/remove handling lives in `listeners/discord/interactions/buttons/tickets/TicketMemberManagementHandler.java`.
 - Mafia/bets/games: `commands/impl/slash/mafia/`, `commands/impl/slash/bets/`, `handlers/games/`. `/bets roulette` uses a timed channel lobby, bank-only stakes, and UnbelievaBoat-style roulette spaces under `handlers/games/betting/roulette/`.
@@ -105,6 +105,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 
 ## Known Traps
 - Do not assume env files exist; bot config is often loaded from the DB `config` table.
+- Voice income bank-channel overrides are configured through `income.voice.bank-channel-ids` as semicolon-separated Discord channel IDs; do not hard-code channel snowflakes in `VoiceChatMoneyHandler`.
 - Do not assume a missing bot feature is unimplemented before checking central registration.
 - SQLite is configured with a single pooled connection on purpose; avoid "fixing" that casually.
 - Giveaway buttons are durable component ids prefixed with `giveaway:` and must not use `InteractionMemoryManager`.
