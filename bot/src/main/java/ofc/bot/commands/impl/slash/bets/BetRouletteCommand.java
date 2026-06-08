@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import ofc.bot.domain.entity.UserEconomy;
 import ofc.bot.domain.sqlite.repository.BetGameRepository;
 import ofc.bot.domain.sqlite.repository.GameParticipantRepository;
 import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
@@ -43,11 +44,18 @@ public class BetRouletteCommand extends SlashSubcommand {
     @Override
     public InteractionResult onCommand(@NotNull SlashCommandContext ctx) {
         String rawBet = ctx.getSafeOption("bet", OptionMapping::getAsString);
-        int amount = ctx.getSafeOption("amount", OptionMapping::getAsInt);
+        String rawAmount = ctx.getSafeOption("amount", OptionMapping::getAsString);
         RouletteBet bet = RouletteBet.parse(rawBet).orElse(null);
+        UserEconomy eco = ecoRepo.findByUserId(ctx.getUserId());
+        int bank = eco == null ? 0 : eco.getBank();
+        int amount = parseBetAmount(rawAmount, bank);
 
         if (bet == null) {
             return Status.INVALID_VALUE_PROVIDED.args(rawBet);
+        }
+
+        if (amount < 0) {
+            return Status.INVALID_VALUE_PROVIDED.args(rawAmount);
         }
 
         RouletteGame game = ROULETTE_MANAGER.getOrCreate(ctx.getChannelId(), ecoRepo, betRepo, participantRepo);
@@ -90,9 +98,16 @@ public class BetRouletteCommand extends SlashSubcommand {
     public List<OptionData> getOptions() {
         return List.of(
                 new OptionData(OptionType.STRING, "bet", "Espaço da roleta: odd, 3rd, 13-24, 16, etc.", true, true),
-                new OptionData(OptionType.INTEGER, "amount", "A quantia a ser apostada.", true)
-                        .setRequiredRange(RouletteGame.MIN_AMOUNT, RouletteGame.MAX_AMOUNT)
+                new OptionData(OptionType.STRING, "amount", "A quantia a ser apostada (ex.: all, 2k, 5000).", true)
         );
+    }
+
+    static int parseBetAmount(String input, int bank) {
+        int amount = Bot.parseAmount(input, bank);
+        if (amount < RouletteGame.MIN_AMOUNT || amount > RouletteGame.MAX_AMOUNT) {
+            return -1;
+        }
+        return amount;
     }
 
     private InteractionResult handleRejected(SlashCommandContext ctx, RoulettePlacementResult.Reason reason, int amount) {
