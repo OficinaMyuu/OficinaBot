@@ -245,8 +245,13 @@ public final class Bot {
     }
 
     public static int parseAmount(String input, int balance) {
-        if (input.equalsIgnoreCase("all"))
+        if (input.equalsIgnoreCase("all")) {
             return balance;
+        }
+
+        if (input.equalsIgnoreCase("half")) {
+            return Math.floorDiv(balance, 2);
+        }
 
         String inputlc = input.toLowerCase();
 
