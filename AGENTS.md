@@ -69,6 +69,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Moderation: `commands/impl/slash/moderation/`, `listeners/discord/moderation/`, `handlers/moderation/`, punishment repositories.
 - Events: `ToggleEventsCommand.java`, configured by `channels.events.text.id` and `channels.events.voice.id`.
 - Message transcriptions: `listeners/discord/guilds/messages/MessageTranscriptionsHandler.java`; users listed in `messages.transcriptions.banned-user-ids` do not receive automatic microphone reactions on voice messages and cannot have those voice messages transcribed through manual microphone reactions.
+- World Cup 2026 reaction role: `listeners/discord/guilds/reactionroles/WorldCup2026ReactionRoleHandler.java`; messages in `worldcup2026.channel_id` receive a soccer ball reaction, and users who add/remove that reaction are idempotently granted/removed from `worldcup2026.role_id`.
 - Levels/XP: `commands/impl/slash/levels/`, `UsersXPHandler.java`, `VoiceXPHandler.java`, `LevelManager.java`.
 - Automated money income: `ChatMoneyHandler.java`, `VoiceChatMoneyHandler.java`, and `AutomatedMoneyGainPolicy.java`. Voice channels listed in `income.voice.bank-channel-ids` pay UnbelievaBoat income to bank with the voice multiplier instead of cash.
 - Tickets: `commands/impl/slash/tickets/`, modal/button handlers under `listeners/discord/interactions/.../tickets/`.
