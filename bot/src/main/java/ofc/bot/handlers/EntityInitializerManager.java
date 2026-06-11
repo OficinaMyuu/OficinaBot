@@ -34,6 +34,7 @@ import ofc.bot.listeners.discord.guilds.members.MemberNameEmojiEnforcementListen
 import ofc.bot.listeners.discord.guilds.messages.*;
 import ofc.bot.listeners.discord.guilds.reactionroles.BotChangelogRoleHandler;
 import ofc.bot.listeners.discord.guilds.reactionroles.StudyRoleHandler;
+import ofc.bot.listeners.discord.guilds.reactionroles.WorldCup2026ReactionRoleHandler;
 import ofc.bot.listeners.discord.guilds.roles.MemberRolesBackup;
 import ofc.bot.listeners.discord.guilds.voice.GiveawayVoiceConditionListener;
 import ofc.bot.listeners.discord.guilds.voice.solo.SoloChannelsHandler;
@@ -306,6 +307,7 @@ public final class EntityInitializerManager {
                 new WasWelcomedCommandHandler(welcomedRepo, userRepo),
                 new WasWelcomedCommandHandler.WasWelcomedCleanupHandler(),
                 new WelcomeCommandHandler(welcomedRepo),
+                new WorldCup2026ReactionRoleHandler(),
                 new WorkReminderHandler()
         );
     }
