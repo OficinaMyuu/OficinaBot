@@ -42,6 +42,7 @@ import java.util.function.Consumer;
 public class MessageTranscriptionsHandler extends ListenerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageTranscriptionsHandler.class);
     private static final Emoji TRANSCRIPTION_EMOJI = Emoji.fromUnicode("\uD83C\uDF99\uFE0F"); // This is a microphone
+    private static final String BANNED_USER_IDS_KEY = "messages.transcriptions.banned-user-ids";
     private static final int RESEND_COOLDOWN_SECONDS = 30;
     private static final int MAX_CHUNK_LENGTH = Message.MAX_CONTENT_LENGTH - 5;
     private static final ExecutorService DATABASE_THREAD = Executors.newSingleThreadExecutor();
@@ -62,6 +63,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
         Message msg = e.getMessage();
 
         if (!msg.isFromGuild() || !msg.isVoiceMessage()) return;
+        if (isTranscriptionBannedUser(msg.getAuthor().getIdLong())) return;
 
         Message.Attachment audio = findAudioAttachment(msg);
         if (audio != null && audio.getDuration() <= MessageTranscription.MAX_AUDIO_LENGTH_SECONDS) {
@@ -86,24 +88,29 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
         // Banned users cannot do anything
         if (appBanRepo.isBanned(userId)) return;
 
-        // If we already have a transcription available (maybe it was just deleted in the past),
-        // we run no checks, just send it immediately.
-        // Avoid flooding the chat when users repeatedly request an already persisted transcription.
-        MessageTranscription transcription = transcriptionRepository.findByMessageId(messageId);
-        if (transcription != null) {
-            if (!isInCooldown(transcription)) {
-                channel.sendMessage(transcription.getTranscription())
-                        .setAllowedMentions(List.of())
-                        .setMessageReference(messageId)
-                        .queue();
-            }
-            return;
-        }
-
-        if (!inFlightTranscriptions.tryStart(messageId)) return;
-
-        // If a new transcription is necessary, then we proceed to checking the user's permissions
         fetchResources(e, (member, msg) -> {
+            if (isTranscriptionBannedUser(msg.getAuthor().getIdLong())) {
+                msg.removeReaction(TRANSCRIPTION_EMOJI, member.getUser()).queue();
+                return;
+            }
+
+            // If we already have a transcription available (maybe it was just deleted in the past),
+            // we run no checks, just send it immediately.
+            // Avoid flooding the chat when users repeatedly request an already persisted transcription.
+            MessageTranscription transcription = transcriptionRepository.findByMessageId(messageId);
+            if (transcription != null) {
+                if (!isInCooldown(transcription)) {
+                    channel.sendMessage(transcription.getTranscription())
+                            .setAllowedMentions(List.of())
+                            .setMessageReference(messageId)
+                            .queue();
+                }
+                return;
+            }
+
+            if (!inFlightTranscriptions.tryStart(messageId)) return;
+
+            // If a new transcription is necessary, then we proceed to checking the user's permissions
             if (!canTranscribe(member, msg)) {
                 msg.removeReaction(TRANSCRIPTION_EMOJI, member.getUser()).queue();
                 inFlightTranscriptions.finish(messageId);
@@ -119,7 +126,7 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
 
             sendTranscription(openAI, msg, audio, userId);
             msg.clearReactions(TRANSCRIPTION_EMOJI).queue();
-        }, () -> inFlightTranscriptions.finish(messageId));
+        }, () -> {});
     }
 
     private Message.Attachment findAudioAttachment(Message message) {
@@ -138,6 +145,18 @@ public class MessageTranscriptionsHandler extends ListenerAdapter {
     static boolean isValidAudioExtension(String extension) {
         if (extension == null) return false;
         return VALID_EXTENSIONS.contains(extension.toLowerCase(Locale.ROOT));
+    }
+
+    private boolean isTranscriptionBannedUser(long userId) {
+        return isConfiguredUserId(Bot.getArray(BANNED_USER_IDS_KEY), userId);
+    }
+
+    static boolean isConfiguredUserId(String[] rawUserIds, long userId) {
+        String expected = Long.toString(userId);
+        for (String rawUserId : rawUserIds) {
+            if (expected.equals(rawUserId.trim())) return true;
+        }
+        return false;
     }
 
     private boolean checkDurations(Message.Attachment file, Member requester) {
