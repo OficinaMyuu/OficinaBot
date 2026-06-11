@@ -29,6 +29,19 @@ class MessageTranscriptionsHandlerTest {
     }
 
     @Test
+    void shouldMatchConfiguredTranscriptionBannedUserIds() {
+        String[] userIds = {
+                "1065077982588305538",
+                " 1414389901415419915 ",
+                "not-a-snowflake"
+        };
+
+        assertTrue(MessageTranscriptionsHandler.isConfiguredUserId(userIds, 1065077982588305538L));
+        assertTrue(MessageTranscriptionsHandler.isConfiguredUserId(userIds, 1414389901415419915L));
+        assertFalse(MessageTranscriptionsHandler.isConfiguredUserId(userIds, 42L));
+    }
+
+    @Test
     void shouldAllowOnlyOneInFlightTranscriptionPerMessage() throws Exception {
         MessageTranscriptionsHandler.TranscriptionInFlight inFlight =
                 new MessageTranscriptionsHandler.TranscriptionInFlight();
