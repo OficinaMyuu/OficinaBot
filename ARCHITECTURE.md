@@ -48,6 +48,8 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - Button/modal/menu/autocomplete routing is centralized under `bot/src/main/java/ofc/bot/handlers/interactions/`.
 - Scheduled jobs live under `bot/src/main/java/ofc/bot/jobs/`.
 
+Voice message transcriptions are offered by `MessageTranscriptionsHandler` through the microphone reaction. The listener skips automatic reactions for voice-message authors listed in `messages.transcriptions.banned-user-ids`, and it also rejects manual microphone reactions on those authors' messages before cached or newly generated transcript output is sent. The key is read with `Bot.getArray(...)` and stores raw Discord user IDs.
+
 ## Bot Tickets
 Ticket creation sends a durable initial message with add-member, remove-member, and close controls. Close opens the existing close-reason modal. Add/remove member controls are handled by durable component IDs in `TicketMemberManagementHandler` instead of the temporary interaction memory manager, because ticket messages can outlive a bot process restart. Adding skips users that already have ticket access. Removing deletes only explicit member permission overrides, skips the ticket initiator, and ignores administrators.
 

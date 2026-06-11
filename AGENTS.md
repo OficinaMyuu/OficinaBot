@@ -68,6 +68,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Reminders: `commands/impl/slash/reminders/`, `jobs/RemindersHandler.java`, `ReminderRepository`.
 - Moderation: `commands/impl/slash/moderation/`, `listeners/discord/moderation/`, `handlers/moderation/`, punishment repositories.
 - Events: `ToggleEventsCommand.java`, configured by `channels.events.text.id` and `channels.events.voice.id`.
+- Message transcriptions: `listeners/discord/guilds/messages/MessageTranscriptionsHandler.java`; users listed in `messages.transcriptions.banned-user-ids` do not receive automatic microphone reactions on voice messages and cannot have those voice messages transcribed through manual microphone reactions.
 - Levels/XP: `commands/impl/slash/levels/`, `UsersXPHandler.java`, `VoiceXPHandler.java`, `LevelManager.java`.
 - Automated money income: `ChatMoneyHandler.java`, `VoiceChatMoneyHandler.java`, and `AutomatedMoneyGainPolicy.java`. Voice channels listed in `income.voice.bank-channel-ids` pay UnbelievaBoat income to bank with the voice multiplier instead of cash.
 - Tickets: `commands/impl/slash/tickets/`, modal/button handlers under `listeners/discord/interactions/.../tickets/`.
@@ -106,6 +107,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 ## Known Traps
 - Do not assume env files exist; bot config is often loaded from the DB `config` table.
 - Voice income bank-channel overrides are configured through `income.voice.bank-channel-ids` as semicolon-separated Discord channel IDs; do not hard-code channel snowflakes in `VoiceChatMoneyHandler`.
+- Message transcription author bans are configured through `messages.transcriptions.banned-user-ids` as Discord user IDs returned by `Bot.getArray(...)`; this is separate from `AppUserBanRepository`, which blocks requesters from using bot actions.
 - Do not assume a missing bot feature is unimplemented before checking central registration.
 - SQLite is configured with a single pooled connection on purpose; avoid "fixing" that casually.
 - Giveaway buttons are durable component ids prefixed with `giveaway:` and must not use `InteractionMemoryManager`.
