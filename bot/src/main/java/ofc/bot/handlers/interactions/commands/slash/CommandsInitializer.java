@@ -226,6 +226,7 @@ public final class CommandsInitializer {
 
         // Generic
         registry.register(new AvatarCommand());
+        registry.register(new AroldoCommand());
         registry.register(new BackupMemberRolesCommand(bckpRepo));
         registry.register(new BotStatusCommand(lvlRoleRepo));
         registry.register(new ChannelOptimizeCommand());
