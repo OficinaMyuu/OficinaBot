@@ -78,9 +78,11 @@ public class BetRouletteCommand extends SlashSubcommand {
         }
 
         game.refreshLobbyMessage();
+        String action = accepted.replacedExistingBet() ? "Aposta substituida" : "Aposta aceita";
         return ctx.create(true)
                 .setContentFormat(
-                        "Aposta aceita: `%s` em `%s`.",
+                        "%s: `%s` em `%s`.",
+                        action,
                         Bot.fmtMoney(amount),
                         bet.canonicalName()
                 )

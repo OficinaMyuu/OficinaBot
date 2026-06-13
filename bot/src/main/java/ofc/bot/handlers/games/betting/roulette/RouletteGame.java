@@ -90,14 +90,16 @@ public final class RouletteGame {
      * Attempts to accept a bet into the open lobby.
      * <p>
      * Accepted bets are charged from bank immediately and create an active bet
-     * lock for the user when needed. Rejections leave economy state untouched and
-     * explain whether the game is closed, the amount is invalid, another bet is
-     * active, the user lacks bank balance, or the maximum possible payout would
-     * overflow the supported account range.
+     * lock for the user when needed. When the same user bets again in this lobby,
+     * their previous reserved stake is released and replaced by the new entry.
+     * Rejections leave economy state untouched and explain whether the game is
+     * closed, the amount is invalid, another bet is active, the user lacks bank
+     * balance, or the maximum possible payout would overflow the supported
+     * account range.
      *
      * @param userId Discord user placing the bet
      * @param bet parsed roulette space
-     * @param amount bank stake to charge immediately
+     * @param amount bank stake to reserve immediately
      * @return accepted entry metadata or a rejection reason
      */
     public synchronized RoulettePlacementResult placeBet(long userId, RouletteBet bet, int amount) {
@@ -113,26 +115,37 @@ public final class RouletteGame {
             return new RoulettePlacementResult.Rejected(RoulettePlacementResult.Reason.ACTIVE_OTHER_GAME);
         }
 
+        int existingEntryIndex = findEntryIndex(userId);
+        RouletteEntry existingEntry = existingEntryIndex >= 0 ? entries.get(existingEntryIndex) : null;
+        long availableBank = existingEntry == null ? 0 : existingEntry.amount();
+
         UserEconomy eco = ecoRepo.findByUserId(userId);
-        if (eco == null || eco.getBank() < amount) {
+        if (eco != null) {
+            availableBank += eco.getBank();
+        }
+        if (eco == null || availableBank < amount) {
             return new RoulettePlacementResult.Rejected(RoulettePlacementResult.Reason.INSUFFICIENT_BALANCE);
         }
-        if (!canReceiveMaxPotentialPayout(eco, userId, bet, amount)) {
+        if (!canReceiveMaxPotentialPayout(eco, existingEntry, bet, amount)) {
             return new RoulettePlacementResult.Rejected(RoulettePlacementResult.Reason.PAYOUT_LIMIT);
         }
 
         boolean firstBet = entries.isEmpty();
         RouletteEntry entry = new RouletteEntry(userId, bet, amount, Bot.unixNow());
 
-        eco.modifyBalance(0, -amount).tickUpdate();
+        eco.modifyBalance(0, (existingEntry == null ? 0 : existingEntry.amount()) - amount).tickUpdate();
         ecoRepo.upsert(eco);
 
         if (active == null) {
             BET_MANAGER.addSession(userId, this);
         }
-        entries.add(entry);
+        if (existingEntryIndex >= 0) {
+            entries.set(existingEntryIndex, entry);
+        } else {
+            entries.add(entry);
+        }
 
-        return new RoulettePlacementResult.Accepted(entry, firstBet);
+        return new RoulettePlacementResult.Accepted(entry, firstBet, existingEntry != null);
     }
 
     /**
@@ -249,21 +262,33 @@ public final class RouletteGame {
      * the maximum possible payout is returned.
      *
      * @param eco current user economy record
-     * @param userId Discord user placing the bet
+     * @param replacedEntry current entry being replaced, or {@code null}
      * @param bet parsed roulette space
      * @param amount proposed stake
      * @return {@code true} when the user's bank can safely receive all potential
-     * payouts for their current and proposed bets
+     * payouts for their proposed bet
      */
-    private boolean canReceiveMaxPotentialPayout(UserEconomy eco, long userId, RouletteBet bet, int amount) {
-        long currentPotential = entries.stream()
-                .filter(entry -> entry.userId() == userId)
-                .mapToLong(RouletteEntry::maxPayout)
-                .sum();
-        long bankAfterStake = (long) eco.getBank() - amount;
-        long maxPotential = currentPotential + bet.payoutFor(amount);
+    private boolean canReceiveMaxPotentialPayout(UserEconomy eco, RouletteEntry replacedEntry, RouletteBet bet, int amount) {
+        long releasedStake = replacedEntry == null ? 0 : replacedEntry.amount();
+        long bankAfterStake = (long) eco.getBank() + releasedStake - amount;
+        long maxPotential = bet.payoutFor(amount);
 
         return bankAfterStake + maxPotential <= Integer.MAX_VALUE;
+    }
+
+    /**
+     * Finds the current entry for a user in this lobby.
+     *
+     * @param userId Discord user id
+     * @return entry index or {@code -1} when the user has no bet in this lobby
+     */
+    private int findEntryIndex(long userId) {
+        for (int i = 0; i < entries.size(); i++) {
+            if (entries.get(i).userId() == userId) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
