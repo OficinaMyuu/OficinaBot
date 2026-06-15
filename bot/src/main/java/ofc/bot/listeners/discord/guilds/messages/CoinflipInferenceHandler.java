@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import ofc.bot.util.Bot;
 import ofc.bot.util.content.Staff;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 
@@ -17,6 +18,7 @@ public class CoinflipInferenceHandler extends ListenerAdapter {
     private static final int TIMEOUT_MS = 5_000;
     private static final int COOLDOWN_MS = 30_000;
     private static final String COIN_EMOJI = "\uD83E\uDE99";
+    private static final String BANNED_CHANNEL_IDS_KEY = "messages.coinflip.banned-channel-ids";
 
     private final Map<Long, PendingFlip> pendingFlips = new ConcurrentHashMap<>();
     private final Map<Long, Long> chanCooldowns = new ConcurrentHashMap<>();
@@ -40,12 +42,14 @@ public class CoinflipInferenceHandler extends ListenerAdapter {
         Member member = e.getMember();
         if (member == null) return;
 
+        MessageChannel chan = e.getChannel();
+        long chanId = chan.getIdLong();
+        if (isBannedChannel(chanId)) return;
+
         Boolean choseCara = parseGuess(e.getMessage().getContentRaw());
         if (choseCara == null) return;
 
-        MessageChannel chan = e.getChannel();
         long userId = e.getAuthor().getIdLong();
-        long chanId = chan.getIdLong();
         long now = System.currentTimeMillis();
         boolean isStaff = Staff.isStaff(member);
 
@@ -112,6 +116,18 @@ public class CoinflipInferenceHandler extends ListenerAdapter {
 
     private boolean isOnCooldown(long channelId, long now) {
         return now < chanCooldowns.getOrDefault(channelId, 0L);
+    }
+
+    private boolean isBannedChannel(long channelId) {
+        return isConfiguredChannelId(Bot.getArray(BANNED_CHANNEL_IDS_KEY), channelId);
+    }
+
+    static boolean isConfiguredChannelId(String[] rawChannelIds, long channelId) {
+        String expected = Long.toString(channelId);
+        for (String rawChannelId : rawChannelIds) {
+            if (expected.equals(rawChannelId.trim())) return true;
+        }
+        return false;
     }
 
     private boolean shouldIgnoreCooldown(PendingFlip pendingFlip, boolean currentUserIsStaff) {

@@ -53,4 +53,28 @@ class CoinflipInferenceHandlerTest {
         assertEquals(3L, result.firstUserId());
         assertEquals(4L, result.secondUserId());
     }
+
+    @Test
+    void shouldMatchConfiguredBannedChannelId() {
+        assertTrue(CoinflipInferenceHandler.isConfiguredChannelId(
+                new String[]{"1", Long.toString(CHANNEL_ID), "999"},
+                CHANNEL_ID
+        ));
+    }
+
+    @Test
+    void shouldTrimConfiguredBannedChannelIds() {
+        assertTrue(CoinflipInferenceHandler.isConfiguredChannelId(
+                new String[]{"  " + CHANNEL_ID + "  "},
+                CHANNEL_ID
+        ));
+    }
+
+    @Test
+    void shouldIgnoreDifferentConfiguredChannelIds() {
+        assertFalse(CoinflipInferenceHandler.isConfiguredChannelId(
+                new String[]{"1", "999"},
+                CHANNEL_ID
+        ));
+    }
 }
