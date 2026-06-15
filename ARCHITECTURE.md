@@ -50,6 +50,8 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 
 Voice message transcriptions are offered by `MessageTranscriptionsHandler` through the microphone reaction. The listener skips automatic reactions for voice-message authors listed in `messages.transcriptions.banned-user-ids`, and it also rejects manual microphone reactions on those authors' messages before cached or newly generated transcript output is sent. The key is read with `Bot.getArray(...)` and stores raw Discord user IDs.
 
+Coinflip message inference is handled by `CoinflipInferenceHandler` for plain `cara`/`coroa` messages. Channels listed in `messages.coinflip.banned-channel-ids` are ignored before pending flips or cooldowns are touched. The key is read with `Bot.getArray(...)` and stores raw Discord channel IDs.
+
 ## Bot Tickets
 Ticket creation sends a durable initial message with add-member, remove-member, and close controls. Close opens the existing close-reason modal. Add/remove member controls are handled by durable component IDs in `TicketMemberManagementHandler` instead of the temporary interaction memory manager, because ticket messages can outlive a bot process restart. Adding skips users that already have ticket access. Removing deletes only explicit member permission overrides, skips the ticket initiator, and ignores administrators.
 

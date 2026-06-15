@@ -109,6 +109,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Do not assume env files exist; bot config is often loaded from the DB `config` table.
 - Voice income bank-channel overrides are configured through `income.voice.bank-channel-ids` as semicolon-separated Discord channel IDs; do not hard-code channel snowflakes in `VoiceChatMoneyHandler`.
 - Message transcription author bans are configured through `messages.transcriptions.banned-user-ids` as Discord user IDs returned by `Bot.getArray(...)`; this is separate from `AppUserBanRepository`, which blocks requesters from using bot actions.
+- Coinflip inference channel bans are configured through `messages.coinflip.banned-channel-ids` as Discord channel IDs returned by `Bot.getArray(...)`; banned channels are ignored before pending flips or cooldowns are updated.
 - Do not assume a missing bot feature is unimplemented before checking central registration.
 - SQLite is configured with a single pooled connection on purpose; avoid "fixing" that casually.
 - Giveaway buttons are durable component ids prefixed with `giveaway:` and must not use `InteractionMemoryManager`.
