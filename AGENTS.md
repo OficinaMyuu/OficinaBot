@@ -69,6 +69,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Moderation: `commands/impl/slash/moderation/`, `listeners/discord/moderation/`, `handlers/moderation/`, punishment repositories.
 - Events: `ToggleEventsCommand.java`, configured by `channels.events.text.id` and `channels.events.voice.id`.
 - Message transcriptions: `listeners/discord/guilds/messages/MessageTranscriptionsHandler.java`; users listed in `messages.transcriptions.banned-user-ids` do not receive automatic microphone reactions on voice messages and cannot have those voice messages transcribed through manual microphone reactions.
+- Attachment forwarding log: `listeners/discord/logs/messages/AttachmentForwardingLogger.java`; user-sent guild messages with attachments are forwarded to the text channel configured by `channels.attachments-log.id` through Discord's native message forward action.
 - World Cup 2026 reaction role: `listeners/discord/guilds/reactionroles/WorldCup2026ReactionRoleHandler.java`; messages in `worldcup2026.channel_id` receive a soccer ball reaction, and users who add/remove that reaction are idempotently granted/removed from `worldcup2026.role_id`.
 - Levels/XP: `commands/impl/slash/levels/`, `UsersXPHandler.java`, `VoiceXPHandler.java`, `LevelManager.java`.
 - Automated money income: `ChatMoneyHandler.java`, `VoiceChatMoneyHandler.java`, and `AutomatedMoneyGainPolicy.java`. Voice channels listed in `income.voice.bank-channel-ids` pay UnbelievaBoat income to bank with the voice multiplier instead of cash.
@@ -110,6 +111,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Voice income bank-channel overrides are configured through `income.voice.bank-channel-ids` as semicolon-separated Discord channel IDs; do not hard-code channel snowflakes in `VoiceChatMoneyHandler`.
 - Message transcription author bans are configured through `messages.transcriptions.banned-user-ids` as Discord user IDs returned by `Bot.getArray(...)`; this is separate from `AppUserBanRepository`, which blocks requesters from using bot actions.
 - Coinflip inference channel bans are configured through `messages.coinflip.banned-channel-ids` as Discord channel IDs returned by `Bot.getArray(...)`; banned channels are ignored before pending flips or cooldowns are updated.
+- Attachment forwarding uses `channels.attachments-log.id` as a Discord text channel ID. It is stateless: do not add a table, scan archive history, or re-upload attachment bytes unless the preservation policy is deliberately changed.
 - Do not assume a missing bot feature is unimplemented before checking central registration.
 - SQLite is configured with a single pooled connection on purpose; avoid "fixing" that casually.
 - Giveaway buttons are durable component ids prefixed with `giveaway:` and must not use `InteractionMemoryManager`.

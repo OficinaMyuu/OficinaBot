@@ -52,6 +52,8 @@ Voice message transcriptions are offered by `MessageTranscriptionsHandler` throu
 
 Coinflip message inference is handled by `CoinflipInferenceHandler` for plain `cara`/`coroa` messages. Channels listed in `messages.coinflip.banned-channel-ids` are ignored before pending flips or cooldowns are touched. The key is read with `Bot.getArray(...)` and stores raw Discord channel IDs.
 
+Attachment preservation is handled by `AttachmentForwardingLogger`. When a non-bot, non-webhook guild message contains attachments, the bot forwards that message with JDA's native `Message#forwardTo(...)` API to the text channel configured by `channels.attachments-log.id`. The feature is intentionally stateless: it does not create a database table, scan the archive channel, or download/re-upload attachment bytes.
+
 ## Bot Tickets
 Ticket creation sends a durable initial message with add-member, remove-member, and close controls. Close opens the existing close-reason modal. Add/remove member controls are handled by durable component IDs in `TicketMemberManagementHandler` instead of the temporary interaction memory manager, because ticket messages can outlive a bot process restart. Adding skips users that already have ticket access. Removing deletes only explicit member permission overrides, skips the ticket initiator, and ignores administrators.
 
