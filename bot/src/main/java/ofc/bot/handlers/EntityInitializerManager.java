@@ -251,6 +251,7 @@ public final class EntityInitializerManager {
 
         api.addEventListener(
                 new AccumulatorInteractionListener(accPrizeRepo, colorItemRepo, accumulatorPayoutService),
+                new AttachmentForwardingLogger(),
                 new AutoModerator(blckWordsRepo, pnshRepo, modActRepo, ticketRepo),
                 new AutoModLogger(),
                 new BlockDumbCommands(),
