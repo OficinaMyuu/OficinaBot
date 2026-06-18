@@ -135,6 +135,8 @@ The protected service endpoints include `/api/service/me`, batch ingestion for m
 
 Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, CORS for the configured frontend origin, CSRF checks for cookie-backed mutating admin routes, and a basic in-memory rate limiter. CSRF is intentionally not applied to bearer-token service routes.
 
+Unauthenticated `GET /health` returns a small `{"status":"ok"}` response for backend liveness checks. The backend Docker image and compose definition both probe this route with `curl`.
+
 ## Backend Dashboard APIs
 Admin dashboard APIs live under `/api/dashboard/*` and require the admin session cookie. Current read endpoints expose recent message logs, punishments, registrations, sync health, audit actions, and config versions with simple limit-based pagination.
 
