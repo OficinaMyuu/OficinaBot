@@ -146,6 +146,7 @@ func registerRoutes(e *echo.Echo, cfg Config, db *database.Database, cardRendere
 	e.Static("/static", "./static")
 
 	cardHandler := routes.NewCardHandler(cardRenderer)
+	healthHandler := routes.NewHealthHandler()
 	externalHandler := routes.NewExternalHandler(service.NewExternalVideoService())
 	authHandler := routes.NewAuthHandler(authService, authCookieConfig(cfg))
 	adminHandler := routes.NewAdminHandler(authService, authCookieConfig(cfg))
@@ -170,6 +171,8 @@ func registerRoutes(e *echo.Echo, cfg Config, db *database.Database, cardRendere
 	configHandler := routes.NewConfigHandler(authService, authCookieConfig(cfg), configRepo, auditRepo)
 	configSyncHandler := routes.NewConfigSyncHandler(configRepo)
 	discordMetadataHandler := routes.NewDiscordMetadataHandler(authService, authCookieConfig(cfg), metadataService)
+
+	e.GET("/health", healthHandler.Check)
 
 	e.POST("/api/levels/cards", cardHandler.GetLevelCard)
 	e.POST("/api/levels/roles", cardHandler.GetLevelsRoles)
