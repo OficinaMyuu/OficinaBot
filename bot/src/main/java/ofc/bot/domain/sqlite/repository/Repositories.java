@@ -43,6 +43,7 @@ public final class Repositories {
     private static UserPreferenceRepository userPreferenceRepository;
     private static UserRepository userRepository;
     private static UserXPRepository userXPRepository;
+    private static VoiceChannelIncomeRuleRepository voiceChannelIncomeRuleRepository;
     private static VoiceHeartbeatRepository voiceHeartbeatRepository;
     private static WelcomedUserRepository welcomedUserRepository;
 
@@ -243,6 +244,16 @@ public final class Repositories {
     public static UserXPRepository getUserXPRepository() {
         if (userXPRepository == null) userXPRepository = new UserXPRepository(getDSLContext());
         return userXPRepository;
+    }
+
+    /**
+     * Returns the repository for configurable voice income rules.
+     */
+    public static VoiceChannelIncomeRuleRepository getVoiceChannelIncomeRuleRepository() {
+        if (voiceChannelIncomeRuleRepository == null) {
+            voiceChannelIncomeRuleRepository = new VoiceChannelIncomeRuleRepository(getDSLContext());
+        }
+        return voiceChannelIncomeRuleRepository;
     }
 
     public static VoiceHeartbeatRepository getVoiceHeartbeatRepository() {

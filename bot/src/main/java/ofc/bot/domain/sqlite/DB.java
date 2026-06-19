@@ -83,6 +83,7 @@ public final class DB {
                 UsersPreferencesTable.USERS_PREFERENCES,
                 UsersTable.USERS,
                 UsersXPTable.USERS_XP,
+                VoiceChannelIncomeRulesTable.VOICE_CHANNEL_INCOME_RULES,
                 VoiceHeartbeatsTable.VOICE_HEARTBEATS,
                 WelcomedUsersTable.WELCOMED_USERS
         );
