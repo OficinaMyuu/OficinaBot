@@ -2,6 +2,9 @@ package ofc.bot.jobs.income;
 
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import ofc.bot.domain.entity.enums.VoiceChannelIncomePayoutType;
+import ofc.bot.domain.sqlite.repository.Repositories;
+import ofc.bot.domain.sqlite.repository.VoiceChannelIncomeRuleRepository;
 import ofc.bot.Main;
 import ofc.bot.handlers.economy.AutomatedMoneyGainPolicy;
 import ofc.bot.handlers.economy.BankAccount;
@@ -23,11 +26,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Scheduled job that grants automatic money to eligible voice-channel members.
+ */
 @CronJob(expression = "0 0/5 * ? * * *")
 public class VoiceChatMoneyHandler implements Job {
     private static final Logger LOGGER = LoggerFactory.getLogger(VoiceChatMoneyHandler.class);
     private static final Random random = new Random();
     private static final String BANK_CHANNEL_IDS_KEY = "income.voice.bank-channel-ids";
+    private static final VoiceChannelIncomePayoutType PAYOUT_TYPE = VoiceChannelIncomePayoutType.MONEY;
     private static final ExecutorService PAYOUT_EXECUTOR = Executors.newThreadPerTaskExecutor(
             Thread.ofVirtual().name("voice-income-", 0).factory()
     );
@@ -36,11 +43,30 @@ public class VoiceChatMoneyHandler implements Job {
     private static final int MAX_VALUE = 40;
     private final UnbelievaBoatClient paymentManager = PaymentManagerProvider.getUnbelievaBoatClient();
     private final AutomatedMoneyGainPolicy gainPolicy = new AutomatedMoneyGainPolicy();
+    private final VoiceChannelIncomeRuleRepository ruleRepo;
 
+    /**
+     * Creates the job with the default income rule repository.
+     */
+    public VoiceChatMoneyHandler() {
+        this(Repositories.getVoiceChannelIncomeRuleRepository());
+    }
+
+    /**
+     * Creates the job with an explicit income rule repository.
+     */
+    VoiceChatMoneyHandler(VoiceChannelIncomeRuleRepository ruleRepo) {
+        this.ruleRepo = ruleRepo;
+    }
+
+    /**
+     * Loads voice members and dispatches the money payout cycle.
+     */
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
+        VoiceIncomeRuleCache rules = getRuleCache();
         List<Guild> guilds = Main.getApi().getGuilds();
-        List<Member> membersToPay = VoiceIncomeUtil.getEligibleMembers(guilds);
+        List<Member> membersToPay = VoiceIncomeUtil.getEligibleMembers(guilds, rules, PAYOUT_TYPE);
 
         if (membersToPay.isEmpty()) return;
 
@@ -51,7 +77,7 @@ public class VoiceChatMoneyHandler implements Job {
 
         PAYOUT_EXECUTOR.execute(() -> {
             try {
-                payMembers(membersToPay);
+                payMembers(membersToPay, rules);
             } catch (Exception e) {
                 LOGGER.error("Unexpected failure while paying voice chat income.", e);
             } finally {
@@ -60,7 +86,10 @@ public class VoiceChatMoneyHandler implements Job {
         });
     }
 
-    private void payMembers(List<Member> membersToPay) {
+    /**
+     * Pays every eligible member using the rules cached for this job run.
+     */
+    private void payMembers(List<Member> membersToPay, VoiceIncomeRuleCache rules) {
         Set<Long> bankChannelIds = getBankChannelIds();
         int totalGiven = 0;
         int paidMembers = 0;
@@ -74,10 +103,11 @@ public class VoiceChatMoneyHandler implements Job {
             long currentVoiceChannelId = member.getVoiceState().getChannel().getIdLong();
             long guildId = guild.getIdLong();
             boolean paysBank = bankChannelIds.contains(currentVoiceChannelId);
+            double multiplier = rules.multiplierFor(currentVoiceChannelId, PAYOUT_TYPE);
 
             if (gainPolicy.isBlocked(member, currentVoiceChannelId)) continue;
 
-            VoiceIncomePayout payout = calculatePayout(randomValue, paysBank);
+            VoiceIncomePayout payout = calculatePayout(randomValue, paysBank, multiplier);
             BankAccount balance = paymentManager.update(userId, guildId, payout.cash(), payout.bank(), "VoiceChat money");
             if (balance == null)
                 LOGGER.warn("Failed to give money to user '{}'", userId);
@@ -93,10 +123,23 @@ public class VoiceChatMoneyHandler implements Job {
         );
     }
 
+    /**
+     * Loads the money rules once for the current scheduled cycle.
+     */
+    private VoiceIncomeRuleCache getRuleCache() {
+        return VoiceIncomeRuleCache.from(ruleRepo.findByPayoutType(PAYOUT_TYPE));
+    }
+
+    /**
+     * Reads configured voice channels that should receive income in bank.
+     */
     private static Set<Long> getBankChannelIds() {
         return parseBankChannelIds(Bot.getArray(BANK_CHANNEL_IDS_KEY));
     }
 
+    /**
+     * Parses bank-channel ids from database-backed bot config values.
+     */
     static Set<Long> parseBankChannelIds(String[] rawChannelIds) {
         Set<Long> channelIds = new HashSet<>();
         for (String rawChannelId : rawChannelIds) {
@@ -109,13 +152,27 @@ public class VoiceChatMoneyHandler implements Job {
         return channelIds;
     }
 
+    /**
+     * Calculates the default money payout without a custom multiplier.
+     */
     static VoiceIncomePayout calculatePayout(int baseAmount, boolean paysBank) {
-        int total = paysBank ? baseAmount * 2 : baseAmount;
+        return calculatePayout(baseAmount, paysBank, 1.0D);
+    }
+
+    /**
+     * Calculates the money payout after bank routing and custom multiplier.
+     */
+    static VoiceIncomePayout calculatePayout(int baseAmount, boolean paysBank, double multiplier) {
+        int bankAdjustedAmount = paysBank ? baseAmount * 2 : baseAmount;
+        int total = VoiceIncomeUtil.scalePayout(bankAdjustedAmount, multiplier);
         long cash = paysBank ? 0 : total;
         long bank = paysBank ? total : 0;
 
         return new VoiceIncomePayout(cash, bank, total);
     }
 
+    /**
+     * Value object describing the final cash and bank update.
+     */
     record VoiceIncomePayout(long cash, long bank, int total) {}
 }
