@@ -41,6 +41,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - Repository implementations live under `bot/src/main/java/ofc/bot/domain/sqlite/repository/`
 - Runtime configuration is partially stored in the SQLite `config` table and accessed via `BotProperties`.
 - Schema migrations are performed manually outside `DB.java`; startup only creates missing tables.
+- `voice_channel_income_rules` customizes scheduled voice money and XP payouts per channel and payout type.
 
 ## Bot Interaction Model
 - Slash commands live under `bot/src/main/java/ofc/bot/commands/impl/slash/`.
@@ -60,6 +61,37 @@ Ticket creation sends a durable initial message with add-member, remove-member, 
 ## Bot Economy
 Automated income is split by economy provider: `ChatMoneyHandler` credits Oficina wallet money for eligible guild messages, while `VoiceChatMoneyHandler` credits UnbelievaBoat cash or bank money for eligible voice activity. Voice channels configured in `income.voice.bank-channel-ids` are semicolon-separated Discord channel IDs that pay the doubled voice income amount to bank instead of cash. Both paths honor `PolicyType.BLOCK_MONEY_GAINS` through `AutomatedMoneyGainPolicy`, matching blocked users, roles, or channels. The policy is intentionally limited to automated income and does not block explicit command rewards such as `/daily` and `/work`, nor manual or claim-based prize fulfillment such as giveaway money claims.
 
+`voice_channel_income_rules` stores per-channel overrides for scheduled voice payouts. Rows are keyed by `(channel_id, payout_type)`, with payout types `MONEY` and `LEVEL_EXPERIENCE`. `multiplier` scales the final payout after normal channel routing, so a bank voice money channel with multiplier `1.25` pays 125% of the doubled bank amount. `allow_muted` lets muted, undeafened humans receive that payout type, and `allow_solo` removes the two-human minimum for that payout type. Bots and deafened members are always excluded. The jobs load matching rows once per scheduled run and use default behavior when no row exists.
+
+Existing bot databases need this manual migration before rules can be inserted:
+
+```sql
+CREATE TABLE IF NOT EXISTS voice_channel_income_rules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    guild_id BIGINT NOT NULL,
+    channel_id BIGINT NOT NULL,
+    payout_type CHAR NOT NULL,
+    multiplier DOUBLE NOT NULL,
+    allow_muted BOOLEAN NOT NULL DEFAULT false,
+    allow_solo BOOLEAN NOT NULL DEFAULT false,
+    created_by BIGINT NOT NULL,
+    created_at BIGINT NOT NULL,
+    updated_at BIGINT NOT NULL,
+    UNIQUE (channel_id, payout_type),
+    CHECK (multiplier > 0)
+);
+```
+
+An event voice channel that should pay 125% money and XP to muted or solo undeafened humans needs one row per payout type:
+
+```sql
+INSERT INTO voice_channel_income_rules
+    (guild_id, channel_id, payout_type, multiplier, allow_muted, allow_solo, created_by, created_at, updated_at)
+VALUES
+    (:guild_id, :channel_id, 'MONEY', 1.25, true, true, :staff_user_id, :unix_now, :unix_now),
+    (:guild_id, :channel_id, 'LEVEL_EXPERIENCE', 1.25, true, true, :staff_user_id, :unix_now, :unix_now);
+```
+
 UnbelievaBoat access is intentionally isolated behind `UnbelievaBoatClient` and `UnbelievaBoatRequester`. The client owns guild-scoped economy operations and sends the configured raw API token in the `Authorization` header, matching UnbelievaBoat's documented auth format. The requester owns HTTP retry behavior: successful responses may pause when `X-RateLimit-Remaining` is nearly exhausted, while HTTP 429 responses retry with the JSON `retry_after` delay first, then `X-RateLimit-Reset`, then local exponential backoff.
 
 `/rob` only steals from the target user's wallet. The failure probability follows the UnbelievaBoat-style formula `robber net worth / (target wallet + robber net worth)`, clamped to `20%` through `80%`. On success, the stolen amount is the success probability multiplied by the target wallet and rounded up. On failure, the robber is fined using the UnbelievaBoat crime default range of `20%` through `40%` of their net worth. The fine is applied to bank balance, because wallet cannot be negative while bank balance is allowed to represent debt.
@@ -70,7 +102,7 @@ UnbelievaBoat access is intentionally isolated behind `UnbelievaBoatClient` and 
 Automod warnings are persisted before the current threshold is resolved through `AutomodActionRepository`. When the configured threshold resolves to `KICK`, the Discord kick is queued first, and cleanup runs only after JDA reports that kick as successful. Cleanup deletes the user's XP row from `users_xp` and resets every configured economy account to zero, currently Oficina Bank and UnbelievaBoat.
 
 ## Bot Levels
-`LevelManager` grants XP, persists level progress, announces level-ups in the configured level-up channel, and applies matching level roles. Users can run `.toggle-rankup-pings` to control whether their level-up announcement mentions them. The command is a guild legacy listener available to every user, stores the deterministic boolean value in `users_preferences.rankup_pings_enabled`, and preserves `users_preferences.locale`, which can remain null until Discord exposes it through an interaction.
+`LevelManager` grants XP, persists level progress, announces level-ups in the configured level-up channel, and applies matching level roles. `VoiceXPHandler` uses `voice_channel_income_rules` rows with `payout_type = LEVEL_EXPERIENCE` to customize voice XP payout multipliers and event-channel eligibility. Users can run `.toggle-rankup-pings` to control whether their level-up announcement mentions them. The command is a guild legacy listener available to every user, stores the deterministic boolean value in `users_preferences.rankup_pings_enabled`, and preserves `users_preferences.locale`, which can remain null until Discord exposes it through an interaction.
 
 ## Bot Channel Permission Optimization
 `/chanoptz` is a review-first flow. It requires a target channel parameter, loads every guild member, snapshots the channel overrides, validates a local permission simulation against JDA's explicit channel permissions/access for the current state, and only proposes removals that keep every member's access and explicit channel permission set unchanged. The heavy analysis runs on virtual threads, and the review summary reports both the total number of redundant permission entries found and the optimization percentage. The approval step is guarded by an in-memory review plan plus an override signature check so stale reviews are rejected instead of applying against a changed channel.
