@@ -1,5 +1,6 @@
 package ofc.bot.commands.impl.slash.bets;
 
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -13,15 +14,15 @@ import ofc.bot.handlers.games.betting.blackjack.BlackjackPlayerView;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
-import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashSubcommand;
+import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashCommand;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-@DiscordCommand(name = "bets blackjack")
-public class BetBlackjackCommand extends SlashSubcommand {
+@DiscordCommand(name = "blackjack", permissions = Permission.ADMINISTRATOR)
+public class BetBlackjackCommand extends SlashCommand {
     private static final BetManager BET_MANAGER = BetManager.getManager();
 
     private final UserEconomyRepository ecoRepo;
