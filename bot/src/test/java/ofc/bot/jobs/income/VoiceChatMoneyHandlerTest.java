@@ -36,4 +36,22 @@ class VoiceChatMoneyHandlerTest {
         assertEquals(50, payout.bank());
         assertEquals(50, payout.total());
     }
+
+    @Test
+    void shouldApplyCustomMultiplierAfterBankRouting() {
+        VoiceChatMoneyHandler.VoiceIncomePayout payout = VoiceChatMoneyHandler.calculatePayout(40, true, 1.25D);
+
+        assertEquals(0, payout.cash());
+        assertEquals(100, payout.bank());
+        assertEquals(100, payout.total());
+    }
+
+    @Test
+    void shouldApplyCustomMultiplierToCash() {
+        VoiceChatMoneyHandler.VoiceIncomePayout payout = VoiceChatMoneyHandler.calculatePayout(20, false, 1.25D);
+
+        assertEquals(25, payout.cash());
+        assertEquals(0, payout.bank());
+        assertEquals(25, payout.total());
+    }
 }
