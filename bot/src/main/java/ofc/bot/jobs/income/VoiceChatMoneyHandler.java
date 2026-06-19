@@ -96,6 +96,7 @@ public class VoiceChatMoneyHandler implements Job {
 
         for (Member member : membersToPay) {
             Guild guild = member.getGuild();
+
             if (member.getVoiceState() == null || member.getVoiceState().getChannel() == null) continue;
 
             int randomValue = random.nextInt(MIN_VALUE, MAX_VALUE + 1);
@@ -107,8 +108,9 @@ public class VoiceChatMoneyHandler implements Job {
 
             if (gainPolicy.isBlocked(member, currentVoiceChannelId)) continue;
 
+            String reason = String.format("VoiceChat money in <#%d>", currentVoiceChannelId);
             VoiceIncomePayout payout = calculatePayout(randomValue, paysBank, multiplier);
-            BankAccount balance = paymentManager.update(userId, guildId, payout.cash(), payout.bank(), "VoiceChat money");
+            BankAccount balance = paymentManager.update(userId, guildId, payout.cash(), payout.bank(), reason);
             if (balance == null)
                 LOGGER.warn("Failed to give money to user '{}'", userId);
 
