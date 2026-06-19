@@ -43,6 +43,7 @@ public final class Scopes {
     public static class Bets {
         public static final String TICTACTOE_GAME   = "TICTACTOE_GAME";
         public static final String CREATE_TICTACTOE = "CREATE_TICTACTOE";
+        public static final String BLACKJACK_GAME   = "BLACKJACK_GAME";
     }
 
     public static class Tickets {

@@ -42,6 +42,7 @@ import ofc.bot.listeners.discord.interactions.GenericInteractionLocaleUpsert;
 import ofc.bot.listeners.discord.interactions.autocomplete.*;
 import ofc.bot.listeners.discord.interactions.buttons.WorkReminderHandler;
 import ofc.bot.listeners.discord.interactions.buttons.accumulator.AccumulatorInteractionListener;
+import ofc.bot.listeners.discord.interactions.buttons.bets.BlackjackActionHandler;
 import ofc.bot.listeners.discord.interactions.buttons.bets.TicTacToeAcceptHandler;
 import ofc.bot.listeners.discord.interactions.buttons.channels.ChannelOptimizeApproveHandler;
 import ofc.bot.listeners.discord.interactions.buttons.giveaway.GiveawayInteractionListener;
@@ -200,6 +201,7 @@ public final class EntityInitializerManager {
                 new GroupUpdateHandler(grpRepo),
 
                 // Bets
+                new BlackjackActionHandler(),
                 new TicTacToeAcceptHandler(ecoRepo, betRepo, betUsersRepo, appBanRepo),
 
                 // Tickets

@@ -3,6 +3,7 @@ package ofc.bot.handlers.games;
 public enum GameType {
     TIC_TAC_TOE(false, true),
     ROULETTE(   true,  false),
+    BLACKJACK(  false, true),
     UNO(        false, true);
 
     private final boolean isMultiWiner;

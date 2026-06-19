@@ -9,6 +9,7 @@ import ofc.bot.commands.impl.slash.*;
 import ofc.bot.commands.impl.slash.additionals.AdditionalRolesCommand;
 import ofc.bot.commands.impl.slash.accumulator.AddAccumulatorPrizeCommand;
 import ofc.bot.commands.impl.slash.accumulator.ListAccumulatorPrizesCommand;
+import ofc.bot.commands.impl.slash.bets.BetBlackjackCommand;
 import ofc.bot.commands.impl.slash.bets.BetRouletteCommand;
 import ofc.bot.commands.impl.slash.bets.BetTicTacToeCommand;
 import ofc.bot.commands.impl.slash.birthday.BirthdayAddCommand;
@@ -105,6 +106,7 @@ public final class CommandsInitializer {
                 .addSubcommand(new ListAccumulatorPrizesCommand(accPrizeRepo));
 
         SlashCommand bets = new EmptySlashCommand("bets", "Aposte seu dinheiro.")
+                .addSubcommand(new BetBlackjackCommand(ecoRepo, betRepo, betUsersRepo))
                 .addSubcommand(new BetRouletteCommand(ecoRepo, betRepo, betUsersRepo))
                 .addSubcommand(new BetTicTacToeCommand(ecoRepo));
 
