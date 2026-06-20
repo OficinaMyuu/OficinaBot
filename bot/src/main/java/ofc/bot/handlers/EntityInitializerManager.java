@@ -117,6 +117,7 @@ public final class EntityInitializerManager {
                     new GiveawayEndHandler(),
                     new QueryCountPrinter(),
                     new RemindersHandler(),
+                    new StaffFormReminder(),
                     new VoiceHeartbeatCounter(),
 
                     // Voice Income

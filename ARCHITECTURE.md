@@ -48,6 +48,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - JDA event listeners live under `bot/src/main/java/ofc/bot/listeners/`.
 - Button/modal/menu/autocomplete routing is centralized under `bot/src/main/java/ofc/bot/handlers/interactions/`.
 - Scheduled jobs live under `bot/src/main/java/ofc/bot/jobs/`.
+- `StaffFormReminder` wakes through Quartz every Saturday at 14:00 and applies an odd/even continuous-week guard so reminders are sent every other Saturday.
 
 Voice message transcriptions are offered by `MessageTranscriptionsHandler` through the microphone reaction. The listener skips automatic reactions for voice-message authors listed in `messages.transcriptions.banned-user-ids`, and it also rejects manual microphone reactions on those authors' messages before cached or newly generated transcript output is sent. The key is read with `Bot.getArray(...)` and stores raw Discord user IDs.
 
