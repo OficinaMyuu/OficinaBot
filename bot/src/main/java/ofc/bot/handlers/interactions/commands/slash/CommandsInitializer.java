@@ -106,6 +106,7 @@ public final class CommandsInitializer {
                 .addSubcommand(new ListAccumulatorPrizesCommand(accPrizeRepo));
 
         SlashCommand bets = new EmptySlashCommand("bets", "Aposte seu dinheiro.")
+                .addSubcommand(new BetBlackjackCommand(ecoRepo, betRepo, betUsersRepo))
                 .addSubcommand(new BetRouletteCommand(ecoRepo, betRepo, betUsersRepo))
                 .addSubcommand(new BetTicTacToeCommand(ecoRepo));
 
@@ -183,7 +184,6 @@ public final class CommandsInitializer {
 
         // Birthdays
         registry.register(new BirthdaysCommand(bdayRepo));
-        registry.register(new BetBlackjackCommand(ecoRepo, betRepo, betUsersRepo));
 
         // Economy
         registry.register(new BalanceCommand(ecoRepo));

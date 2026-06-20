@@ -23,6 +23,7 @@ public final class BlackjackMessageFactory {
         return base(player, round, true)
                 .setColor(resultColor(net))
                 .setDescription("Resultado: " + resultLabel(net) + " `" + formatSignedMoney(net) + "`")
+                .addField("Detalhes", formatResolvedHands(round.resolvedHands()), false)
                 .build();
     }
 
@@ -31,7 +32,7 @@ public final class BlackjackMessageFactory {
                 .setAuthor(player.name(), null, player.avatarUrl())
                 .addField("Sua Mão", formatPlayerHands(round), true)
                 .addField("Mão da Banca", formatDealerHand(round, revealDealer), true)
-                .setFooter("Cartas restantes: " + round.cardsRemaining());
+                .addField("Cartas restantes", String.valueOf(round.cardsRemaining()), false);
     }
 
     private static String formatPlayerHands(BlackjackRound round) {

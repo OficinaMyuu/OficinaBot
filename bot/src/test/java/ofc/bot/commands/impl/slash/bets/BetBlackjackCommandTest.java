@@ -1,6 +1,5 @@
 package ofc.bot.commands.impl.slash.bets;
 
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.UserEconomy;
@@ -41,18 +40,12 @@ class BetBlackjackCommandTest {
         BetBlackjackCommand command = new BetBlackjackCommand(null, null, null);
         List<OptionData> options = command.getOptions();
 
-        assertEquals("blackjack", command.getName());
+        assertEquals("bets blackjack", command.getName());
         assertEquals(OptionType.STRING, options.getFirst().getType());
         assertEquals("amount", options.getFirst().getName());
         assertTrue(options.getFirst().isRequired());
     }
 
-    @Test
-    void shouldRequireAdministratorPermissionWhileStandalone() {
-        BetBlackjackCommand command = new BetBlackjackCommand(null, null, null);
-
-        assertEquals(List.of(Permission.ADMINISTRATOR), command.getPermissions());
-    }
 
     @Test
     void shouldReserveInitialStakeFromBank() throws Exception {
