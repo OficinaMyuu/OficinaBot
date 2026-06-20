@@ -25,7 +25,8 @@ class BlackjackMessageFactoryTest {
         MessageEmbed.Field dealer = field(embed, "Mão da Banca");
 
         assertEquals(Bot.Colors.DEFAULT, embed.getColor());
-        assertEquals(List.of("Sua Mão", "Mão da Banca", "Cartas restantes"), fieldNames(embed));
+        assertEquals(List.of("Sua Mão", "Mão da Banca"), fieldNames(embed));
+        assertEquals("Cartas restantes: " + round.cardsRemaining(), embed.getFooter().getText());
         assertTrue(dealer.getValue().contains(BlackjackCard.backDisplay()));
         assertFalse(dealer.getValue().contains(BlackjackCard.NINE_OF_CLUBS.display()));
         assertTrue(field(embed, "Sua Mão").getValue().contains("Valor: 9"));
@@ -46,7 +47,8 @@ class BlackjackMessageFactoryTest {
         assertEquals(EmbedFactory.DANGER_RED, embed.getColor());
         assertTrue(embed.getDescription().contains("Resultado: Derrota"));
         assertTrue(field(embed, "Mão da Banca").getValue().contains(BlackjackCard.NINE_OF_CLUBS.display()));
-        assertTrue(field(embed, "Detalhes").getValue().contains("Derrota"));
+        assertEquals(List.of("Sua Mão", "Mão da Banca"), fieldNames(embed));
+        assertEquals("Cartas restantes: " + round.cardsRemaining(), embed.getFooter().getText());
     }
 
     @Test
