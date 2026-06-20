@@ -27,16 +27,11 @@ public final class BlackjackMessageFactory {
     }
 
     private static EmbedBuilder base(BlackjackPlayerView player, BlackjackRound round, boolean revealDealer) {
-        EmbedBuilder builder = new EmbedBuilder()
+        return new EmbedBuilder()
                 .setAuthor(player.name(), null, player.avatarUrl())
                 .addField("Sua Mão", formatPlayerHands(round), true)
                 .addField("Mão da Banca", formatDealerHand(round, revealDealer), true)
-                .addField("Cartas restantes", String.valueOf(round.cardsRemaining()), false);
-
-        if (round.isSettled()) {
-            builder.addField("Detalhes", formatResolvedHands(round.resolvedHands()), false);
-        }
-        return builder;
+                .setFooter("Cartas restantes: " + round.cardsRemaining());
     }
 
     private static String formatPlayerHands(BlackjackRound round) {
@@ -72,13 +67,11 @@ public final class BlackjackMessageFactory {
         BlackjackHand visible = new BlackjackHand(0, false);
         visible.add(upcard);
         return upcard.display() + " " + BlackjackCard.backDisplay()
-                + "\nValor: " + visible.value().display();
+                + "\n\nValor: " + visible.value().display();
     }
 
     private static String formatHand(BlackjackHand hand) {
-        return hand.displayCards()
-                + "\nValor: " + hand.value().display()
-                + (hand.stake() > 0 ? "\nAposta: " + Bot.fmtMoney(hand.stake()) : "");
+        return hand.displayCards() + "\n\nValor: " + hand.value().display();
     }
 
     private static String formatResolvedHands(List<BlackjackResolvedHand> resolvedHands) {
