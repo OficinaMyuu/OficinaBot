@@ -67,6 +67,7 @@ public final class DB {
                 MarriageRequestsTable.MARRIAGE_REQUESTS,
                 MarriagesTable.MARRIAGES,
                 MembersEmojisTable.MEMBERS_EMOJIS,
+                MemberJoinEventsTable.MEMBER_JOIN_EVENTS,
                 MembersPunishmentsTable.MEMBERS_PUNISHMENTS,
                 MentionsLogTable.MENTIONS_LOG,
                 MessagesTranscriptionsTable.MESSAGES_TRANSCRIPTIONS,

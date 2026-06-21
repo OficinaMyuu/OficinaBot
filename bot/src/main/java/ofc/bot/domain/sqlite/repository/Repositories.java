@@ -27,6 +27,7 @@ public final class Repositories {
     private static MarriageRepository marriageRepository;
     private static MarriageRequestRepository marriageRequestRepository;
     private static MemberEmojiRepository memberEmojiRepository;
+    private static MemberJoinEventRepository memberJoinEventRepository;
     private static MemberPunishmentRepository memberPunishmentRepository;
     private static MentionLogRepository mentionLogRepository;
     private static MessageTranscriptionRepository messageTranscriptionRepository;
@@ -162,6 +163,11 @@ public final class Repositories {
     public static MemberEmojiRepository getMemberEmojiRepository() {
         if (memberEmojiRepository == null) memberEmojiRepository = new MemberEmojiRepository(getDSLContext());
         return memberEmojiRepository;
+    }
+
+    public static MemberJoinEventRepository getMemberJoinEventRepository() {
+        if (memberJoinEventRepository == null) memberJoinEventRepository = new MemberJoinEventRepository(getDSLContext());
+        return memberJoinEventRepository;
     }
 
     public static MemberPunishmentRepository getMemberPunishmentRepository() {
