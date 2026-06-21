@@ -247,6 +247,8 @@ public final class EntityInitializerManager {
         var tmpBanRepo = Repositories.getTempBanRepository();
         var xpRepo = Repositories.getUserXPRepository();
         var userRepo = Repositories.getUserRepository();
+        var joinRepo = Repositories.getMemberJoinEventRepository();
+
         var giveawayService = GiveawayServices.create();
         var accumulatorPayoutService = new AccumulatorPayoutService(accPrizeRepo, colorItemRepo, colorStateRepo);
         var nicknamePolicy = new NicknameEmojiPolicy(memberEmojiRepo, emojiPermRepo);
@@ -278,7 +280,7 @@ public final class EntityInitializerManager {
                 new MafiaInteractionListener(),
                 new MentionLoggerHandler(mentionLogRepo),
                 new MemberJoinNicknameEmojiEnforcementListener(nicknameEnforcer),
-                new MemberJoinUpsert(),
+                new MemberJoinUpsert(joinRepo, userRepo),
                 new MemberNameEmojiEnforcementListener(nicknameEnforcer),
                 new MemberNickUpdateLogger(namesRepo, userRepo),
                 new MemberRolesBackup(rolesRepo, xpRepo),
