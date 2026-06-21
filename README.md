@@ -14,7 +14,7 @@ The idea of a Discord Bot may sound a bit odd at first glance (indeed my worst d
 
 ## 🔬 Features
 - `/marry` can be used to send someone a marriage proposal and start your romantic journey (you can marry to multiple people 👀).
-- `/rolemembers` allows you to precisely see all members within a specific role, even those roles with hundreds of thousands of members, yes.
+- `/rolemembers` allows you to precisely see all members within a specific role in alphabetical order, even those roles with hundreds of thousands of members, yes.
 - `/daily` and `/work` will grant you some money (required to marry and maintain your relationships).
 - `/leaderboard` shows you the top richest users (global) you can compete against.
 - `/pay` makes you feel better by helping others with money too :)

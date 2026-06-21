@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -98,18 +99,22 @@ public class RoleMembersCommand extends SlashCommand {
     }
 
     protected static String format(final List<Member> members) {
-        int maxLength = 0;
-        List<String> ids = members.stream().map(Member::getId).toList();
+        List<Member> sortedMembers = members.stream()
+                .sorted(Comparator.comparing(
+                                RoleMembersCommand::getSortableName,
+                                String.CASE_INSENSITIVE_ORDER
+                        )
+                        .thenComparing(RoleMembersCommand::getSortableName)
+                        .thenComparing(Member::getId))
+                .toList();
+        int maxLength = sortedMembers.stream()
+                .map(Member::getId)
+                .mapToInt(String::length)
+                .max()
+                .orElse(0);
         StringBuilder formatted = new StringBuilder();
 
-        for (String id : ids) {
-            int length = id.length();
-
-            if (length > maxLength)
-                maxLength = length;
-        }
-
-        for (Member m : members) {
+        for (Member m : sortedMembers) {
             String name = m.getUser().getName();
             String id = m.getId();
             int spaces = maxLength - id.length();
@@ -121,5 +126,9 @@ public class RoleMembersCommand extends SlashCommand {
             formatted.append("\n");
         }
         return formatted.toString().strip();
+    }
+
+    private static String getSortableName(Member member) {
+        return member.getUser().getName();
     }
 }
