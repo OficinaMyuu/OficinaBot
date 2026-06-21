@@ -42,6 +42,18 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - Runtime configuration is partially stored in the SQLite `config` table and accessed via `BotProperties`.
 - Schema migrations are performed manually outside `DB.java`; startup only creates missing tables.
 - `voice_channel_income_rules` customizes scheduled voice money and XP payouts per channel and payout type.
+- `member_join_events` stores every known guild join event per user. `/userinfo` reads the earliest stored event and falls back to Discord's current member join timestamp when no history exists.
+
+Existing bot databases need this manual migration before join events can be stored:
+
+```sql
+CREATE TABLE IF NOT EXISTS member_join_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    guild_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    created_at BIGINT NOT NULL
+);
+```
 
 ## Bot Interaction Model
 - Slash commands live under `bot/src/main/java/ofc/bot/commands/impl/slash/`.
@@ -139,6 +151,8 @@ Accumulator money prizes require an integer amount from 1 to 1,000,000 and are p
 The `/colors` command is the color-role shop surface. It sends a public Components V2 container built by `ColorRoleStoreMessageFactory`: each row shows the configured role, the expiry timestamp when the user already owns it, and a buy/remove button. Those row buttons only open public confirmation messages; the final confirmation buttons still route through the existing `ColorRolePurchaseHandler` and `ColorRoleRemoveHandler`, so charging, refunding, persistence, and Discord role mutation remain centralized.
 
 `/userinfo` sends a normal message-level `Liberar Contagem` button for the displayed member. The button is stored in the temporary interaction memory with the default five-minute retention and is restricted to that member. Confirming release asks the member to choose Oficina or UnbelievaBoat, charges `2,000` from the selected provider's bank through `PaymentManagerProvider`, then removes the role configured by `fun.counting.punishments.role.id`. Failed Discord role removal rolls the charge back when the selected provider exposes a rollback action.
+
+`/userinfo` resolves `Entrou no Servidor` from `member_join_events` using the earliest known `created_at` for the target user. `MemberJoinUpsert` appends a row for every future `GuildMemberJoinEvent`, allowing multiple rows for users who leave and rejoin.
 
 ## Bot Nickname Approval
 Nickname requests are split between validation and approval. Messages in `channels.nick-update.id` are checked with `emoji-java`; requests with more than three emojis or unauthorized staff-owned emojis receive a pt-BR embed reply and a rejection reaction. `/nick` defaults to `Gerenciar Apelidos`, validates the target nickname, rejects bot targets, rejects staff targets, blocks targets above the issuer's role hierarchy with `Member.canInteract`, and sends a durable approval embed to `channels.staff-nick-update.id`. Unauthorized staff emojis pause the slash command behind an ephemeral embed confirmation before the request can be queued.
