@@ -38,6 +38,10 @@ public class CountingReleaseService {
         }
     }
 
+    public boolean shouldShowReleaseButton(long issuerId, long targetId, boolean targetHasPunishmentRole) {
+        return issuerId == targetId && targetHasPunishmentRole;
+    }
+
     public ReleaseAttempt charge(
             @NotNull CurrencyType currency,
             long userId,

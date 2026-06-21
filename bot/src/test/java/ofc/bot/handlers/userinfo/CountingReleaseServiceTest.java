@@ -59,6 +59,17 @@ class CountingReleaseServiceTest {
         assertEquals(1, payment.calls.size());
     }
 
+    @Test
+    void shouldShowReleaseButtonOnlyForSelfWithPunishmentRole() {
+        CountingReleaseService service = new CountingReleaseService(currency -> {
+            throw new AssertionError("Payment provider should not be used for visibility checks.");
+        });
+
+        assertTrue(service.shouldShowReleaseButton(42L, 42L, true));
+        assertFalse(service.shouldShowReleaseButton(42L, 42L, false));
+        assertFalse(service.shouldShowReleaseButton(7L, 42L, true));
+    }
+
     private record ChargeCall(long userId, long guildId, long cash, long bank, String reason) {}
 
     private static final class RecordingPaymentManager implements PaymentManager {

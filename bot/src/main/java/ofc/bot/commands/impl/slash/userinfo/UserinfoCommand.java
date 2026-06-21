@@ -12,6 +12,7 @@ import ofc.bot.domain.entity.enums.Gender;
 import ofc.bot.domain.sqlite.repository.*;
 import ofc.bot.domain.viewmodels.MarriageView;
 import ofc.bot.domain.viewmodels.UserinfoView;
+import ofc.bot.handlers.userinfo.CountingReleaseService;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.OptionalLong;
 
 @DiscordCommand(name = "userinfo")
 public class UserinfoCommand extends SlashCommand {
@@ -36,11 +38,21 @@ public class UserinfoCommand extends SlashCommand {
     private final MarriageRepository marrRepo;
     private final OficinaGroupRepository groupRepo;
     private final MemberJoinEventRepository joinEventRepo;
+    private final CountingReleaseService countingReleaseService;
 
     public UserinfoCommand(
             CustomUserinfoRepository csInfoRepo, MemberEmojiRepository emjRepo,
             UserEconomyRepository ecoRepo, MarriageRepository marrRepo,
             OficinaGroupRepository groupRepo, MemberJoinEventRepository joinEventRepo
+    ) {
+        this(csInfoRepo, emjRepo, ecoRepo, marrRepo, groupRepo, joinEventRepo, new CountingReleaseService());
+    }
+
+    UserinfoCommand(
+            CustomUserinfoRepository csInfoRepo, MemberEmojiRepository emjRepo,
+            UserEconomyRepository ecoRepo, MarriageRepository marrRepo,
+            OficinaGroupRepository groupRepo, MemberJoinEventRepository joinEventRepo,
+            CountingReleaseService countingReleaseService
     ) {
         this.csInfoRepo = csInfoRepo;
         this.emjRepo = emjRepo;
@@ -48,6 +60,7 @@ public class UserinfoCommand extends SlashCommand {
         this.marrRepo = marrRepo;
         this.groupRepo = groupRepo;
         this.joinEventRepo = joinEventRepo;
+        this.countingReleaseService = countingReleaseService;
     }
 
     @Override
@@ -63,12 +76,14 @@ public class UserinfoCommand extends SlashCommand {
             long userId = target.getIdLong();
             UserinfoView userinfo = fetchUserinfo(userId);
             MessageEmbed embed = embed(userinfo, target, profile);
-            Button releaseCounting = EntityContextFactory.createCountingReleaseButton(target);
+            var response = ctx.create().setEmbeds(embed);
 
-            ctx.create()
-                    .setEmbeds(embed)
-                    .setActionRows(releaseCounting)
-                    .send();
+            if (shouldShowCountingReleaseButton(issuer, target)) {
+                Button releaseCounting = EntityContextFactory.createCountingReleaseButton(target);
+                response.setActionRows(releaseCounting);
+            }
+
+            response.send();
         }));
 
         return Status.OK;
@@ -167,6 +182,20 @@ public class UserinfoCommand extends SlashCommand {
         int relCount = marrRepo.countByUserId(userId);
 
         return new UserinfoView(csInfo, group, rels, relCount, userId, userEco.getTotal());
+    }
+
+    private boolean shouldShowCountingReleaseButton(Member issuer, Member target) {
+        OptionalLong roleId = countingReleaseService.findPunishmentRoleId();
+        if (roleId.isEmpty()) return false;
+
+        Role role = target.getGuild().getRoleById(roleId.getAsLong());
+        boolean targetHasPunishmentRole = role != null && target.getRoles().contains(role);
+
+        return countingReleaseService.shouldShowReleaseButton(
+                issuer.getIdLong(),
+                target.getIdLong(),
+                targetHasPunishmentRole
+        );
     }
 
     private long resolveEarliestJoin(Member target) {
