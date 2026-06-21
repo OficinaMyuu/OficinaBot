@@ -35,17 +35,19 @@ public class UserinfoCommand extends SlashCommand {
     private final UserEconomyRepository ecoRepo;
     private final MarriageRepository marrRepo;
     private final OficinaGroupRepository groupRepo;
+    private final MemberJoinEventRepository joinEventRepo;
 
     public UserinfoCommand(
             CustomUserinfoRepository csInfoRepo, MemberEmojiRepository emjRepo,
             UserEconomyRepository ecoRepo, MarriageRepository marrRepo,
-            OficinaGroupRepository groupRepo
+            OficinaGroupRepository groupRepo, MemberJoinEventRepository joinEventRepo
     ) {
         this.csInfoRepo = csInfoRepo;
         this.emjRepo = emjRepo;
         this.ecoRepo = ecoRepo;
         this.marrRepo = marrRepo;
         this.groupRepo = groupRepo;
+        this.joinEventRepo = joinEventRepo;
     }
 
     @Override
@@ -92,7 +94,7 @@ public class UserinfoCommand extends SlashCommand {
         OffsetDateTime timeBoosted = target.getTimeBoosted();
         long boosterSince = timeBoosted == null ? 0 : timeBoosted.toEpochSecond();
         long creation = target.getUser().getTimeCreated().toEpochSecond();
-        long joined = target.getTimeJoined().toEpochSecond();
+        long joined = resolveEarliestJoin(target);
         long groupRoleId = cs.group() == null ? 0 : cs.group().getRoleId();
         long balance = cs.balance();
         Guild guild = target.getGuild();
@@ -165,6 +167,17 @@ public class UserinfoCommand extends SlashCommand {
         int relCount = marrRepo.countByUserId(userId);
 
         return new UserinfoView(csInfo, group, rels, relCount, userId, userEco.getTotal());
+    }
+
+    private long resolveEarliestJoin(Member target) {
+        Long earliestStoredJoin = joinEventRepo.findEarliestCreatedAtByGuildAndUserId(
+                target.getGuild().getIdLong(),
+                target.getIdLong()
+        );
+
+        return earliestStoredJoin == null
+                ? target.getTimeJoined().toEpochSecond()
+                : earliestStoredJoin;
     }
 
     private Color getColor(UserinfoView cs, Member member) {

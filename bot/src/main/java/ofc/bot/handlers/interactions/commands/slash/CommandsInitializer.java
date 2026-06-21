@@ -78,6 +78,7 @@ public final class CommandsInitializer {
         var modActRepo = Repositories.getAutomodActionRepository();
         var ticketRepo = Repositories.getSupportTicketRepository();
         var mreqRepo = Repositories.getMarriageRequestRepository();
+        var joinEventRepo = Repositories.getMemberJoinEventRepository();
         var policyRepo = Repositories.getEntityPolicyRepository();
         var lvlRoleRepo = Repositories.getLevelRoleRepository();
         var regRepo = Repositories.getRegisterRepository();
@@ -221,7 +222,7 @@ public final class CommandsInitializer {
         registry.register(new RefreshStaffListMessageCommand(policyRepo));
 
         // Userinfo
-        registry.register(new UserinfoCommand(csinfoRepo, emjRepo, ecoRepo, marrRepo, grpRepo));
+        registry.register(new UserinfoCommand(csinfoRepo, emjRepo, ecoRepo, marrRepo, grpRepo, joinEventRepo));
 
         // Color Roles
         registry.register(new ColorsCommand(colorItemRepo, colorStateRepo));
