@@ -76,6 +76,22 @@ public enum Staff {
         return hasRoleIdInScope(roles.stream().map(Role::getId).toList(), scope);
     }
 
+    public static boolean hasRoleInScopeAtLeast(Member member, Scope scope, int minimumSeniority) {
+        return hasRoleInScopeAtLeast(member.getRoles(), scope, minimumSeniority);
+    }
+
+    public static boolean hasRoleInScopeAtLeast(List<Role> roles, Scope scope, int minimumSeniority) {
+        return hasRoleIdInScopeAtLeast(roles.stream().map(Role::getId).toList(), scope, minimumSeniority);
+    }
+
+    static boolean hasRoleIdInScopeAtLeast(Collection<String> roleIds, Scope scope, int minimumSeniority) {
+        return getByScope(scope)
+                .stream()
+                .filter(s -> s.seniority >= minimumSeniority)
+                .map(Staff::getId)
+                .anyMatch(roleIds::contains);
+    }
+
     static boolean hasRoleIdInScope(Collection<String> roleIds, Scope scope) {
         return getByScope(scope)
                 .stream()

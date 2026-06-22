@@ -28,4 +28,56 @@ class StaffTest {
 
         assertFalse(result);
     }
+
+    @Test
+    void shouldAllowSupportSuperiorOrHigherRole() {
+        assertTrue(Staff.hasRoleIdInScopeAtLeast(
+                List.of(Staff.AJUDANTES_SUPERIOR.getId()),
+                Staff.Scope.SUPPORT,
+                Staff.AJUDANTES_SUPERIOR.getSeniority()
+        ));
+        assertTrue(Staff.hasRoleIdInScopeAtLeast(
+                List.of(Staff.AJUDANTES_VICE_LEADER.getId()),
+                Staff.Scope.SUPPORT,
+                Staff.AJUDANTES_SUPERIOR.getSeniority()
+        ));
+        assertTrue(Staff.hasRoleIdInScopeAtLeast(
+                List.of(Staff.AJUDANTES_CO_LEADER.getId()),
+                Staff.Scope.SUPPORT,
+                Staff.AJUDANTES_SUPERIOR.getSeniority()
+        ));
+    }
+
+    @Test
+    void shouldRejectSupportRolesBelowSuperior() {
+        assertFalse(Staff.hasRoleIdInScopeAtLeast(
+                List.of(Staff.AJUDANTES_MAIN.getId()),
+                Staff.Scope.SUPPORT,
+                Staff.AJUDANTES_SUPERIOR.getSeniority()
+        ));
+        assertFalse(Staff.hasRoleIdInScopeAtLeast(
+                List.of(Staff.AJUDANTES_TRAINEE.getId()),
+                Staff.Scope.SUPPORT,
+                Staff.AJUDANTES_SUPERIOR.getSeniority()
+        ));
+    }
+
+    @Test
+    void shouldRejectNonSupportSuperiorRoles() {
+        assertFalse(Staff.hasRoleIdInScopeAtLeast(
+                List.of(Staff.EVENTS_SUPERIOR.getId()),
+                Staff.Scope.SUPPORT,
+                Staff.AJUDANTES_SUPERIOR.getSeniority()
+        ));
+        assertFalse(Staff.hasRoleIdInScopeAtLeast(
+                List.of(Staff.MOV_CALL_SUPERIOR.getId()),
+                Staff.Scope.SUPPORT,
+                Staff.AJUDANTES_SUPERIOR.getSeniority()
+        ));
+        assertFalse(Staff.hasRoleIdInScopeAtLeast(
+                List.of(Staff.GENERAL.getId()),
+                Staff.Scope.SUPPORT,
+                Staff.AJUDANTES_SUPERIOR.getSeniority()
+        ));
+    }
 }

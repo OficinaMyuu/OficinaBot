@@ -52,7 +52,7 @@ public class TicketMemberManagementHandler extends ListenerAdapter {
             return;
         }
 
-        if (!canManageTicketMembers(actor, ticket)) {
+        if (!canManageTicketMembers(actor)) {
             event.reply("> Você não pode gerenciar membros deste ticket.").setEphemeral(true).queue();
             return;
         }
@@ -80,7 +80,7 @@ public class TicketMemberManagementHandler extends ListenerAdapter {
             return;
         }
 
-        if (!canManageTicketMembers(actor, ticket)) {
+        if (!canManageTicketMembers(actor)) {
             event.reply("> Você não pode gerenciar membros deste ticket.").setEphemeral(true).queue();
             return;
         }
@@ -148,10 +148,13 @@ public class TicketMemberManagementHandler extends ListenerAdapter {
         }
     }
 
-    private boolean canManageTicketMembers(Member actor, SupportTicket ticket) {
-        return actor.getIdLong() == ticket.getInitiatorId()
-                || Staff.isStaff(actor)
-                || actor.hasPermission(Permission.MANAGE_CHANNEL);
+    private boolean canManageTicketMembers(Member actor) {
+        return actor.hasPermission(Permission.MANAGE_SERVER)
+                || Staff.hasRoleInScopeAtLeast(
+                        actor,
+                        Staff.Scope.SUPPORT,
+                        Staff.AJUDANTES_SUPERIOR.getSeniority()
+                );
     }
 
     private List<Member> selectedMembers(EntitySelectInteractionEvent event) {
