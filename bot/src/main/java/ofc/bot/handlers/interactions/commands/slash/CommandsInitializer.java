@@ -244,7 +244,7 @@ public final class CommandsInitializer {
         registry.register(new NickCommand(nickPolicy, nickDispatcher));
         registry.register(new OpenTicketCommand());
         registry.register(new RoleAmongUsCommand());
-        registry.register(new RoleInfoCommand());
+        registry.register(new RoleInfoCommand(grpRepo));
         registry.register(new RoleMembersCommand());
         registry.register(new ToggleEventsCommand());
         registry.register(new WakeupCommand());
