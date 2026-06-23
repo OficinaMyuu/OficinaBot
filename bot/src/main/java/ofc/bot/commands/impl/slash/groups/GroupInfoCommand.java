@@ -49,7 +49,7 @@ public class GroupInfoCommand extends SlashSubcommand {
 
         ctx.ack();
         guild.findMembersWithRoles(role).onSuccess((members) -> {
-            MessageEmbed embed = embed(role.getColorRaw(), members, guild, group);
+            MessageEmbed embed = embed(role.getColors().getPrimaryRaw(), members, guild, group);
 
             ctx.replyEmbeds(embed);
         }).onError((err) -> {
