@@ -46,6 +46,12 @@ public class OficinaGroupRepository extends Repository<OficinaGroup> {
                 .fetch();
     }
 
+    public OficinaGroup findByRoleId(long roleId) {
+        return ctx.selectFrom(OFICINA_GROUPS)
+                .where(OFICINA_GROUPS.ROLE_ID.eq(roleId))
+                .fetchOne();
+    }
+
     public boolean existsByOwnerId(long userId) {
         return ctx.fetchExists(OFICINA_GROUPS, OFICINA_GROUPS.OWNER_ID.eq(userId));
     }
