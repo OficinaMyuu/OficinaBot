@@ -37,6 +37,7 @@ public class GroupUpdateHandler implements InteractionListener<ButtonClickContex
     public InteractionResult onExecute(ButtonClickContext ctx) {
         OficinaGroup group = ctx.get("group");
         String newName = ctx.find("new_name");
+        String newEmoji = ctx.find("new_emoji");
         Guild guild = ctx.getGuild();
         PaymentManager bank = PaymentManagerProvider.fromType(group.getCurrency());
         long ownerId = group.getOwnerId();
@@ -44,12 +45,19 @@ public class GroupUpdateHandler implements InteractionListener<ButtonClickContex
         int newColor = ctx.get("new_color");
         int price = ctx.get("amount");
         boolean changedName = newName != null && !newName.isBlank();
+        boolean changedEmoji = newEmoji != null && !newEmoji.isBlank();
 
         if (betManager.isBetting(ownerId))
             return Status.YOU_CANNOT_DO_THIS_WHILE_BETTING;
 
+        if (changedEmoji && grpRepo.existsByEmojiExceptId(newEmoji, group.getId()))
+            return Status.GROUP_EMOJI_ALREADY_IN_USE;
+
         if (changedName)
             group.setName(newName);
+
+        if (changedEmoji)
+            group.setEmoji(newEmoji);
 
         BankAction chargeAction = bank.charge(ownerId, guildId, 0, price, "Group data updated");
         if (!chargeAction.isOk()) {
@@ -59,7 +67,7 @@ public class GroupUpdateHandler implements InteractionListener<ButtonClickContex
         try {
             modifyRole(guild, group, newColor);
 
-            if (changedName) {
+            if (changedName || changedEmoji) {
                 modifyChannels(group);
             }
 
@@ -77,7 +85,7 @@ public class GroupUpdateHandler implements InteractionListener<ButtonClickContex
     private void modifyRole(Guild guild, OficinaGroup group, int newColor) {
         long roleId = group.getRoleId();
         Role role = guild.getRoleById(roleId);
-        String roleName = String.format(OficinaGroup.ROLE_NAME_FORMAT, group.getName());
+        String roleName = group.getRoleName();
 
         if (role == null) return;
 

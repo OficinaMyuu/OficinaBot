@@ -1,5 +1,6 @@
 package ofc.bot.commands.impl.slash.groups;
 
+import com.vdurmont.emoji.EmojiManager;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -35,6 +36,7 @@ public class ModifyGroupCommand extends SlashSubcommand {
         Member issuer = ctx.getIssuer();
         String newName = ctx.getOption("new-name", OptionMapping::getAsString);
         String newColorHex = ctx.getOption("new-color", OptionMapping::getAsString);
+        String newEmoji = ctx.getOption("new-emoji", OptionMapping::getAsString);
         long userId = ctx.getUserId();
         boolean isEmpty = !ctx.hasOptions();
 
@@ -49,6 +51,15 @@ public class ModifyGroupCommand extends SlashSubcommand {
         int price = 0;
         int newColor = -1;
 
+        if (newName != null && EmojiManager.containsEmoji(newName))
+            return Status.GROUP_NAMES_CANNOT_CONTAIN_EMOJIS;
+
+        if (newEmoji != null && !EmojiManager.isEmoji(newEmoji))
+            return Status.EMOJI_OPTION_CAN_ONLY_CONTAIN_EMOJI;
+
+        if (newEmoji != null && grpRepo.existsByEmojiExceptId(newEmoji, group.getId()))
+            return Status.GROUP_EMOJI_ALREADY_IN_USE;
+
         if (newColorHex != null) {
             try {
                 newColor = Integer.parseInt(newColorHex, 16);
@@ -60,10 +71,11 @@ public class ModifyGroupCommand extends SlashSubcommand {
         if (!OficinaGroup.hasFreeAccess(issuer)) {
             if (newName != null) price += StoreItemType.UPDATE_GROUP.getPrice();
             if (newColorHex != null) price += StoreItemType.UPDATE_GROUP.getPrice();
+            if (newEmoji != null) price += StoreItemType.UPDATE_GROUP.getPrice();
         }
 
-        Button confirmButton = EntityContextFactory.createModifyGroupConfirm(group, newName, newColor, price);
-        MessageEmbed embed = EmbedFactory.embedGroupModify(issuer, group, newName, newColor, price);
+        Button confirmButton = EntityContextFactory.createModifyGroupConfirm(group, newName, newEmoji, newColor, price);
+        MessageEmbed embed = EmbedFactory.embedGroupModify(issuer, group, newName, newEmoji, newColor, price);
         return ctx.create()
                 .setActionRows(confirmButton)
                 .setEmbeds(embed)
@@ -90,7 +102,10 @@ public class ModifyGroupCommand extends SlashSubcommand {
                         .setRequiredLength(OficinaGroup.MIN_NAME_LENGTH, OficinaGroup.MAX_NAME_LENGTH),
 
                 new OptionData(OptionType.STRING, "new-color", "A nova cor do grupo.")
-                        .setRequiredLength(6, 6)
+                        .setRequiredLength(6, 6),
+
+                new OptionData(OptionType.STRING, "new-emoji", "O novo emoji utilizado para criar chats e calls.")
+                        .setRequiredLength(1, 50)
         );
     }
 }

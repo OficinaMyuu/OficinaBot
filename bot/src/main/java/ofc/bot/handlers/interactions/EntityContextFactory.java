@@ -432,13 +432,15 @@ public final class EntityContextFactory {
         );
     }
 
-    public static Button createModifyGroupConfirm(OficinaGroup group, String newName, int newColor, int price) {
+    public static Button createModifyGroupConfirm(
+            OficinaGroup group, String newName, String newEmoji, int newColor, int price
+    ) {
         return createGroupItemPaymentConfirm(
                 group,
                 Scopes.Group.UPDATE_GROUP,
                 group.getCurrency().getEmoji(),
                 price,
-                Bot.map("new_name", newName, "new_color", newColor)
+                Bot.map("new_name", newName, "new_emoji", newEmoji, "new_color", newColor)
         );
     }
 
