@@ -28,6 +28,7 @@ public class OficinaGroup extends OficinaRecord<OficinaGroup> {
     public static final List<Permission> PERMS_ALLOW_VOICE_CHANNEL;
 
     public static final String ROLE_NAME_FORMAT = "⠀⠀⠀⠀⠀⠀%s⠀⠀⠀⠀⠀⠀";
+    public static final String ROLE_NAME_WITH_EMOJI_FORMAT = "%s⠀⠀⠀⠀%s⠀⠀⠀⠀%s";
     public static final String TEXT_CHANNEL_NAME_FORMAT = "%s｜%s";
     public static final String VOICE_CHANNEL_NAME_FORMAT = "%s・%s";
     public static final float REFUND_PERCENT = .15F;
@@ -238,6 +239,22 @@ public class OficinaGroup extends OficinaRecord<OficinaGroup> {
         return get(GROUPS.EMOJI);
     }
 
+    public boolean hasRoleEmoji() {
+        Boolean hasRoleEmoji = get(GROUPS.HAS_ROLE_EMOJI);
+        return hasRoleEmoji != null && hasRoleEmoji;
+    }
+
+    public String getRoleName() {
+        return formatRoleName(getName(), getEmoji(), hasRoleEmoji());
+    }
+
+    public static String formatRoleName(String name, String emoji, boolean hasRoleEmoji) {
+        if (hasRoleEmoji) {
+            return String.format(ROLE_NAME_WITH_EMOJI_FORMAT, emoji, name, emoji);
+        }
+        return String.format(ROLE_NAME_FORMAT, name);
+    }
+
     public CurrencyType getCurrency() {
         String curr = get(GROUPS.CURRENCY);
         return CurrencyType.fromName(curr);
@@ -340,6 +357,11 @@ public class OficinaGroup extends OficinaRecord<OficinaGroup> {
 
     public OficinaGroup setEmoji(String emoji) {
         set(GROUPS.EMOJI, emoji);
+        return this;
+    }
+
+    public OficinaGroup setRoleEmoji(boolean flag) {
+        set(GROUPS.HAS_ROLE_EMOJI, flag);
         return this;
     }
 

@@ -26,6 +26,7 @@ public class OficinaGroupsTable extends InitializableTable<OficinaGroup> {
     public final Field<Long> INVOICE_AMOUNT     = newField("invoice_amount",   BIGINT.notNull());
     public final Field<Double> REFUND_PERCENT   = newField("refund_percent",   NUMBER.notNull());
     public final Field<Boolean> HAS_FREE_ACCESS = newField("has_free_access",  BOOL.notNull());
+    public final Field<Boolean> HAS_ROLE_EMOJI  = newField("has_role_emoji",   BOOL.notNull().defaultValue(false));
     public final Field<String> RENT_STATUS      = newField("rent_status",      CHAR.notNull());
     public final Field<Long> CREATED_AT         = newField("created_at",       BIGINT.notNull());
     public final Field<Long> UPDATED_AT         = newField("updated_at",       BIGINT.notNull());
@@ -45,6 +46,7 @@ public class OficinaGroupsTable extends InitializableTable<OficinaGroup> {
         return ctx.createTableIfNotExists(this)
                 .primaryKey(ID)
                 .columns(fields())
+                .unique(EMOJI)
                 .constraint(
                         foreignKey(OWNER_ID).references(USERS, USERS.ID)
                 );
