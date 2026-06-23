@@ -16,13 +16,12 @@ import ofc.bot.handlers.interactions.buttons.contexts.ButtonClickContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.util.Bot;
-import ofc.bot.util.GroupHelper;
 import ofc.bot.util.Scopes;
 import ofc.bot.util.content.annotations.listeners.InteractionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@InteractionHandler(scope = Scopes.Group.CREATE_GROUP, autoResponseType = AutoResponseType.THINKING)
+@InteractionHandler(scope = Scopes.Group.CREATE_GROUP, autoResponseType = AutoResponseType.DEFER_EDIT)
 public class GroupCreationHandler implements InteractionListener<ButtonClickContext> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupCreationHandler.class);
     private static final BetManager betManager = BetManager.getManager();
@@ -41,19 +40,24 @@ public class GroupCreationHandler implements InteractionListener<ButtonClickCont
         int price = group.getAmountPaid();
 
         if (betManager.isBetting(ownerId))
-            return Status.YOU_CANNOT_DO_THIS_WHILE_BETTING;
+            return edit(ctx, Status.YOU_CANNOT_DO_THIS_WHILE_BETTING);
 
-        ctx.reply(Status.PROCESSING);
+        if (grpRepo.existsByEmoji(group.getEmoji()))
+            return edit(ctx, Status.GROUP_EMOJI_ALREADY_IN_USE);
+
+        ctx.create()
+                .setContent(Status.CREATING_GROUP)
+                .setComponents()
+                .edit();
 
         BankAction chargeAction = bank.charge(ownerId, guildId, 0, price, "Group created");
         if (!chargeAction.isOk()) {
-            return Status.INSUFFICIENT_BALANCE;
+            return edit(ctx, Status.INSUFFICIENT_BALANCE);
         }
 
-        ctx.reply(Status.CREATING_GROUP);
         try {
             int color = ctx.get("group_color");
-            Role groupRole = createRole(guild, group.getName(), color);
+            Role groupRole = createRole(guild, group, color);
             long roleId = groupRole.getIdLong();
             long timestamp = Bot.unixNow();
 
@@ -65,14 +69,12 @@ public class GroupCreationHandler implements InteractionListener<ButtonClickCont
                     .setLastUpdated(timestamp);
             grpRepo.upsert(group);
 
-            return Status.GROUP_SUCCESSFULLY_CREATED.args(groupRole.getAsMention()).setEphm(true);
+            return edit(ctx, Status.GROUP_SUCCESSFULLY_CREATED.args(groupRole.getAsMention()));
         } catch (ErrorResponseException e) {
             LOGGER.error("Could not create group for member with id {}", ownerId, e);
 
             chargeAction.rollback();
-            return Status.COULD_NOT_EXECUTE_SUCH_OPERATION;
-        } finally {
-            ctx.disable();
+            return edit(ctx, Status.COULD_NOT_EXECUTE_SUCH_OPERATION);
         }
     }
 
@@ -81,8 +83,8 @@ public class GroupCreationHandler implements InteractionListener<ButtonClickCont
         guild.addRoleToMember(UserSnowflake.fromId(ownerId), role).queue();
     }
 
-    private Role createRole(Guild guild, String name, int color) {
-        String roleName = String.format(OficinaGroup.ROLE_NAME_FORMAT, name);
+    private Role createRole(Guild guild, OficinaGroup group, int color) {
+        String roleName = group.getRoleName();
         Role role = guild.createRole()
                 .setName(roleName)
                 .setColor(color)
@@ -91,6 +93,13 @@ public class GroupCreationHandler implements InteractionListener<ButtonClickCont
 
         adjustRolePosition(role);
         return role;
+    }
+
+    private InteractionResult edit(ButtonClickContext ctx, InteractionResult result) {
+        return ctx.create()
+                .setContent(result)
+                .setComponents()
+                .edit(result);
     }
 
     private void adjustRolePosition(Role role) {
