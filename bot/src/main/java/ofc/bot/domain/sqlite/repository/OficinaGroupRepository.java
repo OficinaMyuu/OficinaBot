@@ -50,6 +50,17 @@ public class OficinaGroupRepository extends Repository<OficinaGroup> {
         return ctx.fetchExists(OFICINA_GROUPS, OFICINA_GROUPS.OWNER_ID.eq(userId));
     }
 
+    public boolean existsByEmoji(String emoji) {
+        return ctx.fetchExists(OFICINA_GROUPS, OFICINA_GROUPS.EMOJI.eq(emoji));
+    }
+
+    public boolean existsByEmojiExceptId(String emoji, int id) {
+        return ctx.fetchExists(OFICINA_GROUPS,
+                OFICINA_GROUPS.EMOJI.eq(emoji)
+                        .and(OFICINA_GROUPS.ID.ne(id))
+        );
+    }
+
     public List<OficinaGroup> findByRentStatus(RentStatus status) {
         return ctx.selectFrom(OFICINA_GROUPS)
                 .where(OFICINA_GROUPS.RENT_STATUS.eq(status.name()))

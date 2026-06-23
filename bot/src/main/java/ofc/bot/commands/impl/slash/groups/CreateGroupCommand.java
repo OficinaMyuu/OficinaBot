@@ -62,6 +62,9 @@ public class CreateGroupCommand extends SlashSubcommand {
         if (!EmojiManager.isEmoji(emoji))
             return Status.EMOJI_OPTION_CAN_ONLY_CONTAIN_EMOJI;
 
+        if (grpRepo.existsByEmoji(emoji))
+            return Status.GROUP_EMOJI_ALREADY_IN_USE;
+
         try {
             color = Integer.parseInt(hexColor, 16);
         } catch (NumberFormatException e) {
@@ -79,6 +82,7 @@ public class CreateGroupCommand extends SlashSubcommand {
         // for the user to confirm the purchase (handled at ofc.bot.listeners.buttons.groups.GroupCreationHandler).
         OficinaGroup group = new OficinaGroup(name, issuerId, guildId, rentStatus, isFree)
                 .setEmoji(emoji)
+                .setRoleEmoji(false)
                 .setInvoiceAmount(0) // No invoices to pay initially
                 .setCurrency(currency)
                 .setAmountPaid(price)
