@@ -6,6 +6,8 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import ofc.bot.domain.entity.OficinaGroup;
+import ofc.bot.domain.sqlite.repository.OficinaGroupRepository;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
@@ -22,6 +24,11 @@ import java.util.stream.Collectors;
 
 @DiscordCommand(name = "roleinfo")
 public class RoleInfoCommand extends SlashCommand {
+    private final OficinaGroupRepository grpRepo;
+
+    public RoleInfoCommand(OficinaGroupRepository grpRepo) {
+        this.grpRepo = grpRepo;
+    }
 
     @Override
     public InteractionResult onCommand(@NotNull SlashCommandContext ctx) {
@@ -66,14 +73,17 @@ public class RoleInfoCommand extends SlashCommand {
         long creation = role.getTimeCreated().toEpochSecond();
         List<Member> onlineMembers = members.stream().filter((m) -> m.getOnlineStatus() != OnlineStatus.OFFLINE).toList();
         RoleIcon icon = role.getIcon();
+        OficinaGroup group = grpRepo.findByRoleId(role.getIdLong());
         Guild guild = role.getGuild();
         String memberCount = Bot.fmtNum(members.size());
         String onlineCount = Bot.fmtNum(onlineMembers.size());
         String colorField = getColorField(color);
+        String groupOwner = group == null ? null : group.getOwnerAsMention();
+        boolean isGroupRole = group != null;
 
         return builder.setTitle(role.getName())
                 .setDesc("Informações do cargo <@&" + role.getIdLong() + ">.")
-                .setColor(role.getColor())
+                .setColor(role.getColors().getPrimary())
                 .addField("📅 Criação", "<t:" + creation + ">\n<t:" + creation + ":R>", true)
                 .addField("💻 Role ID", "`" + role.getIdLong() + "`", true)
                 .addField("🤖 Integração", role.isManaged() ? "`Sim`" : "`Não`", true)
@@ -81,6 +91,7 @@ public class RoleInfoCommand extends SlashCommand {
                 .addField("📃 Mostrar Separadamente", role.isHoisted() ? "`Sim`" : "`Não`", true)
                 .addField("🎨 Cor", colorField, true)
                 .addField("👥 Membros", "Total: `" + memberCount + "`\nOnline: `" + onlineCount + "`", true)
+                .addFieldIf(isGroupRole, "👑 Dono do Grupo", groupOwner, true)
                 .addField("🔒 Permissões", stringifyPermissions(role), role.getPermissions().isEmpty())
                 .setFooter(guild.getName(), guild.getIconUrl())
                 .setThumbnailIf(icon != null, () -> icon.getIconUrl())
