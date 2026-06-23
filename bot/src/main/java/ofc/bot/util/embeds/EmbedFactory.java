@@ -711,19 +711,25 @@ public final class EmbedFactory {
     }
 
     public static MessageEmbed embedGroupModify(
-            Member buyer, OficinaGroup group, String newName, int newColor, int price
+            Member buyer, OficinaGroup group, String newName, String newEmoji, int newColor, int price
     ) {
-        StringBuilder itemsList = new StringBuilder();
-        if (newName != null) itemsList.append("Nome").append("\n");
-        if (newColor != -1) itemsList.append("Cor");
+        String targetName = newName == null ? group.getName() : newName;
+        String targetEmoji = newEmoji == null ? group.getEmoji() : newEmoji;
+        int targetColor = newColor == -1 ? group.resolveColor() : newColor;
+
         return embedGroupPurchaseConfirmation(
                 buyer,
                 group,
                 buyer.getUser().getEffectiveAvatarUrl(),
-                null,
+                targetColor,
                 "Deseja confirmar a modificação deste grupo?",
                 price,
-                Map.of("🎈 Modificações", itemsList.toString())
+                Bot.map(
+                        "🏷️ Nome", targetName,
+                        "😀 Emoji", targetEmoji,
+                        "🎭 Cargo", OficinaGroup.formatRoleName(targetName, targetEmoji, group.hasRoleEmoji()),
+                        "🎨 Cor", Bot.fmtColorHex(targetColor)
+                )
         );
     }
 
