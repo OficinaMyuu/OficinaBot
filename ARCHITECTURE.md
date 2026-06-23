@@ -43,6 +43,14 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - Schema migrations are performed manually outside `DB.java`; startup only creates missing tables.
 - `voice_channel_income_rules` customizes scheduled voice money and XP payouts per channel and payout type.
 - `member_join_events` stores every known guild join event per user. `/userinfo` reads the earliest stored event and falls back to Discord's current member join timestamp when no history exists.
+- `groups.has_role_emoji` controls whether a group role name includes the group's emoji around the display name. Group channels always use the group emoji, while role names use either six braille-blank spacers without emoji or four braille-blank spacers between emoji and name when the flag is enabled.
+
+Existing bot databases need this manual migration before group role emoji state can be loaded:
+
+```sql
+ALTER TABLE groups ADD COLUMN has_role_emoji BOOLEAN NOT NULL DEFAULT false;
+CREATE UNIQUE INDEX IF NOT EXISTS groups_emoji_unique_idx ON groups (emoji);
+```
 
 Existing bot databases need this manual migration before join events can be stored:
 
