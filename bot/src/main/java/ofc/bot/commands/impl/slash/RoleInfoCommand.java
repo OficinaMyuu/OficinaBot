@@ -69,7 +69,7 @@ public class RoleInfoCommand extends SlashCommand {
     @SuppressWarnings("ConstantConditions")
     private MessageEmbed embed(List<Member> members, Role role) {
         OficinaEmbed builder = new OficinaEmbed();
-        int color = role.getColorRaw();
+        int color = role.getColors().getPrimaryRaw();
         long creation = role.getTimeCreated().toEpochSecond();
         List<Member> onlineMembers = members.stream().filter((m) -> m.getOnlineStatus() != OnlineStatus.OFFLINE).toList();
         RoleIcon icon = role.getIcon();
@@ -86,9 +86,6 @@ public class RoleInfoCommand extends SlashCommand {
                 .setColor(role.getColors().getPrimary())
                 .addField("📅 Criação", "<t:" + creation + ">\n<t:" + creation + ":R>", true)
                 .addField("💻 Role ID", "`" + role.getIdLong() + "`", true)
-                .addField("🤖 Integração", role.isManaged() ? "`Sim`" : "`Não`", true)
-                .addField((role.isMentionable() ? "🔔" : "🔕") + " Mencionável", role.isMentionable() ? "`Sim`" : "`Não`", true)
-                .addField("📃 Mostrar Separadamente", role.isHoisted() ? "`Sim`" : "`Não`", true)
                 .addField("🎨 Cor", colorField, true)
                 .addField("👥 Membros", "Total: `" + memberCount + "`\nOnline: `" + onlineCount + "`", true)
                 .addFieldIf(isGroupRole, "👑 Dono do Grupo", groupOwner, true)
