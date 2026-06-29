@@ -1,0 +1,132 @@
+name: Backend Terraform
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Apply backend Terraform after planning"
+        required: true
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - ".github/workflows/backend-terraform.yml"
+      - "backend/terraform/**"
+  push:
+    branches: [ "main" ]
+    paths:
+      - ".github/workflows/backend-terraform.yml"
+      - "backend/terraform/**"
+
+permissions:
+  contents: read
+
+env:
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.5
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive
+
+      - name: Initialize without remote backend
+        run: terraform init -backend=false -input=false
+
+      - name: Validate configuration
+        run: terraform validate -no-color
+
+  plan:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: validate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.5
+
+      - name: Prepare Terraform environment
+        env:
+          OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+          OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
+          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+          OCI_PRIVATE_KEY_PEM: ${{ secrets.OCI_PRIVATE_KEY_PEM }}
+          OCI_COMPARTMENT_OCID: ${{ secrets.OCI_COMPARTMENT_OCID }}
+          OCI_OBJECT_STORAGE_NAMESPACE: ${{ secrets.OCI_OBJECT_STORAGE_NAMESPACE }}
+          OCI_TF_STATE_BUCKET: ${{ secrets.OCI_TF_STATE_BUCKET }}
+          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
+          SSH_SOURCE_CIDR: ${{ secrets.SSH_SOURCE_CIDR }}
+          MYSQL_ADMIN_USERNAME: ${{ secrets.MYSQL_ADMIN_USERNAME }}
+          MYSQL_ADMIN_PASSWORD: ${{ secrets.MYSQL_ADMIN_PASSWORD }}
+        run: bash scripts/prepare-github-actions-env.sh
+
+      - name: Initialize remote backend
+        run: terraform init -backend-config="$TF_BACKEND_CONFIG_FILE" -input=false
+
+      - name: Plan changes
+        run: terraform plan -no-color
+
+  apply:
+    if: github.event_name == 'workflow_dispatch' && inputs.apply
+    needs: plan
+    runs-on: ubuntu-latest
+    environment:
+      name: backend-infra
+    defaults:
+      run:
+        working-directory: backend/terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.5
+
+      - name: Prepare Terraform environment
+        env:
+          OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+          OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
+          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+          OCI_PRIVATE_KEY_PEM: ${{ secrets.OCI_PRIVATE_KEY_PEM }}
+          OCI_COMPARTMENT_OCID: ${{ secrets.OCI_COMPARTMENT_OCID }}
+          OCI_OBJECT_STORAGE_NAMESPACE: ${{ secrets.OCI_OBJECT_STORAGE_NAMESPACE }}
+          OCI_TF_STATE_BUCKET: ${{ secrets.OCI_TF_STATE_BUCKET }}
+          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
+          SSH_SOURCE_CIDR: ${{ secrets.SSH_SOURCE_CIDR }}
+          MYSQL_ADMIN_USERNAME: ${{ secrets.MYSQL_ADMIN_USERNAME }}
+          MYSQL_ADMIN_PASSWORD: ${{ secrets.MYSQL_ADMIN_PASSWORD }}
+        run: bash scripts/prepare-github-actions-env.sh
+
+      - name: Initialize remote backend
+        run: terraform init -backend-config="$TF_BACKEND_CONFIG_FILE" -input=false
+
+      - name: Plan changes
+        run: terraform plan -no-color -out="$RUNNER_TEMP/tfplan"
+
+      - name: Apply planned changes
+        run: terraform apply -auto-approve -input=false "$RUNNER_TEMP/tfplan"
