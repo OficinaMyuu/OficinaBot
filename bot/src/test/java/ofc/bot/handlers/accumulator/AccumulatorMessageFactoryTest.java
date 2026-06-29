@@ -95,6 +95,21 @@ class AccumulatorMessageFactoryTest {
         assertEquals("📄 Relatório", embed.getFields().get(3).getName());
     }
 
+    @Test
+    void shouldLimitApprovalReportDetailsToEmbedFieldLimit() {
+        List<String> details = java.util.stream.IntStream.range(0, 80)
+                .mapToObj(i -> "#" + i + ": erro de validacao com texto suficiente para estourar o campo.")
+                .toList();
+        AccumulatorApprovalReport report = AccumulatorApprovalReport.failure(80, 15, "Falhou.", details);
+
+        MessageEmbed embed = AccumulatorMessageFactory.approvalReport(report, guild(), user());
+
+        String reportField = embed.getFields().get(3).getValue();
+        assertNotNull(reportField);
+        assertTrue(reportField.length() <= MessageEmbed.VALUE_MAX_LENGTH);
+        assertTrue(reportField.endsWith("..."));
+    }
+
     private AccumulatorPrize money(int id, Integer amount, CurrencyType currency) {
         AccumulatorPrize prize = new AccumulatorPrize(
                 1L,

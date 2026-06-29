@@ -120,7 +120,7 @@ public final class AccumulatorMessageFactory {
         Color color = report.successful() ? EmbedFactory.OK_GREEN : EmbedFactory.DANGER_RED;
         String details = report.details().isEmpty()
                 ? "Nenhum detalhe adicional."
-                : Bot.limitStr(String.join("\n", report.details()), MessageEmbed.DESCRIPTION_MAX_LENGTH - 500);
+                : Bot.limitStr(String.join("\n", report.details()), MessageEmbed.VALUE_MAX_LENGTH);
 
         return new OficinaEmbed()
                 .setAuthor(user.getName(), null, user.getEffectiveAvatarUrl())
