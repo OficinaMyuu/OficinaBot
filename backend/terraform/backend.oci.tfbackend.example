@@ -1,0 +1,8 @@
+bucket           = "replace-with-oci-object-storage-bucket"
+namespace        = "replace-with-oci-object-storage-namespace"
+region           = "us-ashburn-1"
+key              = "terraform/terraform.tfstate"
+tenancy_ocid     = "ocid1.tenancy.oc1..replace"
+user_ocid        = "ocid1.user.oc1..replace"
+fingerprint      = "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00"
+private_key_path = "C:/Users/you/.oci/oci_api_key.pem"
