@@ -39,8 +39,6 @@ import ofc.bot.commands.impl.slash.relationships.MarryCommand;
 import ofc.bot.commands.impl.slash.relationships.UpdateMarriageCreationCommand;
 import ofc.bot.commands.impl.slash.relationships.marriages.*;
 import ofc.bot.commands.impl.slash.reminders.*;
-import ofc.bot.commands.impl.slash.stafflist.RefreshStaffListMessageCommand;
-import ofc.bot.commands.impl.slash.stafflist.StaffListMessagesRegenerateCommand;
 import ofc.bot.commands.impl.slash.tickets.MergeTicketCommand;
 import ofc.bot.commands.impl.slash.tickets.ViewTicketCommand;
 import ofc.bot.commands.impl.slash.userinfo.UserinfoCommand;
@@ -219,10 +217,6 @@ public final class CommandsInitializer {
         registry.register(new MarryCommand(mreqRepo, ecoRepo, marrRepo, userRepo));
         registry.register(new UpdateMarriageCreationCommand(marrRepo));
 
-        // Staff List
-        registry.register(new StaffListMessagesRegenerateCommand());
-        registry.register(new RefreshStaffListMessageCommand(policyRepo));
-
         // Userinfo
         registry.register(new UserinfoCommand(csinfoRepo, emjRepo, ecoRepo, marrRepo, grpRepo, joinEventRepo));
 
@@ -241,7 +235,6 @@ public final class CommandsInitializer {
         registry.register(new GuildInfoCommand());
         registry.register(new GuildLogoCommand());
         registry.register(new IPLookupCommand());
-        registry.register(new MovieInstructionsCommand());
         registry.register(new NamesHistoryCommand(namesRepo));
         registry.register(new NickCommand(nickPolicy, nickDispatcher));
         registry.register(new OpenTicketCommand());
