@@ -31,6 +31,7 @@ public class AccumulatorPrize extends OficinaRecord<AccumulatorPrize> {
         set(ACCUMULATOR_PRIZES.TYPE, type.name());
         set(ACCUMULATOR_PRIZES.STATUS, AccumulatorPrizeStatus.PENDING.name());
         set(ACCUMULATOR_PRIZES.AMOUNT, amount);
+        set(ACCUMULATOR_PRIZES.CURRENCY, type == AccumulatorPrizeType.MONEY ? CurrencyType.UNBELIEVABOAT.name() : null);
         set(ACCUMULATOR_PRIZES.COLOR_DURATION_SECONDS, colorDurationSeconds);
         set(ACCUMULATOR_PRIZES.CREATED_AT, createdAt);
         set(ACCUMULATOR_PRIZES.UPDATED_AT, createdAt);

@@ -46,6 +46,7 @@ class AccumulatorPrizeRepositoryTest {
             int rejectedId = pending.getFirst().getId();
             int paidId = pending.get(1).getId();
 
+            assertEquals(CurrencyType.UNBELIEVABOAT, repository.findById(1L, paidId).getCurrency());
             assertTrue(repository.updateCurrency(1L, paidId, CurrencyType.OFICINA, 300L));
             assertTrue(repository.reject(1L, rejectedId, 99L, 400L));
             assertEquals(1, repository.markPaid(1L, List.of(paidId), 98L, 500L));
@@ -56,6 +57,24 @@ class AccumulatorPrizeRepositoryTest {
             assertEquals(AccumulatorPrizeStatus.PAID, repository.findById(1L, paidId).getStatus());
             assertEquals(98L, repository.findById(1L, paidId).getApprovedBy());
             assertEquals(2, repository.countAll());
+        }
+    }
+
+    @Test
+    void shouldFindPendingTargetIdsOnly() throws Exception {
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite::memory:")) {
+            AccumulatorPrizeRepository repository = new AccumulatorPrizeRepository(setup(connection));
+
+            repository.save(money(10L, 100, 100L));
+            repository.save(money(20L, 200, 200L));
+            int rejectedId = repository.findAllPending(1L).stream()
+                    .filter(prize -> prize.getTargetId() == 20L)
+                    .findFirst()
+                    .orElseThrow()
+                    .getId();
+            assertTrue(repository.reject(1L, rejectedId, 99L, 400L));
+
+            assertEquals(java.util.Set.of(10L), repository.findPendingTargetIds(1L));
         }
     }
 
