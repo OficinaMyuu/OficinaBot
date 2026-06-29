@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import ofc.bot.domain.sqlite.DB;
 import ofc.bot.handlers.ConsoleQueryHandler;
 import ofc.bot.handlers.EntityInitializerManager;
-import ofc.bot.internal.data.BotFiles;
 import ofc.bot.util.Bot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,6 @@ public final class Main {
 
     public static void main(String[] args) {
         try {
-            BotFiles.loadFiles();
             DB.init();
 
             api = JDABuilder.createDefault(Bot.getSafe("app.token"), Bot.getIntents())

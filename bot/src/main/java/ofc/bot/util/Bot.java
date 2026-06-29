@@ -20,10 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
-import java.io.*;
 import java.lang.annotation.Annotation;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.time.*;
 import java.util.List;
@@ -410,20 +407,6 @@ public final class Bot {
 
     public static long distance(long a, long b) {
         return Math.abs(a - b);
-    }
-
-    public static boolean writeToFile(String content, File file) {
-        try (
-                OutputStream out = Files.newOutputStream(Path.of(file.getAbsolutePath()));
-                Writer writer = new OutputStreamWriter(out)
-        ) {
-            writer.write(content);
-            writer.flush();
-            return true;
-        } catch (IOException e) {
-            LOGGER.error("Could not write to file {}", file.getAbsolutePath(), e);
-            return false;
-        }
     }
 
     public static String fmtNum(long value) {

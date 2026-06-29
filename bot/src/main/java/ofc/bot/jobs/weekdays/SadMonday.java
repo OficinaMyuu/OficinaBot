@@ -1,8 +1,6 @@
 package ofc.bot.jobs.weekdays;
 
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.utils.FileUpload;
-import ofc.bot.internal.data.BotFiles;
 import ofc.bot.util.content.annotations.jobs.CronJob;
 import ofc.bot.util.content.Channels;
 import org.quartz.Job;
@@ -11,12 +9,10 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-
 @CronJob(expression = "0 0 0 ? * MON *") // Every Monday at 12:00 AM
 public class SadMonday implements Job {
     private static final Logger LOGGER = LoggerFactory.getLogger(SadMonday.class);
-    private static final File SAD_MONDAY_IMAGE = new File(BotFiles.DIR_ASSETS, "monday.jpg");
+    private static final String SAD_MONDAY_URL = System.getenv("SAD_MONDAY_URL");
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -26,8 +22,11 @@ public class SadMonday implements Job {
             return;
         }
 
-        channel.sendFiles(
-                FileUpload.fromData(SAD_MONDAY_IMAGE)
-        ).queue();
+        if (SAD_MONDAY_URL == null || SAD_MONDAY_URL.isBlank()) {
+            LOGGER.warn("Could not send Sad Monday image because SAD_MONDAY_URL is not configured");
+            return;
+        }
+
+        channel.sendMessage(SAD_MONDAY_URL).queue();
     }
 }
