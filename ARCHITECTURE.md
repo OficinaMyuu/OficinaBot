@@ -12,11 +12,20 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - Repo-level GitHub Actions workflows live in `.github/workflows/`.
 - Service source, build descriptors, and service-owned assets live inside each service directory.
 - Runtime files, generated artifacts, local databases, and package outputs are ignored and are not source of truth.
+- Backend infrastructure source lives in `backend/terraform/`.
 
 ## Deployment Model
 - The bot workflow builds `bot/target/bot.jar`, uploads it through the Oficina SFTP secrets, and restarts `PTERO_OFICINA_SERVER_ID`.
 - The registrar workflow builds `registrar/target/bot.jar`, uploads it through the Registry SFTP secrets, and restarts `PTERO_REGISTRY_SERVER_ID`.
 - Backend deployment is intentionally left undefined while the backend responsibilities are expanded.
+- The backend Terraform workflow validates infrastructure changes on pull requests, plans against the remote OCI backend on pushes to `main`, and applies only through manual dispatch with the `backend-infra` GitHub Environment.
+
+## Backend Infrastructure
+Backend OCI infrastructure is managed from `backend/terraform/`. The root Terraform module owns provider/backend setup, shared data sources, common tags, module wiring, and outputs. Resource ownership is split by concern under `backend/terraform/modules/`: `network` owns VCN/subnets/routing/security, `compute` owns the API and bot instances, `mysql` owns the private DB system, and `load_balancer` owns the public flexible load balancer.
+
+The OCI Terraform backend uses partial configuration in source (`backend "oci" {}`), with the real bucket, namespace, region, and state key supplied through an ignored local `backend.oci.tfbackend` file or generated from GitHub secrets in CI. The OCI API private key is represented as `private_key_path` in Terraform; the GitHub Actions helper script writes `OCI_PRIVATE_KEY_PEM` into a temporary PEM file and exports `TF_VAR_private_key_path` to keep local and CI provider configuration equivalent.
+
+The backend infrastructure is constrained to OCI Always Free shapes and sizes: two `VM.Standard.E2.1.Micro` compute instances, a 10 Mbps flexible load balancer, `MySQL.Free` with 50 GB storage, and default 50 GB compute boot volumes. The current load balancer is public IPv4 HTTP-only for initial reachability and smoke tests. Production HTTPS should be added later through Cloudflare DNS/proxying, a Cloudflare Origin CA certificate installed on the OCI load balancer, a 443 listener, and Cloudflare Full (strict) SSL/TLS mode.
 
 ## Bot Boot Flow
 1. `bot/src/main/java/ofc/bot/Main.java` loads local files through `BotFiles.loadFiles()`.

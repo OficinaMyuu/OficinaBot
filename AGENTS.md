@@ -6,6 +6,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 ## Layout
 - `bot/` contains the Oficina Discord bot, formerly `OficinaMyuu/OficinaBot`.
 - `backend/` contains the Go backend, formerly `OficinaMyuu/OficinaImagery`.
+- `backend/terraform/` contains the OCI Terraform source for backend infrastructure.
 - `registrar/` contains the registration Discord service, formerly `OficinaMyuu/RegistroOficina`.
 - `.github/workflows/` contains repo-level CI/deploy workflows. Keep workflows at the repository root so GitHub Actions can discover them.
 
@@ -24,6 +25,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot file/bootstrap paths: `bot/src/main/java/ofc/bot/internal/data/BotFiles.java`
 - Bot DB-backed config lookup: `bot/src/main/java/ofc/bot/internal/data/BotProperties.java`
 - Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; admin and service auth live under `backend/cmd/internal/auth/`; persistence lives under `backend/cmd/internal/database/` and `backend/cmd/internal/repository/`; routes live under `backend/cmd/internal/routes/`.
+- Backend Terraform entrypoint: `backend/terraform/`; the root module wires shared provider/backend/data concerns, while resources are split under `backend/terraform/modules/`.
 - Registrar entrypoint: `registrar/src/main/java/ofc/bot/RegisterMaster.java`.
 
 ## Bot Project Snapshot
@@ -89,6 +91,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot package: run `mvn clean package` from `bot/`.
 - Registrar package: run `mvn clean package` from `registrar/`.
 - Backend tests: run `go test ./...` from `backend/cmd/`.
+- Backend Terraform validation: run `terraform fmt -check -recursive`, `terraform init -backend=false`, and `terraform validate` from `backend/terraform/`.
 - Backend DB tests use real temporary SQLite files and apply embedded goose migrations.
 - For doc-only changes, a file review is enough.
 
@@ -97,6 +100,10 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Registrar deploy workflow: `.github/workflows/deploy-registrar.yml`.
 - CodeQL workflow: `.github/workflows/codeql.yml`; scans Java/Kotlin and Go with explicit monorepo build steps.
 - Backend deployment is intentionally not wired at the mono-repo root yet.
+- Backend Terraform workflow: `.github/workflows/backend-terraform.yml`; pull requests validate without secrets, pushes to `main` plan against the OCI backend, and applies require manual dispatch with the `backend-infra` environment.
+- Backend Terraform state backend values are not committed. Use an ignored `backend.oci.tfbackend` locally, and GitHub secrets `OCI_OBJECT_STORAGE_NAMESPACE` and `OCI_TF_STATE_BUCKET` in CI.
+- Backend Terraform is constrained for OCI Always Free: `VM.Standard.E2.1.Micro`, 10 Mbps flexible load balancer, `MySQL.Free`, 50 GB MySQL storage, and default 50 GB compute boot volumes.
+- Backend Terraform currently exposes the OCI load balancer as public IPv4 HTTP-only. Add HTTPS later through Cloudflare DNS/proxying, Cloudflare Origin CA material on the OCI load balancer, and a 443 listener.
 - Backend persistence defaults to `backend/cmd/data/oficina-services.db` when run from `backend/cmd/`; override with `DATABASE_PATH`.
 - Backend admin auth requires `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URL`, `OFICINA_OWNER_DISCORD_ID`, and `SESSION_SECRET`.
 - Backend Discord REST metadata requires `DISCORD_BOT_TOKEN`; the backend must not call `discordgo.Session.Open()` or otherwise connect to the gateway.
