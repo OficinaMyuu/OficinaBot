@@ -31,9 +31,6 @@ replay_pid*
 # Database files
 *.db
 
-# Content Files
-content/*.json
-
 # Confidential directories/files
 target/
 .m2/

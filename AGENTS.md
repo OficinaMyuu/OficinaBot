@@ -12,7 +12,6 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 
 ## Hard Rules For Exploration
 - Never read local artifacts such as `database.db`, `database-backup.db`, `bot.jar`, anything inside `target/`, generated binaries, or local backups.
-- Do not inspect `bot/content/*.json` unless the task is explicitly about content payloads. These are environment-specific data files.
 - Prefer service entrypoints and registration files before feature implementations.
 - Keep changes scoped to the relevant service unless the task is explicitly cross-service.
 
@@ -22,7 +21,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot slash command registration: `bot/src/main/java/ofc/bot/handlers/interactions/commands/slash/CommandsInitializer.java`
 - Bot DB bootstrap/schema creation: `bot/src/main/java/ofc/bot/domain/sqlite/DB.java`
 - Bot repository locator: `bot/src/main/java/ofc/bot/domain/sqlite/repository/Repositories.java`
-- Bot file/bootstrap paths: `bot/src/main/java/ofc/bot/internal/data/BotFiles.java`
+- Bot DB file path: `bot/src/main/java/ofc/bot/internal/data/BotFiles.java`
 - Bot DB-backed config lookup: `bot/src/main/java/ofc/bot/internal/data/BotProperties.java`
 - Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; admin and service auth live under `backend/cmd/internal/auth/`; persistence lives under `backend/cmd/internal/database/` and `backend/cmd/internal/repository/`; routes live under `backend/cmd/internal/routes/`.
 - Backend Terraform entrypoint: `backend/terraform/`; the root module wires shared provider/backend/data concerns, while resources are split under `backend/terraform/modules/`.
@@ -34,6 +33,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Packaging: shaded jar built as `bot/target/bot.jar`.
 - Runtime config is partly database-backed, not `.env`-driven.
 - Secrets/config are fetched through `Bot.getSafe(...)` and `BotProperties`, which query the SQLite `config` table.
+- Sad Monday/Sunday image posts are configured with `SAD_MONDAY_URL` and `SAD_SUNDAY_URL` environment variables.
 - The DB schema is code-first: table definitions live under `bot/src/main/java/ofc/bot/domain/tables/`.
 - Schema migrations are manual for this project. Do not add automatic migration logic to `DB.java`.
 - Many features are registered centrally, so missing behavior is often a registration problem, not a logic problem.

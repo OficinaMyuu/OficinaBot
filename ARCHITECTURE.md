@@ -28,12 +28,11 @@ The OCI Terraform backend uses partial configuration in source (`backend "oci" {
 The backend infrastructure is constrained to OCI Always Free shapes and sizes: two `VM.Standard.E2.1.Micro` compute instances, a 10 Mbps flexible load balancer, `MySQL.Free` with 50 GB storage, and default 50 GB compute boot volumes. The current load balancer is public IPv4 HTTP-only for initial reachability and smoke tests. Production HTTPS should be added later through Cloudflare DNS/proxying, a Cloudflare Origin CA certificate installed on the OCI load balancer, a 443 listener, and Cloudflare Full (strict) SSL/TLS mode.
 
 ## Bot Boot Flow
-1. `bot/src/main/java/ofc/bot/Main.java` loads local files through `BotFiles.loadFiles()`.
-2. `DB.init()` creates/connects the SQLite datasource and creates all known tables.
-3. JDA is built and awaited.
-4. Console handler and Quartz jobs are initialized.
-5. Services, listeners, slash commands, and composed interactions are registered.
-6. OpenAI client is created from `openai.key`.
+1. `DB.init()` creates/connects the SQLite datasource and creates all known tables.
+2. JDA is built and awaited.
+3. Console handler and Quartz jobs are initialized.
+4. Services, listeners, slash commands, and composed interactions are registered.
+5. OpenAI client is created from `openai.key`.
 
 ## Bot Architectural Pieces
 - Entry point: `bot/src/main/java/ofc/bot/Main.java`
@@ -45,6 +44,7 @@ The backend infrastructure is constrained to OCI Always Free shapes and sizes: t
 
 ## Bot Persistence Shape
 - SQLite database file: `database.db`
+- The bot no longer depends on runtime `content/` or `assets/` directories. Scheduled Sad Monday/Sunday image posts read URL strings from `SAD_MONDAY_URL` and `SAD_SUNDAY_URL`.
 - Table definitions live under `bot/src/main/java/ofc/bot/domain/tables/`
 - Entity models live under `bot/src/main/java/ofc/bot/domain/entity/`
 - Repository implementations live under `bot/src/main/java/ofc/bot/domain/sqlite/repository/`
