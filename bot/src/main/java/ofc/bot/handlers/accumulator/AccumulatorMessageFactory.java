@@ -100,6 +100,22 @@ public final class AccumulatorMessageFactory {
                 .build();
     }
 
+    public static MessageEmbed importSuccess(User user, AccumulatorPrizeType type, int added, int total, List<String> errors) {
+        String details = errors.isEmpty() ? null : Bot.limitStr(String.join("\n", errors), MessageEmbed.VALUE_MAX_LENGTH);
+        return new OficinaEmbed()
+                .setAuthor(user.getName(), null, user.getEffectiveAvatarUrl())
+                .setColor(added > 0 ? EmbedFactory.OK_GREEN : EmbedFactory.DANGER_RED)
+                .setTitle("ImportaÃ§Ã£o concluÃ­da")
+                .setDescf(
+                        "PrÃªmio de **%s** adicionado para `%s` de `%s` IDs fornecidos.",
+                        localizedType(type),
+                        Bot.fmtNum(added),
+                        Bot.fmtNum(total)
+                )
+                .addFieldIf(details != null, "ðŸ“„ RelatÃ³rio", details, false)
+                .build();
+    }
+
     public static MessageEmbed failure(String title, String description) {
         return new OficinaEmbed()
                 .setTitle(title)

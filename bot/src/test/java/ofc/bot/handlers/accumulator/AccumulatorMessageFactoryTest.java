@@ -110,6 +110,36 @@ class AccumulatorMessageFactoryTest {
         assertTrue(reportField.endsWith("..."));
     }
 
+    @Test
+    void shouldRenderImportReportOnlyWhenThereAreErrorsAndLimitIt() {
+        List<String> errors = java.util.stream.IntStream.range(0, 80)
+                .mapToObj(i -> i + ": erro de importacao com texto suficiente para estourar o campo.")
+                .toList();
+
+        MessageEmbed embed = AccumulatorMessageFactory.importSuccess(
+                user(),
+                AccumulatorPrizeType.MONEY,
+                3,
+                83,
+                errors
+        );
+
+        String reportField = embed.getFields().getFirst().getValue();
+        assertNotNull(reportField);
+        assertEquals("ðŸ“„ RelatÃ³rio", embed.getFields().getFirst().getName());
+        assertTrue(reportField.length() <= MessageEmbed.VALUE_MAX_LENGTH);
+        assertTrue(reportField.endsWith("..."));
+
+        MessageEmbed cleanEmbed = AccumulatorMessageFactory.importSuccess(
+                user(),
+                AccumulatorPrizeType.MONEY,
+                3,
+                3,
+                List.of()
+        );
+        assertTrue(cleanEmbed.getFields().isEmpty());
+    }
+
     private AccumulatorPrize money(int id, Integer amount, CurrencyType currency) {
         AccumulatorPrize prize = new AccumulatorPrize(
                 1L,

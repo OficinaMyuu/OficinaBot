@@ -8,6 +8,7 @@ import ofc.bot.Main;
 import ofc.bot.commands.impl.slash.*;
 import ofc.bot.commands.impl.slash.additionals.AdditionalRolesCommand;
 import ofc.bot.commands.impl.slash.accumulator.AddAccumulatorPrizeCommand;
+import ofc.bot.commands.impl.slash.accumulator.ImportAccumulatorPrizesCommand;
 import ofc.bot.commands.impl.slash.accumulator.ListAccumulatorPrizesCommand;
 import ofc.bot.commands.impl.slash.bets.BetBlackjackCommand;
 import ofc.bot.commands.impl.slash.bets.BetRouletteCommand;
@@ -104,6 +105,7 @@ public final class CommandsInitializer {
 
         SlashCommand accumulator = new EmptySlashCommand("accumulator", "Accumulates event prizes for later approval.", Permission.BAN_MEMBERS)
                 .addSubcommand(new AddAccumulatorPrizeCommand(accPrizeRepo))
+                .addSubcommand(new ImportAccumulatorPrizesCommand(accPrizeRepo))
                 .addSubcommand(new ListAccumulatorPrizesCommand(accPrizeRepo));
 
         SlashCommand bets = new EmptySlashCommand("bets", "Aposte seu dinheiro.")

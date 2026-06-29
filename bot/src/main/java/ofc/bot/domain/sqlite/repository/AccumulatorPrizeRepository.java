@@ -10,6 +10,8 @@ import org.jooq.DSLContext;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class AccumulatorPrizeRepository extends Repository<AccumulatorPrize> {
     private static final AccumulatorPrizesTable ACCUMULATOR_PRIZES = AccumulatorPrizesTable.ACCUMULATOR_PRIZES;
@@ -51,6 +53,16 @@ public class AccumulatorPrizeRepository extends Repository<AccumulatorPrize> {
                         .thenComparingLong(AccumulatorPrize::getTimeCreated)
                         .thenComparingInt(AccumulatorPrize::getId))
                 .toList();
+    }
+
+    public Set<Long> findPendingTargetIds(long guildId) {
+        return ctx.select(ACCUMULATOR_PRIZES.TARGET_ID)
+                .from(ACCUMULATOR_PRIZES)
+                .where(ACCUMULATOR_PRIZES.GUILD_ID.eq(guildId))
+                .and(ACCUMULATOR_PRIZES.STATUS.eq(AccumulatorPrizeStatus.PENDING.name()))
+                .fetch(ACCUMULATOR_PRIZES.TARGET_ID)
+                .stream()
+                .collect(Collectors.toSet());
     }
 
     public AccumulatorPrize findById(long guildId, int id) {
