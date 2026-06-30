@@ -18,6 +18,9 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - The bot workflow builds `bot/target/bot.jar`, uploads it through the Oficina SFTP secrets, and restarts `PTERO_OFICINA_SERVER_ID`.
 - The registrar workflow builds `registrar/target/bot.jar`, uploads it through the Registry SFTP secrets, and restarts `PTERO_REGISTRY_SERVER_ID`.
 - Backend deployment is intentionally left undefined while the backend responsibilities are expanded.
+- The bot container image is built from `bot/Dockerfile`. It uses a Maven/Java 21 builder stage, an Eclipse Temurin Java 21 Alpine JRE runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/bot`.
+- The registrar container image is built from `registrar/Dockerfile`. It uses a Maven/Java 17 builder stage, an Eclipse Temurin Java 17 Alpine JRE runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/registrar`.
+- Bot and registrar containers keep immutable jars under `/opt/oficina` and set the working directory to the writable state directory. Persist that state directory with a bind mount or named volume because both Java services still resolve `database.db` relative to the process working directory.
 - The backend Terraform workflow validates infrastructure changes on pull requests, plans against the remote OCI backend on pushes to `main`, and applies only through manual dispatch with the `backend-infra` GitHub Environment.
 
 ## Backend Infrastructure
@@ -43,7 +46,7 @@ The backend infrastructure is constrained to OCI Always Free shapes and sizes: t
 - Shared utility helpers: `bot/src/main/java/ofc/bot/util/`
 
 ## Bot Persistence Shape
-- SQLite database file: `database.db`
+- SQLite database file: `database.db`. In the bot container this is relative to `/var/lib/oficina/bot`.
 - The bot no longer depends on runtime `content/` or `assets/` directories. Scheduled Sad Monday/Sunday image posts read URL strings from `SAD_MONDAY_URL` and `SAD_SUNDAY_URL`.
 - Table definitions live under `bot/src/main/java/ofc/bot/domain/tables/`
 - Entity models live under `bot/src/main/java/ofc/bot/domain/entity/`

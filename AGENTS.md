@@ -89,7 +89,11 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 ## Builds And Tests
 - Bot tests: run `mvn "-Dmaven.repo.local=../.m2" test` from `bot/`.
 - Bot package: run `mvn clean package` from `bot/`.
+- Bot container image: run `docker build -t oficina-bot ./bot` from the repository root. The image runs as UID/GID `10001` with writable runtime state under `/var/lib/oficina/bot`.
+- Bot container runtime state: mount `/var/lib/oficina/bot` when `database.db` must survive container replacement.
 - Registrar package: run `mvn clean package` from `registrar/`.
+- Registrar container image: run `docker build -t oficina-registrar ./registrar` from the repository root. The image runs as UID/GID `10001` with writable runtime state under `/var/lib/oficina/registrar`.
+- Registrar container runtime state: mount `/var/lib/oficina/registrar` when `database.db` must survive container replacement.
 - Backend tests: run `go test ./...` from `backend/cmd/`.
 - Backend Terraform validation: run `terraform fmt -check -recursive`, `terraform init -backend=false`, and `terraform validate` from `backend/terraform/`.
 - Backend DB tests use real temporary SQLite files and apply embedded goose migrations.
@@ -98,6 +102,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 ## Deployments
 - Bot deploy workflow: `.github/workflows/deploy.yml`.
 - Registrar deploy workflow: `.github/workflows/deploy-registrar.yml`.
+- Bot and registrar Dockerfiles are service-local. They build shaded Maven jars in a builder stage, copy only the final jar into an Eclipse Temurin Alpine JRE runtime, and run through `dumb-init` as the non-root `app` user.
 - CodeQL workflow: `.github/workflows/codeql.yml`; scans Java/Kotlin and Go with explicit monorepo build steps.
 - Backend deployment is intentionally not wired at the mono-repo root yet.
 - Backend Terraform workflow: `.github/workflows/backend-terraform.yml`; pull requests validate without secrets, pushes to `main` plan against the OCI backend, and applies require manual dispatch with the `backend-infra` environment.
