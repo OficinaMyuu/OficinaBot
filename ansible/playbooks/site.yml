@@ -2,12 +2,16 @@
 - name: Prepare Docker hosts
   hosts: docker_hosts
   become: true
-  roles:
-    - docker_host
+  tasks:
+    - name: Apply Docker host role
+      ansible.builtin.import_role:
+        name: "{{ playbook_dir }}/../roles/docker_host"
 
 - name: Deploy Oficina container stacks
   hosts: docker_hosts
   become: true
   serial: 1
-  roles:
-    - oficina_runtime
+  tasks:
+    - name: Apply Oficina runtime role
+      ansible.builtin.import_role:
+        name: "{{ playbook_dir }}/../roles/oficina_runtime"

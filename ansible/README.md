@@ -32,6 +32,11 @@ If the backend VM is later moved behind a bastion or into a subnet without direc
 
 ## Usage
 
+Run the Ansible commands from the repository root. A root `ansible.cfg` is
+provided for normal filesystems; the playbook also references local roles by
+path so WSL can still run it from `/mnt/c` when Ansible ignores config files in
+world-writable Windows mounts.
+
 Install the collection dependencies:
 
 ```sh
