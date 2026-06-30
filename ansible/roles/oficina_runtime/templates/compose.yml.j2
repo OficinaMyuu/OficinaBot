@@ -38,6 +38,7 @@ services:
     container_name: "{{ oficina_watchtower_container_name }}"
     restart: "unless-stopped"
     environment:
+      DOCKER_API_VERSION: "{{ oficina_watchtower_docker_api_version }}"
       WATCHTOWER_POLL_INTERVAL: "{{ oficina_watchtower_poll_interval }}"
       WATCHTOWER_CLEANUP: "{{ oficina_watchtower_cleanup | string | lower }}"
       WATCHTOWER_ROLLING_RESTART: "{{ oficina_watchtower_rolling_restart | string | lower }}"

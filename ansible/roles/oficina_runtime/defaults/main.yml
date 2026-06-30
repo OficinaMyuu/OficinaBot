@@ -11,6 +11,7 @@ oficina_registry_config_path: /root/.docker/config.json
 
 oficina_watchtower_image: containrrr/watchtower:latest
 oficina_watchtower_container_name: "watchtower-{{ oficina_stack_name }}"
+oficina_watchtower_docker_api_version: "1.40"
 oficina_watchtower_poll_interval: 300
 oficina_watchtower_cleanup: true
 oficina_watchtower_rolling_restart: true
