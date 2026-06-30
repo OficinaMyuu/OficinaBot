@@ -1,0 +1,78 @@
+---
+- name: Validate Oficina runtime configuration
+  ansible.builtin.assert:
+    that:
+      - oficina_stack_name | length > 0
+      - oficina_compose_project_name | length > 0
+      - oficina_services | length > 0
+      - oficina_image_namespace | length > 0
+    fail_msg: "Set oficina_stack_name, oficina_compose_project_name, oficina_services, and oficina_image_namespace."
+
+- name: Ensure Oficina compose directory exists
+  ansible.builtin.file:
+    path: "{{ oficina_compose_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Ensure Oficina runtime directories exist
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: "{{ item.mode | default('0750') }}"
+  loop: "{{ oficina_state_directories }}"
+
+- name: Ensure Docker registry config directory exists
+  ansible.builtin.file:
+    path: /root/.docker
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Ensure Docker registry config file exists
+  ansible.builtin.copy:
+    content: '{"auths":{}}'
+    dest: "{{ oficina_registry_config_path }}"
+    owner: root
+    group: root
+    mode: "0600"
+    force: false
+
+- name: Log in to container registry
+  community.docker.docker_login:
+    registry_url: "{{ oficina_registry }}"
+    username: "{{ oficina_registry_username }}"
+    password: "{{ oficina_registry_token }}"
+  when:
+    - oficina_registry_username | length > 0
+    - oficina_registry_token | length > 0
+  no_log: true
+
+- name: Write service environment files
+  ansible.builtin.template:
+    src: service.env.j2
+    dest: "{{ oficina_compose_dir }}/{{ item.name }}.env"
+    owner: root
+    group: root
+    mode: "0600"
+  loop: "{{ oficina_services }}"
+  no_log: true
+
+- name: Write Oficina compose file
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ oficina_compose_dir }}/compose.yml"
+    owner: root
+    group: root
+    mode: "0640"
+
+- name: Deploy Oficina compose stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ oficina_compose_dir }}"
+    state: present
+    pull: "{{ oficina_compose_pull_policy }}"
+    remove_orphans: true

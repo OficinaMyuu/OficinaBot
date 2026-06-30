@@ -1,0 +1,50 @@
+---
+oficina_stack_name: backend
+oficina_compose_project_name: oficina-backend
+
+backend_host_port: 8080
+backend_container_port: 8080
+
+backend_database_host: mysql.db.community.oraclevcn.com
+backend_database_port: "3306"
+backend_database_name: oficina_services
+backend_database_user: oficina_backend
+backend_database_password: replace-with-app-user-password
+
+# Keep MySQL admin access outside the application VMs. Create the schema and
+# application user manually from the operator machine, then provide only the
+# app-level connection values above.
+
+backend_env:
+  DATABASE_HOST: "{{ backend_database_host }}"
+  DATABASE_PORT: "{{ backend_database_port }}"
+  DATABASE_NAME: "{{ backend_database_name }}"
+  DATABASE_USER: "{{ backend_database_user }}"
+  DATABASE_PASSWORD: "{{ backend_database_password }}"
+  SESSION_COOKIE_SECURE: "true"
+  DISCORD_BOT_TOKEN: replace-with-discord-bot-token
+  SESSION_SECRET: replace-with-long-random-secret
+
+# Discord OAuth is intentionally omitted for the proprietary website phase.
+# If enabled later, set DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET,
+# DISCORD_REDIRECT_URL, and OFICINA_OWNER_DISCORD_ID together.
+
+oficina_state_directories:
+  - path: /var/lib/oficina
+    owner: root
+    group: root
+    mode: "0755"
+
+oficina_services:
+  - name: api
+    image: "{{ oficina_registry }}/{{ oficina_image_namespace }}/oficina-backend:latest"
+    container_name: oficina-backend
+    env: "{{ backend_env }}"
+    ports:
+      - "{{ backend_host_port }}:{{ backend_container_port }}"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3

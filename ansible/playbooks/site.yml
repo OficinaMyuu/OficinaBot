@@ -1,0 +1,13 @@
+---
+- name: Prepare Docker hosts
+  hosts: docker_hosts
+  become: true
+  roles:
+    - docker_host
+
+- name: Deploy Oficina container stacks
+  hosts: docker_hosts
+  become: true
+  serial: 1
+  roles:
+    - oficina_runtime

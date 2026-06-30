@@ -59,3 +59,10 @@ go.work.sum
 build/
 dist/
 .DS_Store
+
+# Ansible local/private state
+*.retry
+ansible/.ansible/
+ansible/inventories/prod/
+ansible/inventories/*/group_vars/vault.yml
+ansible/vault-password*

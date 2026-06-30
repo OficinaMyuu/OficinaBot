@@ -1,0 +1,46 @@
+name: "{{ oficina_compose_project_name }}"
+
+services:
+{% for service in oficina_services %}
+  {{ service.name }}:
+    image: "{{ service.image }}"
+    container_name: "{{ service.container_name | default('oficina-' ~ service.name) }}"
+    restart: "{{ service.restart | default('unless-stopped') }}"
+    pull_policy: "{{ service.pull_policy | default(oficina_compose_pull_policy) }}"
+    env_file:
+      - "{{ service.name }}.env"
+{% if service.ports is defined and service.ports %}
+    ports:
+{% for port in service.ports %}
+      - "{{ port }}"
+{% endfor %}
+{% endif %}
+{% if service.volumes is defined and service.volumes %}
+    volumes:
+{% for volume in service.volumes %}
+      - "{{ volume }}"
+{% endfor %}
+{% endif %}
+{% if service.healthcheck is defined and service.healthcheck %}
+    healthcheck:
+      test: {{ service.healthcheck.test | to_json }}
+      interval: "{{ service.healthcheck.interval | default('30s') }}"
+      timeout: "{{ service.healthcheck.timeout | default('5s') }}"
+      start_period: "{{ service.healthcheck.start_period | default('10s') }}"
+      retries: {{ service.healthcheck.retries | default(3) }}
+{% endif %}
+{% if service.stop_grace_period is defined %}
+    stop_grace_period: "{{ service.stop_grace_period }}"
+{% endif %}
+{% endfor %}
+  watchtower:
+    image: "{{ oficina_watchtower_image }}"
+    container_name: "{{ oficina_watchtower_container_name }}"
+    restart: "unless-stopped"
+    environment:
+      WATCHTOWER_POLL_INTERVAL: "{{ oficina_watchtower_poll_interval }}"
+      WATCHTOWER_CLEANUP: "{{ oficina_watchtower_cleanup | string | lower }}"
+      WATCHTOWER_ROLLING_RESTART: "{{ oficina_watchtower_rolling_restart | string | lower }}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "{{ oficina_registry_config_path }}:/config.json:ro"

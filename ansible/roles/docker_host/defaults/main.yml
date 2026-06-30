@@ -1,0 +1,16 @@
+---
+docker_add_ansible_user_to_group: true
+
+docker_apt_arch_map:
+  x86_64: amd64
+  aarch64: arm64
+  arm64: arm64
+
+docker_apt_arch: "{{ docker_apt_arch_map.get(ansible_architecture, ansible_architecture) }}"
+
+docker_daemon_config:
+  live-restore: true
+  log-driver: local
+  log-opts:
+    max-size: 10m
+    max-file: "5"

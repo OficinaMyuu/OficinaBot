@@ -1,0 +1,19 @@
+---
+oficina_stack_name: oficina
+oficina_compose_project_name: "oficina-{{ oficina_stack_name }}"
+oficina_compose_dir: "/opt/oficina/{{ oficina_stack_name }}"
+oficina_compose_pull_policy: always
+
+oficina_registry: ghcr.io
+oficina_registry_username: ""
+oficina_registry_token: ""
+oficina_registry_config_path: /root/.docker/config.json
+
+oficina_watchtower_image: containrrr/watchtower:latest
+oficina_watchtower_container_name: "watchtower-{{ oficina_stack_name }}"
+oficina_watchtower_poll_interval: 300
+oficina_watchtower_cleanup: true
+oficina_watchtower_rolling_restart: true
+
+oficina_state_directories: []
+oficina_services: []

@@ -1,0 +1,14 @@
+---
+oficina_registry: ghcr.io
+oficina_image_namespace: replace-with-lowercase-ghcr-owner
+
+# Leave these empty for public GHCR packages. For private packages, store a
+# read:packages token in a private inventory or Ansible Vault.
+oficina_registry_username: ""
+oficina_registry_token: ""
+
+oficina_compose_pull_policy: always
+oficina_watchtower_image: containrrr/watchtower:latest
+oficina_watchtower_poll_interval: 300
+oficina_watchtower_cleanup: true
+oficina_watchtower_rolling_restart: true

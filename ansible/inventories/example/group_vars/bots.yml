@@ -1,0 +1,59 @@
+---
+oficina_stack_name: bots
+oficina_compose_project_name: oficina-bots
+
+bots_database_host: mysql.db.community.oraclevcn.com
+bots_database_port: "3306"
+bots_database_name: oficina_bots
+bots_database_user: oficina_bots
+bots_database_password: replace-with-app-user-password
+
+# Keep MySQL admin access outside the application VMs. Create the schema and
+# application user manually from the operator machine, then provide only the
+# app-level connection values above.
+
+oficina_bot_env:
+  DATABASE_HOST: "{{ bots_database_host }}"
+  DATABASE_PORT: "{{ bots_database_port }}"
+  DATABASE_NAME: "{{ bots_database_name }}"
+  DATABASE_USER: "{{ bots_database_user }}"
+  DATABASE_PASSWORD: "{{ bots_database_password }}"
+  SAD_MONDAY_URL: ""
+  SAD_SUNDAY_URL: ""
+
+oficina_registrar_env:
+  DATABASE_HOST: "{{ bots_database_host }}"
+  DATABASE_PORT: "{{ bots_database_port }}"
+  DATABASE_NAME: "{{ bots_database_name }}"
+  DATABASE_USER: "{{ bots_database_user }}"
+  DATABASE_PASSWORD: "{{ bots_database_password }}"
+
+oficina_state_directories:
+  - path: /var/lib/oficina
+    owner: root
+    group: root
+    mode: "0755"
+  - path: /var/lib/oficina/bot
+    owner: "10001"
+    group: "10001"
+    mode: "0750"
+  - path: /var/lib/oficina/registrar
+    owner: "10001"
+    group: "10001"
+    mode: "0750"
+
+oficina_services:
+  - name: bot
+    image: "{{ oficina_registry }}/{{ oficina_image_namespace }}/oficina-bot:latest"
+    container_name: oficina-bot
+    env: "{{ oficina_bot_env }}"
+    volumes:
+      - /var/lib/oficina/bot:/var/lib/oficina/bot
+    stop_grace_period: 30s
+  - name: registrar
+    image: "{{ oficina_registry }}/{{ oficina_image_namespace }}/oficina-registrar:latest"
+    container_name: oficina-registrar
+    env: "{{ oficina_registrar_env }}"
+    volumes:
+      - /var/lib/oficina/registrar:/var/lib/oficina/registrar
+    stop_grace_period: 30s
