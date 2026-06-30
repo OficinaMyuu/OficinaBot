@@ -3,16 +3,15 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"os"
-	"path/filepath"
+	"time"
 
-	"github.com/glebarez/sqlite"
 	"github.com/pressly/goose/v3"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 type Config struct {
-	Path string
+	DSN string
 }
 
 type Database struct {
@@ -21,17 +20,13 @@ type Database struct {
 }
 
 func Open(cfg Config) (*Database, error) {
-	if cfg.Path == "" {
-		return nil, fmt.Errorf("database path is required")
+	if cfg.DSN == "" {
+		return nil, fmt.Errorf("database DSN is required")
 	}
 
-	if err := os.MkdirAll(filepath.Dir(cfg.Path), 0755); err != nil {
-		return nil, fmt.Errorf("create database directory: %w", err)
-	}
-
-	gormDB, err := gorm.Open(sqlite.Open(cfg.Path), &gorm.Config{})
+	gormDB, err := gorm.Open(mysql.Open(cfg.DSN), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("open sqlite database: %w", err)
+		return nil, fmt.Errorf("open mysql database: %w", err)
 	}
 
 	sqlDB, err := gormDB.DB()
@@ -39,10 +34,7 @@ func Open(cfg Config) (*Database, error) {
 		return nil, fmt.Errorf("get sql database: %w", err)
 	}
 
-	if err := configureSQLite(sqlDB); err != nil {
-		sqlDB.Close()
-		return nil, err
-	}
+	configureConnectionPool(sqlDB)
 
 	return &Database{Gorm: gormDB, SQL: sqlDB}, nil
 }
@@ -53,7 +45,7 @@ func (db *Database) Close() error {
 
 func (db *Database) Migrate() error {
 	goose.SetBaseFS(migrationsFS)
-	if err := goose.SetDialect("sqlite3"); err != nil {
+	if err := goose.SetDialect("mysql"); err != nil {
 		return fmt.Errorf("set goose dialect: %w", err)
 	}
 	if err := goose.Up(db.SQL, "migrations"); err != nil {
@@ -62,18 +54,8 @@ func (db *Database) Migrate() error {
 	return nil
 }
 
-func configureSQLite(db *sql.DB) error {
-	if _, err := db.Exec("PRAGMA journal_mode = WAL"); err != nil {
-		return fmt.Errorf("enable wal mode: %w", err)
-	}
-	if _, err := db.Exec("PRAGMA foreign_keys = ON"); err != nil {
-		return fmt.Errorf("enable foreign keys: %w", err)
-	}
-	if _, err := db.Exec("PRAGMA busy_timeout = 5000"); err != nil {
-		return fmt.Errorf("set busy timeout: %w", err)
-	}
-	if _, err := db.Exec("PRAGMA synchronous = NORMAL"); err != nil {
-		return fmt.Errorf("set synchronous mode: %w", err)
-	}
-	return nil
+func configureConnectionPool(db *sql.DB) {
+	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
 }

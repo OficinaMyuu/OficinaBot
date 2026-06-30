@@ -2,12 +2,12 @@ package routes
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	mysqldriver "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 	"oficina-img/internal/repository"
 )
@@ -58,7 +58,7 @@ func TestConfigSyncHandlerAcknowledgesConfig(t *testing.T) {
 
 func TestConfigSyncHandlerTreatsDuplicateAckAsSuccess(t *testing.T) {
 	e := echo.New()
-	store := &stubConfigSyncStore{ackErr: errors.New("UNIQUE constraint failed: config_acknowledgements.config_version_id")}
+	store := &stubConfigSyncStore{ackErr: &mysqldriver.MySQLError{Number: 1062, Message: "duplicate entry"}}
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/api/service/configs/1/ack", nil)
 	ctx := serviceContext(e, req, rec, "bot")

@@ -2,11 +2,11 @@ package repository
 
 import (
 	"context"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"oficina-img/internal/database"
+	"oficina-img/internal/databasetest"
 )
 
 func TestUserRepositoryCreatesAndListsUsers(t *testing.T) {
@@ -372,18 +372,7 @@ func mustParseTime(value string) time.Time {
 func openMigratedDatabase(t *testing.T) *database.Database {
 	t.Helper()
 
-	db, err := database.Open(database.Config{Path: filepath.Join(t.TempDir(), "test.db")})
-	if err != nil {
-		t.Fatalf("open database: %v", err)
-	}
-	t.Cleanup(func() {
-		if err := db.Close(); err != nil {
-			t.Fatalf("close database: %v", err)
-		}
-	})
-
-	if err := db.Migrate(); err != nil {
-		t.Fatalf("migrate database: %v", err)
-	}
+	db := databasetest.OpenMigrated(t)
+	t.Cleanup(func() { databasetest.Close(t, db) })
 	return db
 }

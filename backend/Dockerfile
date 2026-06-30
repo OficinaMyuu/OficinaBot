@@ -35,7 +35,7 @@ WORKDIR /app
 COPY --from=build /app/server /app/server
 COPY static/ /app/static/
 
-RUN mkdir -p /app/data && chown -R appuser:appgroup /app
+RUN chown -R appuser:appgroup /app
 
 USER appuser
 

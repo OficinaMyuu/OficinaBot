@@ -1,18 +1,15 @@
-name: oficina-services
+name: oficina-backend
 
 services:
   api:
     image: ghcr.io/kileo13/oficina-backend:latest
     container_name: oficina-backend
     restart: unless-stopped
+    pull_policy: always
     ports:
-      - "6781:8080"
-    volumes:
-      - ./data:/app/data
+      - "8080:8080"
     env_file:
       - .env
-    environment:
-      - DATABASE_PATH=/app/data/oficina-services.db
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
       interval: 30s
@@ -21,3 +18,15 @@ services:
       retries: 3
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower-backend
+    restart: unless-stopped
+    pull_policy: always
+    environment:
+      WATCHTOWER_POLL_INTERVAL: "300"
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_ROLLING_RESTART: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.docker/config.json:/config.json:ro

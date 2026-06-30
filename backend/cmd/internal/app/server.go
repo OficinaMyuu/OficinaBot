@@ -33,11 +33,16 @@ type Server struct {
 const shutdownTimeout = 10 * time.Second
 
 func NewServer(cfg Config) (*Server, error) {
-	if err := cfg.ValidateAuth(); err != nil {
+	if err := cfg.ValidateRuntime(); err != nil {
 		return nil, err
 	}
 
-	db, err := database.Open(database.Config{Path: cfg.DatabasePath})
+	databaseConfig, err := cfg.DatabaseConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := database.Open(databaseConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -93,10 +98,9 @@ func registerMiddleware(e *echo.Echo, cfg Config) {
 		Format: `{"time":"${time_rfc3339}","id":"${id}","remote_ip":"${remote_ip}","host":"${host}","method":"${method}","uri":"${uri}","status":${status},"latency":"${latency_human}","bytes_in":${bytes_in},"bytes_out":${bytes_out}}` + "\n",
 	}))
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{cfg.FrontendOrigin},
-		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodOptions},
-		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderXCSRFToken},
-		AllowCredentials: true,
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodOptions},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderXCSRFToken},
 	}))
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(20)))
 }

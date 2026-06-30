@@ -1,26 +1,23 @@
-package database
+package database_test
 
 import (
-	"path/filepath"
 	"testing"
+
+	"oficina-img/internal/database"
+	"oficina-img/internal/databasetest"
 )
 
-func TestOpenConfiguresSQLite(t *testing.T) {
-	db := openTestDatabase(t)
-	defer db.Close()
+func TestOpenRequiresDSN(t *testing.T) {
+	_, err := database.Open(database.Config{})
 
-	assertPragma(t, db, "foreign_keys", "1")
-	assertPragma(t, db, "busy_timeout", "5000")
-	assertPragma(t, db, "journal_mode", "wal")
+	if err == nil {
+		t.Fatal("expected missing database DSN error")
+	}
 }
 
 func TestMigrateCreatesPersistenceTables(t *testing.T) {
-	db := openTestDatabase(t)
-	defer db.Close()
-
-	if err := db.Migrate(); err != nil {
-		t.Fatalf("migrate database: %v", err)
-	}
+	db := databasetest.OpenMigrated(t)
+	defer databasetest.Close(t, db)
 
 	expectedTables := []string{
 		"users",
@@ -37,42 +34,7 @@ func TestMigrateCreatesPersistenceTables(t *testing.T) {
 	}
 	for _, table := range expectedTables {
 		t.Run(table, func(t *testing.T) {
-			assertTableExists(t, db, table)
+			databasetest.RequireTableExists(t, db.SQL, table)
 		})
-	}
-}
-
-func openTestDatabase(t *testing.T) *Database {
-	t.Helper()
-
-	db, err := Open(Config{Path: filepath.Join(t.TempDir(), "test.db")})
-	if err != nil {
-		t.Fatalf("open database: %v", err)
-	}
-	return db
-}
-
-func assertTableExists(t *testing.T, db *Database, table string) {
-	t.Helper()
-
-	var name string
-	err := db.SQL.QueryRow(
-		"SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?",
-		table,
-	).Scan(&name)
-	if err != nil {
-		t.Fatalf("expected table %s to exist: %v", table, err)
-	}
-}
-
-func assertPragma(t *testing.T, db *Database, name, want string) {
-	t.Helper()
-
-	var got string
-	if err := db.SQL.QueryRow("PRAGMA " + name).Scan(&got); err != nil {
-		t.Fatalf("read pragma %s: %v", name, err)
-	}
-	if got != want {
-		t.Fatalf("expected pragma %s=%s, got %s", name, want, got)
 	}
 }

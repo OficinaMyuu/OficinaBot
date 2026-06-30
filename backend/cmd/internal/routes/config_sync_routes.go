@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
+	mysqldriver "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"oficina-img/internal/repository"
@@ -50,7 +50,7 @@ func (h *ConfigSyncHandler) Ack(c echo.Context) error {
 	}
 
 	if err := h.configs.Acknowledge(c.Request().Context(), versionID, client.Name); err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) || isSQLiteUniqueConstraint(err) {
+		if errors.Is(err, gorm.ErrDuplicatedKey) || isMySQLDuplicateEntry(err) {
 			return c.NoContent(http.StatusNoContent)
 		}
 		return err
@@ -58,6 +58,7 @@ func (h *ConfigSyncHandler) Ack(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func isSQLiteUniqueConstraint(err error) bool {
-	return err != nil && (strings.Contains(err.Error(), "UNIQUE constraint failed") || strings.Contains(err.Error(), "constraint failed"))
+func isMySQLDuplicateEntry(err error) bool {
+	var mysqlErr *mysqldriver.MySQLError
+	return errors.As(err, &mysqlErr) && mysqlErr.Number == 1062
 }

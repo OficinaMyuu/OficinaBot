@@ -93,7 +93,6 @@ The later HTTPS work should add:
 - GitHub secrets for the Origin CA certificate, private key, and CA chain.
 - Cloudflare SSL/TLS mode set to Full (strict).
 - Optional LB ingress hardening so the load balancer accepts HTTP/HTTPS only from Cloudflare IPv4 ranges.
-- Runtime config updates such as frontend API base URL, `FRONTEND_ORIGIN`, and OAuth redirect URLs.
 
 ## Always Free Guardrails
 
