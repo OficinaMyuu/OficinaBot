@@ -7,7 +7,7 @@ This directory manages the Docker runtime layer for the OficinaServices VMs.
 - `bots` group: public bots VM, reachable over SSH as `ubuntu`. It runs the `bot`, any additional bot containers defined in the inventory, and `registrar`.
 - `backend` group: backend/API VM, reachable directly over SSH as `ubuntu` from the configured admin CIDR. It runs the `backend` container.
 - Both hosts run Docker Engine, Docker Compose v2, and one Watchtower container.
-- Watchtower polls every 300 seconds and updates all containers on the host.
+- Watchtower polls every 300 seconds and updates all containers on the host. The runtime role sets `DOCKER_API_VERSION` from `oficina_watchtower_docker_api_version` so Watchtower stays compatible with newer Docker daemons.
 
 Both VMs accept SSH only from the configured admin source CIDR, so Ansible connects directly:
 

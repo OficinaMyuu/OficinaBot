@@ -24,7 +24,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - Bot and registrar containers keep immutable jars under `/opt/oficina` and set the working directory to the writable state directory. Persist that state directory with a bind mount or named volume because both Java services still resolve `database.db` relative to the process working directory.
 - Ansible already injects future MySQL `DATABASE_*` values for the bot and registrar containers through a separate `oficina_bots` application user, but the current Java runtime remains SQLite-backed until that migration is implemented.
 - Ansible manages runtime deployment through Docker Compose on the OCI VMs. The bots VM runs `bot`, any additional bot containers defined in inventory, `registrar`, and Watchtower. The backend/API VM runs `backend` and Watchtower.
-- Watchtower polls every 300 seconds and updates all containers on each host. GHCR credentials are required on the hosts only when packages are private.
+- Watchtower polls every 300 seconds and updates all containers on each host. The Compose template sets `DOCKER_API_VERSION` from `oficina_watchtower_docker_api_version` because newer Docker daemons reject Watchtower's legacy default API version. GHCR credentials are required on the hosts only when packages are private.
 - The backend Terraform workflow validates infrastructure changes on pull requests, plans against the remote OCI backend on pushes to `main`, and applies only through manual dispatch with the `backend-infra` GitHub Environment.
 
 ## Runtime Operations
