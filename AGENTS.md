@@ -7,6 +7,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - `bot/` contains the Oficina Discord bot, formerly `OficinaMyuu/OficinaBot`.
 - `backend/` contains the Go backend, formerly `OficinaMyuu/OficinaImagery`.
 - `backend/terraform/` contains the OCI Terraform source for backend infrastructure.
+- `ansible/` contains the Docker runtime provisioning and deployment playbooks for the OCI VMs.
 - `registrar/` contains the registration Discord service, formerly `OficinaMyuu/RegistroOficina`.
 - `.github/workflows/` contains repo-level CI/deploy workflows. Keep workflows at the repository root so GitHub Actions can discover them.
 
@@ -25,6 +26,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot DB-backed config lookup: `bot/src/main/java/ofc/bot/internal/data/BotProperties.java`
 - Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; admin and service auth live under `backend/cmd/internal/auth/`; persistence lives under `backend/cmd/internal/database/` and `backend/cmd/internal/repository/`; routes live under `backend/cmd/internal/routes/`.
 - Backend Terraform entrypoint: `backend/terraform/`; the root module wires shared provider/backend/data concerns, while resources are split under `backend/terraform/modules/`.
+- Ansible runtime entrypoint: `ansible/playbooks/site.yml`; example inventory lives under `ansible/inventories/example/`, and host setup/runtime roles live under `ansible/roles/`.
 - Registrar entrypoint: `registrar/src/main/java/ofc/bot/RegisterMaster.java`.
 
 ## Bot Project Snapshot
@@ -91,36 +93,41 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot package: run `mvn clean package` from `bot/`.
 - Bot container image: run `docker build -t oficina-bot ./bot` from the repository root. The image runs as UID/GID `10001` with writable runtime state under `/var/lib/oficina/bot`.
 - Bot container runtime state: mount `/var/lib/oficina/bot` when `database.db` must survive container replacement.
+- Bot container MySQL env vars are pre-wired by Ansible for the future Java migration through `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD`, using the separate `oficina_bots` application user by default. Current bot config is still loaded from the SQLite `config` table until the Java services are migrated.
 - Registrar package: run `mvn clean package` from `registrar/`.
 - Registrar container image: run `docker build -t oficina-registrar ./registrar` from the repository root. The image runs as UID/GID `10001` with writable runtime state under `/var/lib/oficina/registrar`.
 - Registrar container runtime state: mount `/var/lib/oficina/registrar` when `database.db` must survive container replacement.
 - Backend tests: run `go test ./...` from `backend/cmd/`.
 - Backend Terraform validation: run `terraform fmt -check -recursive`, `terraform init -backend=false`, and `terraform validate` from `backend/terraform/`.
-- Backend DB tests use real temporary SQLite files and apply embedded goose migrations.
+- Backend DB integration tests use live MySQL when `OFICINA_TEST_MYSQL_DSN` is set; run `OFICINA_TEST_MYSQL_DSN='admin:password@tcp(host:3306)/oficina_test?parseTime=true' go test -p 1 ./internal/database ./internal/repository` from `backend/cmd/`. The helper creates a temporary schema, applies embedded goose migrations, and drops the schema after the test.
+- Ansible validation: run `ansible-galaxy collection install -r ansible/requirements.yml`, then `ansible-playbook -i ansible/inventories/example/hosts.yml ansible/playbooks/site.yml --syntax-check` from the repository root. Use a private inventory for real hosts.
 - For doc-only changes, a file review is enough.
 
 ## Deployments
-- Bot deploy workflow: `.github/workflows/deploy.yml`.
-- Registrar deploy workflow: `.github/workflows/deploy-registrar.yml`.
+- Bot image workflow: `.github/workflows/deploy.yml`; pushes `ghcr.io/<owner>/oficina-bot:latest` and `ghcr.io/<owner>/oficina-bot:<sha>`.
+- Registrar image workflow: `.github/workflows/deploy-registrar.yml`; pushes `ghcr.io/<owner>/oficina-registrar:latest` and `ghcr.io/<owner>/oficina-registrar:<sha>`.
+- Backend image workflow: `.github/workflows/deploy-backend.yml`; pushes `ghcr.io/<owner>/oficina-backend:latest` and `ghcr.io/<owner>/oficina-backend:<sha>`.
 - Bot and registrar Dockerfiles are service-local. They build shaded Maven jars in a builder stage, copy only the final jar into an Eclipse Temurin Alpine JRE runtime, and run through `dumb-init` as the non-root `app` user.
 - CodeQL workflow: `.github/workflows/codeql.yml`; scans Java/Kotlin and Go with explicit monorepo build steps.
-- Backend deployment is intentionally not wired at the mono-repo root yet.
+- Runtime deployment is managed by Ansible from `ansible/`. The bots VM runs the `bot`, any additional bot containers defined in inventory, and `registrar`; the backend/API VM runs the `backend` container.
+- All application containers are deployed through host-level Docker Compose projects generated by Ansible. The bots stack contains `bot`, `registrar`, and `watchtower`; the backend stack contains `backend` and `watchtower`.
+- Watchtower is configured to poll every 300 seconds and update all running containers on each host. Do not rely on Watchtower labels unless the host starts running non-Oficina containers.
+- Ansible connects directly to both VMs as `ubuntu` through their public IPs or DNS names. SSH ingress is restricted by `ssh_source_cidr`; keep the private SSH key on the operator machine.
+- The VMs do not need `git` for deployment. They pull images from GHCR, so they need Docker, DNS, outbound HTTPS, and GHCR credentials only when packages are private.
 - Backend Terraform workflow: `.github/workflows/backend-terraform.yml`; pull requests validate without secrets, pushes to `main` plan against the OCI backend, and applies require manual dispatch with the `backend-infra` environment.
 - Backend Terraform state backend values are not committed. Use an ignored `backend.oci.tfbackend` locally, and GitHub secrets `OCI_OBJECT_STORAGE_NAMESPACE` and `OCI_TF_STATE_BUCKET` in CI.
 - Backend Terraform is constrained for OCI Always Free: `VM.Standard.E2.1.Micro`, 10 Mbps flexible load balancer, `MySQL.Free`, 50 GB MySQL storage, and default 50 GB compute boot volumes.
-- Backend Terraform currently exposes the OCI load balancer as public IPv4 HTTP-only. Add HTTPS later through Cloudflare DNS/proxying, Cloudflare Origin CA material on the OCI load balancer, and a 443 listener.
-- Backend persistence defaults to `backend/cmd/data/oficina-services.db` when run from `backend/cmd/`; override with `DATABASE_PATH`.
-- Backend admin auth requires `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URL`, `OFICINA_OWNER_DISCORD_ID`, and `SESSION_SECRET`.
+- Backend Terraform currently exposes the OCI load balancer as public IPv4 HTTP-only. SSH to both application VMs is allowed from `ssh_source_cidr` for direct admin and Ansible access. Add HTTPS later through Cloudflare DNS/proxying, Cloudflare Origin CA material on the OCI load balancer, and a 443 listener.
+- Backend persistence uses the provisioned MySQL DB system. Configure it with `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD`. Create the backend schema and application DB user manually from the operator machine; do not put MySQL admin credentials in Ansible inventories or application VMs.
+- Backend runtime auth/session config currently requires `SESSION_SECRET`. Discord OAuth env vars are optional future configuration and must be supplied as a complete set only when that login flow is enabled.
 - Backend Discord REST metadata requires `DISCORD_BOT_TOKEN`; the backend must not call `discordgo.Session.Open()` or otherwise connect to the gateway.
 - Use `SESSION_COOKIE_SECURE=false` only for local HTTP development; production cookies should remain secure.
 - Backend service APIs live under `/api/service/*` and require `Authorization: Bearer <token>`; only token hashes are stored in `bot_clients`.
 - Backend dashboard APIs live under `/api/dashboard/*` and use the admin session cookie.
 - Backend liveness is exposed by unauthenticated `GET /health`; the Docker image and compose file use this endpoint for container health checks.
 - Service batch ingestion endpoints require caller-provided `batch_id` values and treat duplicate batches as successful no-ops.
-- Backend CORS defaults to `FRONTEND_ORIGIN=http://localhost:5173`, body limit defaults to `BODY_LIMIT=8M`, and cookie-backed mutating admin routes require CSRF headers.
-- Bot deployment secrets are service-scoped with the `OFICINA` segment, such as `SFTP_OFICINA_HOST` and `PTERO_OFICINA_SERVER_ID`.
-- Registrar deployment secrets are service-scoped with the `REGISTRY` segment, such as `SFTP_REGISTRY_HOST` and `PTERO_REGISTRY_SERVER_ID`.
-- `PTERO_API_KEY` remains shared unless a future deployment split requires service-specific API keys.
+- Backend CORS allows all origins without browser credentials, body limit defaults to `BODY_LIMIT=8M`, and cookie-backed mutating admin routes require CSRF headers.
+- Private Ansible inventories, registry tokens, and service environment values must stay out of git. Use `ansible/inventories/prod/` or Ansible Vault for real values.
 
 ## Known Traps
 - Do not assume env files exist; bot config is often loaded from the DB `config` table.

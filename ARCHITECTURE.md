@@ -13,22 +13,33 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - Service source, build descriptors, and service-owned assets live inside each service directory.
 - Runtime files, generated artifacts, local databases, and package outputs are ignored and are not source of truth.
 - Backend infrastructure source lives in `backend/terraform/`.
+- Docker host provisioning and runtime deployment source lives in `ansible/`.
 
 ## Deployment Model
-- The bot workflow builds `bot/target/bot.jar`, uploads it through the Oficina SFTP secrets, and restarts `PTERO_OFICINA_SERVER_ID`.
-- The registrar workflow builds `registrar/target/bot.jar`, uploads it through the Registry SFTP secrets, and restarts `PTERO_REGISTRY_SERVER_ID`.
-- Backend deployment is intentionally left undefined while the backend responsibilities are expanded.
+- The bot workflow builds and pushes `ghcr.io/<owner>/oficina-bot:latest` and a SHA-tagged image from `bot/Dockerfile`.
+- The registrar workflow builds and pushes `ghcr.io/<owner>/oficina-registrar:latest` and a SHA-tagged image from `registrar/Dockerfile`.
+- The backend workflow builds and pushes `ghcr.io/<owner>/oficina-backend:latest` and a SHA-tagged image from `backend/Dockerfile`.
 - The bot container image is built from `bot/Dockerfile`. It uses a Maven/Java 21 builder stage, an Eclipse Temurin Java 21 Alpine JRE runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/bot`.
 - The registrar container image is built from `registrar/Dockerfile`. It uses a Maven/Java 17 builder stage, an Eclipse Temurin Java 17 Alpine JRE runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/registrar`.
 - Bot and registrar containers keep immutable jars under `/opt/oficina` and set the working directory to the writable state directory. Persist that state directory with a bind mount or named volume because both Java services still resolve `database.db` relative to the process working directory.
+- Ansible already injects future MySQL `DATABASE_*` values for the bot and registrar containers through a separate `oficina_bots` application user, but the current Java runtime remains SQLite-backed until that migration is implemented.
+- Ansible manages runtime deployment through Docker Compose on the OCI VMs. The bots VM runs `bot`, any additional bot containers defined in inventory, `registrar`, and Watchtower. The backend/API VM runs `backend` and Watchtower.
+- Watchtower polls every 300 seconds and updates all containers on each host. GHCR credentials are required on the hosts only when packages are private.
 - The backend Terraform workflow validates infrastructure changes on pull requests, plans against the remote OCI backend on pushes to `main`, and applies only through manual dispatch with the `backend-infra` GitHub Environment.
+
+## Runtime Operations
+The Ansible entrypoint is `ansible/playbooks/site.yml`. It installs Docker Engine and the Compose plugin, configures Docker log rotation, renders host-level Compose projects, writes service environment files from inventory variables, logs in to GHCR when credentials are provided, and starts the stacks.
+
+The production topology uses the `ubuntu` SSH user. Ansible reaches both VMs directly through their public IPs or DNS names, with SSH restricted to the configured `ssh_source_cidr`. The local operator machine keeps the private key. Terraform injects the same configured public SSH key into both compute instances.
+
+The VMs do not need `git` for deployment because GitHub Actions builds the images and pushes them to GHCR. They do need DNS and outbound HTTPS access for Docker and Watchtower pulls. With the current OCI layout, the application VMs are in the public apps subnet with internet-gateway egress and SSH protection through network security groups. If the backend VM is later moved behind a bastion or into a subnet without direct egress, update the Ansible inventory for `ProxyJump` and add NAT or a registry mirror before relying on Watchtower updates.
 
 ## Backend Infrastructure
 Backend OCI infrastructure is managed from `backend/terraform/`. The root Terraform module owns provider/backend setup, shared data sources, common tags, module wiring, and outputs. Resource ownership is split by concern under `backend/terraform/modules/`: `network` owns VCN/subnets/routing/security, `compute` owns the API and bot instances, `mysql` owns the private DB system, and `load_balancer` owns the public flexible load balancer.
 
 The OCI Terraform backend uses partial configuration in source (`backend "oci" {}`), with the real bucket, namespace, region, and state key supplied through an ignored local `backend.oci.tfbackend` file or generated from GitHub secrets in CI. The OCI API private key is represented as `private_key_path` in Terraform; the GitHub Actions helper script writes `OCI_PRIVATE_KEY_PEM` into a temporary PEM file and exports `TF_VAR_private_key_path` to keep local and CI provider configuration equivalent.
 
-The backend infrastructure is constrained to OCI Always Free shapes and sizes: two `VM.Standard.E2.1.Micro` compute instances, a 10 Mbps flexible load balancer, `MySQL.Free` with 50 GB storage, and default 50 GB compute boot volumes. The current load balancer is public IPv4 HTTP-only for initial reachability and smoke tests. Production HTTPS should be added later through Cloudflare DNS/proxying, a Cloudflare Origin CA certificate installed on the OCI load balancer, a 443 listener, and Cloudflare Full (strict) SSL/TLS mode.
+The backend infrastructure is constrained to OCI Always Free shapes and sizes: two `VM.Standard.E2.1.Micro` compute instances, a 10 Mbps flexible load balancer, `MySQL.Free` with 50 GB storage, and default 50 GB compute boot volumes. The current load balancer is public IPv4 HTTP-only for initial reachability and smoke tests. SSH to both application VMs is allowed only from the configured admin CIDR, while backend HTTP traffic reaches the API VM only through the load balancer security group. Production HTTPS should be added later through Cloudflare DNS/proxying, a Cloudflare Origin CA certificate installed on the OCI load balancer, a 443 listener, and Cloudflare Full (strict) SSL/TLS mode.
 
 ## Bot Boot Flow
 1. `DB.init()` creates/connects the SQLite datasource and creates all known tables.
@@ -187,17 +198,19 @@ Approval and rejection buttons use IDs prefixed with `nick-`, so the durable lis
 `ThrottledAction<T>` is a generic latest-value coalescer. Each `post(T)` replaces the pending value, and the scheduled flush runs only the latest value for that interval. It owns a scheduler and exposes `shutdown()`/`close()` so long-lived features can release it when the related workflow ends.
 
 ## Backend Boot Flow
-The backend entrypoint loads configuration, creates a signal-aware root context, builds the application server through `backend/cmd/internal/app`, and starts Echo through `Server.Start`. The app package owns SQLite startup/migrations, Playwright installation/startup, route registration, and graceful shutdown. `Server.Close` explicitly releases the database handle, card renderer browser, and Playwright runtime.
+The backend entrypoint loads configuration, creates a signal-aware root context, builds the application server through `backend/cmd/internal/app`, and starts Echo through `Server.Start`. The app package owns MySQL startup/migrations, Playwright installation/startup, route registration, and graceful shutdown. `Server.Close` explicitly releases the database handle, card renderer browser, and Playwright runtime.
 
 HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, and the external video route uses an injected downloader. This keeps route behavior testable without launching Playwright or shelling out to `yt-dlp`.
 
 ## Backend Persistence
-The backend uses SQLite with WAL mode and embedded goose migrations. The default database path is `./data/oficina-services.db` relative to the backend process, and `DATABASE_PATH` can override it for deployment. Startup opens the database, enables foreign keys, WAL, busy timeout, and normal synchronous mode, then applies migrations before HTTP routes start.
+The backend uses the provisioned OCI MySQL DB system with embedded goose migrations using the MySQL dialect. Runtime configuration uses the explicit MySQL values `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD`. The database schema and application DB user are created manually from the operator machine so MySQL admin credentials do not live on application VMs or in Ansible inventories. Startup opens the MySQL connection, configures the connection pool, and applies migrations before HTTP routes start.
 
-The repository layer uses GORM models mapped to migration-owned tables. Current persistence tables cover admin users, bot clients, event batches, message logs, punishments, config versions, config acknowledgements, and audit actions. Tests for persistence use real temporary SQLite databases with migrations applied, not mocks.
+The repository layer uses GORM models mapped to migration-owned tables. Current persistence tables cover admin users, bot clients, event batches, message logs, punishments, config versions, config acknowledgements, audit actions, registrations, and sync heartbeats. Live MySQL integration tests run when `OFICINA_TEST_MYSQL_DSN` is set; the test helper creates a temporary schema, applies migrations, and drops the schema after each test.
 
 ## Backend Admin Auth
-Admin login uses Discord OAuth2 with the `identify` scope. The backend stores allowlisted admins in `users`; the configured `OFICINA_OWNER_DISCORD_ID` can bootstrap itself on first login and is the only account allowed to add or remove other admins. There is intentionally no role or permission system in this phase.
+The current deployment phase is owned by the proprietary Oficina website rather than Discord OAuth. Backend runtime still needs `SESSION_SECRET` for signed session and CSRF state handling. CORS intentionally allows all origins without browser credentials in this phase. Discord OAuth wiring remains in the backend for a later rollout, but `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URL`, and `OFICINA_OWNER_DISCORD_ID` are not required until that flow is deliberately enabled.
+
+When Discord OAuth is enabled later, admin login will use Discord OAuth2 with the `identify` scope. The backend stores allowlisted admins in `users`; the configured `OFICINA_OWNER_DISCORD_ID` can bootstrap itself on first login and is the only account allowed to add or remove other admins. There is intentionally no role or permission system in this phase.
 
 Admin sessions are stored in `admin_sessions` with hashed session tokens, expiration timestamps, and last-seen timestamps. The browser receives an HttpOnly SameSite=Lax session cookie. `SESSION_COOKIE_SECURE` defaults to true and should only be disabled for local HTTP development.
 
@@ -208,7 +221,7 @@ Bot-to-backend APIs live under `/api/service/*` and use `Authorization: Bearer <
 
 The protected service endpoints include `/api/service/me`, batch ingestion for message logs, punishments, registrations, sync heartbeats, pending config polling, and config ACKs. Batch ingestion requires caller-provided `batch_id` values. A repeated batch id returns success without inserting duplicate rows, so bots can retry network failures without inventing ghosts.
 
-Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, CORS for the configured frontend origin, CSRF checks for cookie-backed mutating admin routes, and a basic in-memory rate limiter. CSRF is intentionally not applied to bearer-token service routes.
+Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, wildcard CORS without browser credentials, CSRF checks for cookie-backed mutating admin routes, and a basic in-memory rate limiter. CSRF is intentionally not applied to bearer-token service routes.
 
 Unauthenticated `GET /health` returns a small `{"status":"ok"}` response for backend liveness checks. The backend Docker image and compose definition both probe this route with `curl`.
 
