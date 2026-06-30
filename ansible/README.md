@@ -70,8 +70,13 @@ Validate before applying:
 
 ```sh
 ansible-playbook -i ansible/inventories/prod/hosts.yml ansible/playbooks/site.yml --syntax-check
-ansible-playbook -i ansible/inventories/prod/hosts.yml ansible/playbooks/site.yml --check
+ansible-playbook -i ansible/inventories/prod/hosts.yml ansible/playbooks/site.yml --check --diff
 ```
+
+On fresh hosts, check mode reports the apt prerequisite/repository work but
+skips Docker package/service changes and Docker Compose deployment. Ansible does
+not actually add the Docker apt repository or create runtime directories during
+the dry run, so those steps are applied only by the real run.
 
 Apply:
 

@@ -33,34 +33,42 @@
     state: present
     update_cache: true
 
-- name: Install Docker Engine and Compose plugin
-  ansible.builtin.apt:
-    name:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-      - docker-buildx-plugin
-      - docker-compose-plugin
-    state: present
+- name: Explain Docker package install check-mode skip
+  ansible.builtin.debug:
+    msg: "Skipping Docker package/service changes in check mode because the Docker apt repository is not actually created during the dry run."
+  when: ansible_check_mode
 
-- name: Configure Docker daemon defaults
-  ansible.builtin.template:
-    src: daemon.json.j2
-    dest: /etc/docker/daemon.json
-    owner: root
-    group: root
-    mode: "0644"
-  notify: Restart docker
+- name: Install and configure Docker
+  when: not ansible_check_mode
+  block:
+    - name: Install Docker Engine and Compose plugin
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
 
-- name: Ensure Docker service is enabled and running
-  ansible.builtin.service:
-    name: docker
-    enabled: true
-    state: started
+    - name: Configure Docker daemon defaults
+      ansible.builtin.template:
+        src: daemon.json.j2
+        dest: /etc/docker/daemon.json
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart docker
 
-- name: Add SSH user to docker group
-  ansible.builtin.user:
-    name: "{{ ansible_user }}"
-    groups: docker
-    append: true
-  when: docker_add_ansible_user_to_group
+    - name: Ensure Docker service is enabled and running
+      ansible.builtin.service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Add SSH user to docker group
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: true
+      when: docker_add_ansible_user_to_group

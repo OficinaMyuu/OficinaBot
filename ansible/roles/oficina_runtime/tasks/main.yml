@@ -8,6 +8,15 @@
       - oficina_image_namespace | length > 0
     fail_msg: "Set oficina_stack_name, oficina_compose_project_name, oficina_services, and oficina_image_namespace."
 
+- name: Explain runtime deployment check-mode skip
+  ansible.builtin.debug:
+    msg: "Skipping runtime file rendering and Docker Compose deployment in check mode; run without --check to create directories, env files, compose files, and containers."
+  when: ansible_check_mode
+
+- name: Stop runtime deployment in check mode
+  ansible.builtin.meta: end_host
+  when: ansible_check_mode
+
 - name: Ensure Oficina compose directory exists
   ansible.builtin.file:
     path: "{{ oficina_compose_dir }}"
