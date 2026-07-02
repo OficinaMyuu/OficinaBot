@@ -60,8 +60,8 @@ public class RegisterData extends TableRecordImpl<RegisterData> {
         public final Field<Long> TARGET_ID    = createField(name("target_id"),    SQLDataType.BIGINT.notNull());
         public final Field<Long> MODERATOR_ID = createField(name("moderator_id"), SQLDataType.BIGINT.notNull());
         public final Field<Integer> AGE       = createField(name("age"),          SQLDataType.INTEGER.notNull());
-        public final Field<String> GENDER     = createField(name("gender"),       SQLDataType.CHAR.notNull());
-        public final Field<String> DEVICE     = createField(name("device"),       SQLDataType.CHAR.notNull());
+        public final Field<String> GENDER     = createField(name("gender"),       SQLDataType.VARCHAR(64).notNull());
+        public final Field<String> DEVICE     = createField(name("device"),       SQLDataType.VARCHAR(64).notNull());
         public final Field<Long> CREATED_AT   = createField(name("created_at"),   SQLDataType.BIGINT.notNull());
 
         private Table() {
