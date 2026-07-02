@@ -8,6 +8,7 @@ import (
 
 	mysqldriver "github.com/go-sql-driver/mysql"
 	"oficina-img/internal/database"
+	"oficina-database/migrations"
 )
 
 const EnvMySQLDSN = "OFICINA_TEST_MYSQL_DSN"
@@ -23,7 +24,7 @@ func OpenMigrated(t TB) *database.Database {
 	t.Helper()
 
 	db := Open(t)
-	if err := db.Migrate(); err != nil {
+	if err := migrations.Up(db.SQL); err != nil {
 		t.Fatalf("migrate mysql database: %v", err)
 	}
 	return db

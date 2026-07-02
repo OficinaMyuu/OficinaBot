@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pressly/goose/v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -41,17 +40,6 @@ func Open(cfg Config) (*Database, error) {
 
 func (db *Database) Close() error {
 	return db.SQL.Close()
-}
-
-func (db *Database) Migrate() error {
-	goose.SetBaseFS(migrationsFS)
-	if err := goose.SetDialect("mysql"); err != nil {
-		return fmt.Errorf("set goose dialect: %w", err)
-	}
-	if err := goose.Up(db.SQL, "migrations"); err != nil {
-		return fmt.Errorf("run migrations: %w", err)
-	}
-	return nil
 }
 
 func configureConnectionPool(db *sql.DB) {

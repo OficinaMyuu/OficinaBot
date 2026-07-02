@@ -9,10 +9,10 @@ require (
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/labstack/gommon v0.4.2
 	github.com/playwright-community/playwright-go v0.5001.0
-	github.com/pressly/goose/v3 v3.24.1
 	golang.org/x/oauth2 v0.27.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.31.1
+	oficina-database v0.0.0
 )
 
 require (
@@ -26,6 +26,7 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect
+	github.com/pressly/goose/v3 v3.24.1 // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
@@ -37,3 +38,5 @@ require (
 	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
 )
+
+replace oficina-database => ../../database

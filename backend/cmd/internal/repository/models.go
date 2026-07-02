@@ -9,7 +9,7 @@ type User struct {
 }
 
 func (User) TableName() string {
-	return "users"
+	return "admin_users"
 }
 
 type BotClient struct {

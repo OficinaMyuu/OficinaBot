@@ -20,7 +20,9 @@ func TestMigrateCreatesPersistenceTables(t *testing.T) {
 	defer databasetest.Close(t, db)
 
 	expectedTables := []string{
+		"admin_users",
 		"users",
+		"config",
 		"bot_clients",
 		"event_batches",
 		"message_logs",
@@ -30,6 +32,7 @@ func TestMigrateCreatesPersistenceTables(t *testing.T) {
 		"audit_actions",
 		"admin_sessions",
 		"registrations",
+		"registers",
 		"sync_heartbeats",
 	}
 	for _, table := range expectedTables {

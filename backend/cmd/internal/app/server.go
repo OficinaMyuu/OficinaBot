@@ -46,10 +46,6 @@ func NewServer(cfg Config) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := db.Migrate(); err != nil {
-		db.Close()
-		return nil, err
-	}
 
 	if err := playwright.Install(); err != nil {
 		db.Close()
