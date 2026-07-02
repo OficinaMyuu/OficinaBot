@@ -4,7 +4,7 @@
 OficinaServices is the mono-repo for Oficina's Discord-facing services and shared backend work. Keep this file as the single architecture guide for the repository; do not add child `ARCHITECTURE.md` files.
 
 ## Services
-- `bot/`: Java 21 Discord bot using JDA 6, Maven, SQLite, jOOQ, HikariCP, Quartz, OkHttp, and the OpenAI Java SDK.
+- `bot/`: Java 21 Discord bot using JDA 6, Maven, MySQL, jOOQ, HikariCP, Quartz, OkHttp, and the OpenAI Java SDK.
 - `backend/`: Go HTTP backend that started as OficinaImagery and is expected to take on broader API responsibilities. Its current entrypoint is `backend/cmd/api/main.go`, with server bootstrapping under `backend/cmd/internal/app/`.
 - `registrar/`: Java 17 Discord registration service using JDA 5 and Maven. Its entrypoint is `registrar/src/main/java/ofc/bot/RegisterMaster.java`.
 
@@ -12,6 +12,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - Repo-level GitHub Actions workflows live in `.github/workflows/`.
 - Service source, build descriptors, and service-owned assets live inside each service directory.
 - Runtime files, generated artifacts, local databases, and package outputs are ignored and are not source of truth.
+- Product database migrations live in `database/`; service code must not create or alter schema at startup.
 - Backend infrastructure source lives in `backend/terraform/`.
 - Docker host provisioning and runtime deployment source lives in `ansible/`.
 
@@ -21,8 +22,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - The backend workflow builds and pushes `ghcr.io/<owner>/oficina-backend:latest` and a SHA-tagged image from `backend/Dockerfile`.
 - The bot container image is built from `bot/Dockerfile`. It uses a Maven/Java 21 builder stage, an Eclipse Temurin Java 21 Alpine JRE runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/bot`.
 - The registrar container image is built from `registrar/Dockerfile`. It uses a Maven/Java 17 builder stage, an Eclipse Temurin Java 17 Alpine JRE runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/registrar`.
-- Bot and registrar containers keep immutable jars under `/opt/oficina` and set the working directory to the writable state directory. Persist that state directory with a bind mount or named volume because both Java services still resolve `database.db` relative to the process working directory.
-- Ansible already injects future MySQL `DATABASE_*` values for the bot and registrar containers through a separate `oficina_bots` application user, but the current Java runtime remains SQLite-backed until that migration is implemented.
+- Bot and registrar containers keep immutable jars under `/opt/oficina` and connect to the shared OCI MySQL database through `DATABASE_*` environment variables. Writable state remains available for logs and other runtime files, but database state is no longer a container-local SQLite file.
 - Ansible manages runtime deployment through Docker Compose on the OCI VMs. The bots VM runs `bot`, any additional bot containers defined in inventory, `registrar`, and Watchtower. The backend/API VM runs `backend` and Watchtower.
 - Watchtower polls every 300 seconds and updates all containers on each host. The Compose template sets `DOCKER_API_VERSION` from `oficina_watchtower_docker_api_version` because newer Docker daemons reject Watchtower's legacy default API version. GHCR credentials are required on the hosts only when packages are private.
 - The backend Terraform workflow validates infrastructure changes on pull requests, plans against the remote OCI backend on pushes to `main`, and applies only through manual dispatch with the `backend-infra` GitHub Environment.
@@ -41,8 +41,17 @@ The OCI Terraform backend uses partial configuration in source (`backend "oci" {
 
 The backend infrastructure is constrained to OCI Always Free shapes and sizes: two `VM.Standard.E2.1.Micro` compute instances, a 10 Mbps flexible load balancer, `MySQL.Free` with 50 GB storage, and default 50 GB compute boot volumes. The current load balancer is public IPv4 HTTP-only for initial reachability and smoke tests. SSH to both application VMs is allowed only from the configured admin CIDR, while backend HTTP traffic reaches the API VM only through the load balancer security group. Production HTTPS should be added later through Cloudflare DNS/proxying, a Cloudflare Origin CA certificate installed on the OCI load balancer, a 443 listener, and Cloudflare Full (strict) SSL/TLS mode.
 
+## Database Schema Management
+Terraform owns the OCI MySQL DB system, networking, and compute plumbing only. Product schema is owned by the root `database/` module, which embeds ordered goose SQL migrations and exposes `database/cmd/migrator`. Run the migrator as a separate deployment step with a DDL-capable migration user:
+
+```powershell
+go run ./cmd/migrator up
+```
+
+The bot, registrar, and backend all connect to the same product schema after migrations have run. Runtime application users should be restricted to the DML privileges they need; MySQL admin or migration credentials should not be placed on application VMs. The backend's dashboard allowlist table is named `admin_users` to avoid colliding with the bot's canonical Discord `users` table.
+
 ## Bot Boot Flow
-1. `DB.init()` creates/connects the SQLite datasource and creates all known tables.
+1. `DB.init()` creates the MySQL/Hikari datasource and verifies connectivity.
 2. JDA is built and awaited.
 3. Console handler and Quartz jobs are initialized.
 4. Services, listeners, slash commands, and composed interactions are registered.
@@ -52,39 +61,23 @@ The backend infrastructure is constrained to OCI Always Free shapes and sizes: t
 - Entry point: `bot/src/main/java/ofc/bot/Main.java`
 - Application wiring: `bot/src/main/java/ofc/bot/handlers/EntityInitializerManager.java`
 - Slash command registration: `bot/src/main/java/ofc/bot/handlers/interactions/commands/slash/CommandsInitializer.java`
-- Persistence bootstrap: `bot/src/main/java/ofc/bot/domain/sqlite/DB.java`
-- Repository access: `bot/src/main/java/ofc/bot/domain/sqlite/repository/Repositories.java`
+- Persistence bootstrap: `bot/src/main/java/ofc/bot/domain/database/DB.java`
+- Repository access: `bot/src/main/java/ofc/bot/domain/database/repository/Repositories.java`
 - Shared utility helpers: `bot/src/main/java/ofc/bot/util/`
 
 ## Bot Persistence Shape
-- SQLite database file: `database.db`. In the bot container this is relative to `/var/lib/oficina/bot`.
+- The bot connects to the shared MySQL schema through `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD`.
 - The bot no longer depends on runtime `content/` or `assets/` directories. Scheduled Sad Monday/Sunday image posts read URL strings from `SAD_MONDAY_URL` and `SAD_SUNDAY_URL`.
 - Table definitions live under `bot/src/main/java/ofc/bot/domain/tables/`
 - Entity models live under `bot/src/main/java/ofc/bot/domain/entity/`
-- Repository implementations live under `bot/src/main/java/ofc/bot/domain/sqlite/repository/`
-- Runtime configuration is partially stored in the SQLite `config` table and accessed via `BotProperties`.
-- Schema migrations are performed manually outside `DB.java`; startup only creates missing tables.
+- Repository implementations live under `bot/src/main/java/ofc/bot/domain/database/repository/`
+- Runtime configuration is partially stored in the MySQL `config` table and accessed via `BotProperties`.
+- Schema migrations are performed by the root `database/` migrator. Bot startup never runs `CREATE TABLE IF NOT EXISTS`.
 - `voice_channel_income_rules` customizes scheduled voice money and XP payouts per channel and payout type.
 - `member_join_events` stores every known guild join event per user. `/userinfo` reads the earliest stored event and falls back to Discord's current member join timestamp when no history exists.
 - `groups.has_role_emoji` controls whether a group role name includes the group's emoji around the display name. Group channels always use the group emoji, while role names use either six braille-blank spacers without emoji or four braille-blank spacers between emoji and name when the flag is enabled.
 
-Existing bot databases need this manual migration before group role emoji state can be loaded:
-
-```sql
-ALTER TABLE groups ADD COLUMN has_role_emoji BOOLEAN NOT NULL DEFAULT false;
-CREATE UNIQUE INDEX IF NOT EXISTS groups_emoji_unique_idx ON groups (emoji);
-```
-
-Existing bot databases need this manual migration before join events can be stored:
-
-```sql
-CREATE TABLE IF NOT EXISTS member_join_events (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    guild_id BIGINT NOT NULL,
-    user_id BIGINT NOT NULL,
-    created_at BIGINT NOT NULL
-);
-```
+Legacy SQLite-era manual snippets are no longer source of truth; add future changes as ordered MySQL migrations under `database/migrations/`.
 
 ## Bot Interaction Model
 - Slash commands live under `bot/src/main/java/ofc/bot/commands/impl/slash/`.
@@ -108,25 +101,6 @@ Ticket creation sends a durable initial message with add-member, remove-member, 
 Automated income is split by economy provider: `ChatMoneyHandler` credits Oficina wallet money for eligible guild messages, while `VoiceChatMoneyHandler` credits UnbelievaBoat cash or bank money for eligible voice activity. Voice channels configured in `income.voice.bank-channel-ids` are semicolon-separated Discord channel IDs that pay the doubled voice income amount to bank instead of cash. Both paths honor `PolicyType.BLOCK_MONEY_GAINS` through `AutomatedMoneyGainPolicy`, matching blocked users, roles, or channels. The policy is intentionally limited to automated income and does not block explicit command rewards such as `/daily` and `/work`, nor manual or claim-based prize fulfillment such as giveaway money claims.
 
 `voice_channel_income_rules` stores per-channel overrides for scheduled voice payouts. Rows are keyed by `(channel_id, payout_type)`, with payout types `MONEY` and `LEVEL_EXPERIENCE`. `multiplier` scales the final payout after normal channel routing, so a bank voice money channel with multiplier `1.25` pays 125% of the doubled bank amount. `allow_muted` lets muted, undeafened humans receive that payout type, and `allow_solo` removes the two-human minimum for that payout type. Bots and deafened members are always excluded. The jobs load matching rows once per scheduled run and use default behavior when no row exists.
-
-Existing bot databases need this manual migration before rules can be inserted:
-
-```sql
-CREATE TABLE IF NOT EXISTS voice_channel_income_rules (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    guild_id BIGINT NOT NULL,
-    channel_id BIGINT NOT NULL,
-    payout_type CHAR NOT NULL,
-    multiplier DOUBLE NOT NULL,
-    allow_muted BOOLEAN NOT NULL DEFAULT false,
-    allow_solo BOOLEAN NOT NULL DEFAULT false,
-    created_by BIGINT NOT NULL,
-    created_at BIGINT NOT NULL,
-    updated_at BIGINT NOT NULL,
-    UNIQUE (channel_id, payout_type),
-    CHECK (multiplier > 0)
-);
-```
 
 An event voice channel that should pay 125% money and XP to muted or solo undeafened humans needs one row per payout type:
 
@@ -198,19 +172,19 @@ Approval and rejection buttons use IDs prefixed with `nick-`, so the durable lis
 `ThrottledAction<T>` is a generic latest-value coalescer. Each `post(T)` replaces the pending value, and the scheduled flush runs only the latest value for that interval. It owns a scheduler and exposes `shutdown()`/`close()` so long-lived features can release it when the related workflow ends.
 
 ## Backend Boot Flow
-The backend entrypoint loads configuration, creates a signal-aware root context, builds the application server through `backend/cmd/internal/app`, and starts Echo through `Server.Start`. The app package owns MySQL startup/migrations, Playwright installation/startup, route registration, and graceful shutdown. `Server.Close` explicitly releases the database handle, card renderer browser, and Playwright runtime.
+The backend entrypoint loads configuration, creates a signal-aware root context, builds the application server through `backend/cmd/internal/app`, and starts Echo through `Server.Start`. The app package owns MySQL connection startup, Playwright installation/startup, route registration, and graceful shutdown. `Server.Close` explicitly releases the database handle, card renderer browser, and Playwright runtime.
 
 HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, and the external video route uses an injected downloader. This keeps route behavior testable without launching Playwright or shelling out to `yt-dlp`.
 
 ## Backend Persistence
-The backend uses the provisioned OCI MySQL DB system with embedded goose migrations using the MySQL dialect. Runtime configuration uses the explicit MySQL values `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD`. The database schema and application DB user are created manually from the operator machine so MySQL admin credentials do not live on application VMs or in Ansible inventories. Startup opens the MySQL connection, configures the connection pool, and applies migrations before HTTP routes start.
+The backend uses the provisioned OCI MySQL DB system. Runtime configuration uses the explicit MySQL values `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD`. Startup opens the MySQL connection and configures the connection pool only; schema migrations are applied by the separate root `database/` migrator before deployment.
 
-The repository layer uses GORM models mapped to migration-owned tables. Current persistence tables cover admin users, bot clients, event batches, message logs, punishments, config versions, config acknowledgements, audit actions, registrations, and sync heartbeats. Live MySQL integration tests run when `OFICINA_TEST_MYSQL_DSN` is set; the test helper creates a temporary schema, applies migrations, and drops the schema after each test.
+The repository layer uses GORM models mapped to migration-owned tables. Current persistence tables cover admin users, bot clients, event batches, message logs, punishments, config versions, config acknowledgements, audit actions, registrations, and sync heartbeats. Live MySQL integration tests run when `OFICINA_TEST_MYSQL_DSN` is set; the test helper creates a temporary schema, applies the central migration stream, and drops the schema after each test.
 
 ## Backend Admin Auth
 The current deployment phase is owned by the proprietary Oficina website rather than Discord OAuth. Backend runtime still needs `SESSION_SECRET` for signed session and CSRF state handling. CORS intentionally allows all origins without browser credentials in this phase. Discord OAuth wiring remains in the backend for a later rollout, but `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URL`, and `OFICINA_OWNER_DISCORD_ID` are not required until that flow is deliberately enabled.
 
-When Discord OAuth is enabled later, admin login will use Discord OAuth2 with the `identify` scope. The backend stores allowlisted admins in `users`; the configured `OFICINA_OWNER_DISCORD_ID` can bootstrap itself on first login and is the only account allowed to add or remove other admins. There is intentionally no role or permission system in this phase.
+When Discord OAuth is enabled later, admin login will use Discord OAuth2 with the `identify` scope. The backend stores allowlisted admins in `admin_users`; the configured `OFICINA_OWNER_DISCORD_ID` can bootstrap itself on first login and is the only account allowed to add or remove other admins. There is intentionally no role or permission system in this phase.
 
 Admin sessions are stored in `admin_sessions` with hashed session tokens, expiration timestamps, and last-seen timestamps. The browser receives an HttpOnly SameSite=Lax session cookie. `SESSION_COOKIE_SECURE` defaults to true and should only be disabled for local HTTP development.
 

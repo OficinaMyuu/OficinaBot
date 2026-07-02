@@ -7,6 +7,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - `bot/` contains the Oficina Discord bot, formerly `OficinaMyuu/OficinaBot`.
 - `backend/` contains the Go backend, formerly `OficinaMyuu/OficinaImagery`.
 - `backend/terraform/` contains the OCI Terraform source for backend infrastructure.
+- `database/` contains the single product-wide MySQL migration runner and ordered migration SQL stream.
 - `ansible.cfg` configures Ansible role and collection paths for repo-root commands.
 - `ansible/` contains the Docker runtime provisioning and deployment playbooks for the OCI VMs.
 - `registrar/` contains the registration Discord service, formerly `OficinaMyuu/RegistroOficina`.
@@ -21,9 +22,9 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot boot flow: `bot/src/main/java/ofc/bot/Main.java`
 - Bot registration hub: `bot/src/main/java/ofc/bot/handlers/EntityInitializerManager.java`
 - Bot slash command registration: `bot/src/main/java/ofc/bot/handlers/interactions/commands/slash/CommandsInitializer.java`
-- Bot DB bootstrap/schema creation: `bot/src/main/java/ofc/bot/domain/sqlite/DB.java`
-- Bot repository locator: `bot/src/main/java/ofc/bot/domain/sqlite/repository/Repositories.java`
-- Bot DB file path: `bot/src/main/java/ofc/bot/internal/data/BotFiles.java`
+- Product DB migrations: `database/cmd/migrator/main.go`; SQL files live under `database/migrations/`.
+- Bot DB connection bootstrap: `bot/src/main/java/ofc/bot/domain/database/DB.java`
+- Bot repository locator: `bot/src/main/java/ofc/bot/domain/database/repository/Repositories.java`
 - Bot DB-backed config lookup: `bot/src/main/java/ofc/bot/internal/data/BotProperties.java`
 - Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; admin and service auth live under `backend/cmd/internal/auth/`; persistence lives under `backend/cmd/internal/database/` and `backend/cmd/internal/repository/`; routes live under `backend/cmd/internal/routes/`.
 - Backend Terraform entrypoint: `backend/terraform/`; the root module wires shared provider/backend/data concerns, while resources are split under `backend/terraform/modules/`.
@@ -31,14 +32,14 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Registrar entrypoint: `registrar/src/main/java/ofc/bot/RegisterMaster.java`.
 
 ## Bot Project Snapshot
-- Stack: Java 21, Maven, JDA 6, SQLite, jOOQ, HikariCP, Quartz, OkHttp, OpenAI Java SDK.
+- Stack: Java 21, Maven, JDA 6, MySQL, jOOQ, HikariCP, Quartz, OkHttp, OpenAI Java SDK.
 - App type: Discord bot for one server/community.
 - Packaging: shaded jar built as `bot/target/bot.jar`.
 - Runtime config is partly database-backed, not `.env`-driven.
-- Secrets/config are fetched through `Bot.getSafe(...)` and `BotProperties`, which query the SQLite `config` table.
+- Secrets/config are fetched through `Bot.getSafe(...)` and `BotProperties`, which query the shared MySQL `config` table.
 - Sad Monday/Sunday image posts are configured with `SAD_MONDAY_URL` and `SAD_SUNDAY_URL` environment variables.
-- The DB schema is code-first: table definitions live under `bot/src/main/java/ofc/bot/domain/tables/`.
-- Schema migrations are manual for this project. Do not add automatic migration logic to `DB.java`.
+- The DB schema is migration-first: product DDL lives in `database/migrations/`; Java table classes are query mappings only.
+- Do not add automatic migration logic or `CREATE TABLE IF NOT EXISTS` startup DDL to application services.
 - Many features are registered centrally, so missing behavior is often a registration problem, not a logic problem.
 
 ## Bot Directory Index
@@ -46,7 +47,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - `bot/src/main/java/ofc/bot/listeners/`: JDA event listeners, split into guild/log/interaction/moderation/economy areas.
 - `bot/src/main/java/ofc/bot/jobs/`: Quartz scheduled jobs and recurring automation.
 - `bot/src/main/java/ofc/bot/handlers/`: framework glue, registries, interaction gateways, pagination, moderation, games, groups, economy.
-- `bot/src/main/java/ofc/bot/domain/`: entities, enums, tables, view models, SQLite bootstrap, repositories.
+- `bot/src/main/java/ofc/bot/domain/`: entities, enums, tables, view models, MySQL bootstrap, repositories.
 - `bot/src/main/java/ofc/bot/internal/`: internal app data/bootstrap helpers.
 - `bot/src/main/java/ofc/bot/util/`: shared helpers, content constants, embeds, bot utility accessors.
 - `bot/src/main/resources/`: logging configuration.
@@ -60,8 +61,9 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Change blackjack betting behavior: open `BetBlackjackCommand.java`, `BlackjackActionHandler.java`, and the blackjack helpers under `bot/src/main/java/ofc/bot/handlers/games/betting/blackjack/`.
 - Change giveaway behavior: open `bot/src/main/java/ofc/bot/commands/impl/slash/giveaway/`, then `bot/src/main/java/ofc/bot/handlers/giveaway/`, `GiveawayInteractionListener.java`, `GiveawayVoiceConditionListener.java`, and `GiveawayEndHandler.java`.
 - Change accumulator prize behavior: open `bot/src/main/java/ofc/bot/commands/impl/slash/accumulator/`, `bot/src/main/java/ofc/bot/handlers/accumulator/`, `AccumulatorInteractionListener.java`, and the `accumulator_prizes` table/repository.
-- Change persistence or schema: open `DB.java`, then the related table/entity/repository trio under `bot/src/main/java/ofc/bot/domain/`.
-- Debug config or startup failures: start with `Main.java`, `BotFiles.java`, `BotProperties.java`, and `DB.java`.
+- Change persistence behavior: open the related table/entity/repository trio under `bot/src/main/java/ofc/bot/domain/`.
+- Change schema: add an ordered migration under `database/migrations/`; applications must not own DDL.
+- Debug config or startup failures: start with `Main.java`, `BotProperties.java`, and `DB.java`.
 - Debug command visibility/registration: start with `CommandsInitializer.java` and `SlashCommandsRegistryManager.java`.
 
 ## Bot Feature Map
@@ -91,16 +93,17 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 
 ## Builds And Tests
 - Bot tests: run `mvn "-Dmaven.repo.local=../.m2" test` from `bot/`.
+- Bot DB integration tests use live MySQL when `OFICINA_TEST_MYSQL_JDBC_URL` is set. The Java helper creates a temporary schema per test and drops it on close; otherwise DB tests are skipped.
 - Bot package: run `mvn clean package` from `bot/`.
 - Bot container image: run `docker build -t oficina-bot ./bot` from the repository root. The image runs as UID/GID `10001` with writable runtime state under `/var/lib/oficina/bot`.
-- Bot container runtime state: mount `/var/lib/oficina/bot` when `database.db` must survive container replacement.
-- Bot container MySQL env vars are pre-wired by Ansible for the future Java migration through `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD`, using the separate `oficina_bots` application user by default. Current bot config is still loaded from the SQLite `config` table until the Java services are migrated.
+- Bot and registrar database config comes from `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD`. Optional Hikari knobs are `DATABASE_MAX_POOL_SIZE`, `DATABASE_MIN_IDLE`, `DATABASE_CONNECTION_TIMEOUT_MS`, `DATABASE_VALIDATION_TIMEOUT_MS`, `DATABASE_IDLE_TIMEOUT_MS`, `DATABASE_MAX_LIFETIME_MS`, and `DATABASE_KEEPALIVE_TIME_MS`.
 - Registrar package: run `mvn clean package` from `registrar/`.
 - Registrar container image: run `docker build -t oficina-registrar ./registrar` from the repository root. The image runs as UID/GID `10001` with writable runtime state under `/var/lib/oficina/registrar`.
-- Registrar container runtime state: mount `/var/lib/oficina/registrar` when `database.db` must survive container replacement.
 - Backend tests: run `go test ./...` from `backend/cmd/`.
+- Database migrator tests/build: run `go test ./...` from `database/`.
+- Run product migrations with `go run ./cmd/migrator up` from `database/` after setting `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD` for a DDL-capable migration user.
 - Backend Terraform validation: run `terraform fmt -check -recursive`, `terraform init -backend=false`, and `terraform validate` from `backend/terraform/`.
-- Backend DB integration tests use live MySQL when `OFICINA_TEST_MYSQL_DSN` is set; run `OFICINA_TEST_MYSQL_DSN='admin:password@tcp(host:3306)/oficina_test?parseTime=true' go test -p 1 ./internal/database ./internal/repository` from `backend/cmd/`. The helper creates a temporary schema, applies embedded goose migrations, and drops the schema after the test.
+- Backend DB integration tests use live MySQL when `OFICINA_TEST_MYSQL_DSN` is set; run `OFICINA_TEST_MYSQL_DSN='admin:password@tcp(host:3306)/oficina_test?parseTime=true' go test -p 1 ./internal/database ./internal/repository` from `backend/cmd/`. The helper creates a temporary schema, applies the central `database/migrations` stream, and drops the schema after the test.
 - Ansible validation: run `ansible-galaxy collection install -r ansible/requirements.yml`, then `ansible-playbook -i ansible/inventories/example/hosts.yml ansible/playbooks/site.yml --syntax-check` from the repository root. Use a private inventory for real hosts.
 - For doc-only changes, a file review is enough.
 
@@ -119,7 +122,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Backend Terraform state backend values are not committed. Use an ignored `backend.oci.tfbackend` locally, and GitHub secrets `OCI_OBJECT_STORAGE_NAMESPACE` and `OCI_TF_STATE_BUCKET` in CI.
 - Backend Terraform is constrained for OCI Always Free: `VM.Standard.E2.1.Micro`, 10 Mbps flexible load balancer, `MySQL.Free`, 50 GB MySQL storage, and default 50 GB compute boot volumes.
 - Backend Terraform currently exposes the OCI load balancer as public IPv4 HTTP-only. SSH to both application VMs is allowed from `ssh_source_cidr` for direct admin and Ansible access. Add HTTPS later through Cloudflare DNS/proxying, Cloudflare Origin CA material on the OCI load balancer, and a 443 listener.
-- Backend persistence uses the provisioned MySQL DB system. Configure it with `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD`. Create the backend schema and application DB user manually from the operator machine; do not put MySQL admin credentials in Ansible inventories or application VMs.
+- Persistence uses the provisioned MySQL DB system. Terraform provisions infrastructure only; schema changes are applied by the separate `database/` migrator. Use a DDL-capable migration user for the migrator and restricted application users for runtime services.
 - Backend runtime auth/session config currently requires `SESSION_SECRET`. Discord OAuth env vars are optional future configuration and must be supplied as a complete set only when that login flow is enabled.
 - Backend Discord REST metadata requires `DISCORD_BOT_TOKEN`; the backend must not call `discordgo.Session.Open()` or otherwise connect to the gateway.
 - Use `SESSION_COOKIE_SECURE=false` only for local HTTP development; production cookies should remain secure.
@@ -138,7 +141,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Coinflip inference channel bans are configured through `messages.coinflip.banned-channel-ids` as Discord channel IDs returned by `Bot.getArray(...)`; banned channels are ignored before pending flips or cooldowns are updated.
 - Attachment forwarding uses `channels.attachments-log.id` as a Discord text channel ID. It is stateless: do not add a table, scan archive history, or re-upload attachment bytes unless the preservation policy is deliberately changed.
 - Do not assume a missing bot feature is unimplemented before checking central registration.
-- SQLite is configured with a single pooled connection on purpose; avoid "fixing" that casually.
+- Applications must not run schema creation or migrations at startup. `DB.java` files only configure MySQL/Hikari and verify connectivity.
 - Giveaway buttons are durable component ids prefixed with `giveaway:` and must not use `InteractionMemoryManager`.
 - Accumulator controls are durable component ids prefixed with `acc:v1:` and must not use `InteractionMemoryManager`; accumulator rows are never deleted, only moved from `PENDING` to `PAID` or `REJECTED`.
 - Color role ownership uses `color_roles_state.expires_at`; do not reintroduce fixed `updated_at + 60 days` expiration logic.

@@ -7,6 +7,8 @@ This directory owns the OCI infrastructure for the backend service. The root mod
 - `mysql/`: private OCI MySQL DB system.
 - `load_balancer/`: public IPv4 flexible load balancer, backend set, and HTTP listener.
 
+Terraform provisions infrastructure only. Product schema is managed separately by the root `database/` migrator; do not add `local-exec`, provisioners, or application startup DDL to make Terraform apply SQL migrations.
+
 ## Local Setup
 
 Create a local backend config from `backend.oci.tfbackend.example`:
