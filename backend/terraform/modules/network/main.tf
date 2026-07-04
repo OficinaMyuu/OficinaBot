@@ -172,6 +172,22 @@ resource "oci_core_network_security_group_security_rule" "api_ingress_from_lb" {
   }
 }
 
+resource "oci_core_network_security_group_security_rule" "api_ingress_from_bots" {
+  network_security_group_id = oci_core_network_security_group.api.id
+  direction                 = "INGRESS"
+  protocol                  = local.protocol_tcp
+  source                    = oci_core_network_security_group.bots.id
+  source_type               = "NETWORK_SECURITY_GROUP"
+  description               = "Private backend API traffic from bots VM"
+
+  tcp_options {
+    destination_port_range {
+      min = var.api_port
+      max = var.api_port
+    }
+  }
+}
+
 resource "oci_core_network_security_group_security_rule" "api_ingress_ssh" {
   network_security_group_id = oci_core_network_security_group.api.id
   direction                 = "INGRESS"
