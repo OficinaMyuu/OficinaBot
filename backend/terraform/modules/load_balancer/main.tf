@@ -45,12 +45,41 @@ resource "oci_load_balancer_backend" "api" {
   weight  = 1
 }
 
+resource "oci_load_balancer_certificate" "api_origin" {
+  load_balancer_id   = oci_load_balancer_load_balancer.public.id
+  certificate_name   = var.certificate_name
+  public_certificate = var.public_certificate
+  private_key        = var.private_key
+  ca_certificate     = var.ca_certificate
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "oci_load_balancer_listener" "http" {
   load_balancer_id         = oci_load_balancer_load_balancer.public.id
   name                     = "http"
   default_backend_set_name = oci_load_balancer_backend_set.api.name
   port                     = var.lb_http_port
   protocol                 = "HTTP"
+
+  connection_configuration {
+    idle_timeout_in_seconds = 60
+  }
+}
+
+resource "oci_load_balancer_listener" "https" {
+  load_balancer_id         = oci_load_balancer_load_balancer.public.id
+  name                     = "https"
+  default_backend_set_name = oci_load_balancer_backend_set.api.name
+  port                     = var.lb_https_port
+  protocol                 = "HTTP"
+
+  ssl_configuration {
+    certificate_name        = oci_load_balancer_certificate.api_origin.certificate_name
+    verify_peer_certificate = false
+  }
 
   connection_configuration {
     idle_timeout_in_seconds = 60

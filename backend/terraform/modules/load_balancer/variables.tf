@@ -53,6 +53,36 @@ variable "lb_http_port" {
   description = "Public HTTP listener port."
 }
 
+variable "lb_https_port" {
+  type        = number
+  description = "Public HTTPS listener port."
+}
+
+variable "certificate_name" {
+  type        = string
+  description = "Name for the OCI load balancer certificate bundle."
+}
+
+variable "public_certificate" {
+  type        = string
+  description = "PEM-encoded public certificate for the HTTPS listener."
+  sensitive   = true
+}
+
+variable "private_key" {
+  type        = string
+  description = "PEM-encoded private key for the HTTPS listener."
+  sensitive   = true
+}
+
+variable "ca_certificate" {
+  type        = string
+  description = "Optional PEM-encoded CA certificate chain for the HTTPS listener."
+  default     = null
+  nullable    = true
+  sensitive   = true
+}
+
 variable "health_return_code" {
   type        = number
   description = "Expected health-check HTTP status."

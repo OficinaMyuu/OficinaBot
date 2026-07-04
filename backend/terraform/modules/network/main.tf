@@ -122,18 +122,20 @@ resource "oci_core_network_security_group" "bots" {
   freeform_tags = var.common_tags
 }
 
-resource "oci_core_network_security_group_security_rule" "lb_ingress_http" {
+resource "oci_core_network_security_group_security_rule" "lb_ingress_cloudflare" {
+  for_each = local.cloudflare_lb_ingress_rules
+
   network_security_group_id = oci_core_network_security_group.lb.id
   direction                 = "INGRESS"
   protocol                  = local.protocol_tcp
-  source                    = "0.0.0.0/0"
+  source                    = each.value.source
   source_type               = "CIDR_BLOCK"
-  description               = "Public HTTP to load balancer"
+  description               = "Cloudflare ${each.value.name} to load balancer"
 
   tcp_options {
     destination_port_range {
-      min = var.lb_http_port
-      max = var.lb_http_port
+      min = each.value.port
+      max = each.value.port
     }
   }
 }

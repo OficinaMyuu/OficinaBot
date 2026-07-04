@@ -33,3 +33,7 @@ output "load_balancer_public_ip" {
 output "api_http_url_hint" {
   value = module.load_balancer.http_url_hint
 }
+
+output "api_https_url_hint" {
+  value = module.load_balancer.https_url_hint
+}

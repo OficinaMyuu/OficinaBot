@@ -192,6 +192,28 @@ variable "ssh_public_key" {
   description = "SSH public key for VM access."
 }
 
+variable "cloudflare_ipv4_cidrs" {
+  type        = list(string)
+  description = "Cloudflare IPv4 CIDR ranges allowed to reach the public load balancer."
+  default = [
+    "103.21.244.0/22",
+    "103.22.200.0/22",
+    "103.31.4.0/22",
+    "104.16.0.0/13",
+    "104.24.0.0/14",
+    "108.162.192.0/18",
+    "131.0.72.0/22",
+    "141.101.64.0/18",
+    "162.158.0.0/15",
+    "172.64.0.0/13",
+    "173.245.48.0/20",
+    "188.114.96.0/20",
+    "190.93.240.0/20",
+    "197.234.240.0/22",
+    "198.41.128.0/17",
+  ]
+}
+
 variable "lb_min_bandwidth_mbps" {
   type        = number
   description = "Flexible load balancer minimum bandwidth."
@@ -218,6 +240,38 @@ variable "lb_http_port" {
   type        = number
   description = "Public HTTP listener port."
   default     = 80
+}
+
+variable "lb_https_port" {
+  type        = number
+  description = "Public HTTPS listener port."
+  default     = 443
+}
+
+variable "lb_https_certificate_name" {
+  type        = string
+  description = "Name for the OCI load balancer certificate bundle. Change this when rotating certificate material."
+  default     = "api-origin-2026-07"
+}
+
+variable "lb_https_public_certificate" {
+  type        = string
+  description = "PEM-encoded public Cloudflare Origin CA certificate for the API load balancer listener."
+  sensitive   = true
+}
+
+variable "lb_https_private_key" {
+  type        = string
+  description = "PEM-encoded private key for the API load balancer HTTPS certificate."
+  sensitive   = true
+}
+
+variable "lb_https_ca_certificate" {
+  type        = string
+  description = "Optional PEM-encoded CA certificate chain for the API load balancer HTTPS certificate."
+  default     = null
+  nullable    = true
+  sensitive   = true
 }
 
 variable "lb_health_return_code" {

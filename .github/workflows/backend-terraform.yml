@@ -80,6 +80,9 @@ jobs:
           SSH_SOURCE_CIDR: ${{ secrets.SSH_SOURCE_CIDR }}
           MYSQL_ADMIN_USERNAME: ${{ secrets.MYSQL_ADMIN_USERNAME }}
           MYSQL_ADMIN_PASSWORD: ${{ secrets.MYSQL_ADMIN_PASSWORD }}
+          CLOUDFLARE_ORIGIN_CERT_PEM: ${{ secrets.CLOUDFLARE_ORIGIN_CERT_PEM }}
+          CLOUDFLARE_ORIGIN_PRIVATE_KEY_PEM: ${{ secrets.CLOUDFLARE_ORIGIN_PRIVATE_KEY_PEM }}
+          CLOUDFLARE_ORIGIN_CA_PEM: ${{ secrets.CLOUDFLARE_ORIGIN_CA_PEM }}
         run: bash scripts/prepare-github-actions-env.sh
 
       - name: Initialize remote backend
@@ -120,6 +123,9 @@ jobs:
           SSH_SOURCE_CIDR: ${{ secrets.SSH_SOURCE_CIDR }}
           MYSQL_ADMIN_USERNAME: ${{ secrets.MYSQL_ADMIN_USERNAME }}
           MYSQL_ADMIN_PASSWORD: ${{ secrets.MYSQL_ADMIN_PASSWORD }}
+          CLOUDFLARE_ORIGIN_CERT_PEM: ${{ secrets.CLOUDFLARE_ORIGIN_CERT_PEM }}
+          CLOUDFLARE_ORIGIN_PRIVATE_KEY_PEM: ${{ secrets.CLOUDFLARE_ORIGIN_PRIVATE_KEY_PEM }}
+          CLOUDFLARE_ORIGIN_CA_PEM: ${{ secrets.CLOUDFLARE_ORIGIN_CA_PEM }}
         run: bash scripts/prepare-github-actions-env.sh
 
       - name: Initialize remote backend

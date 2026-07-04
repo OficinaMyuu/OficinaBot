@@ -16,6 +16,8 @@ required=(
   SSH_SOURCE_CIDR
   MYSQL_ADMIN_USERNAME
   MYSQL_ADMIN_PASSWORD
+  CLOUDFLARE_ORIGIN_CERT_PEM
+  CLOUDFLARE_ORIGIN_PRIVATE_KEY_PEM
 )
 
 missing=0
@@ -76,3 +78,9 @@ add_env TF_VAR_ssh_public_key "$SSH_PUBLIC_KEY"
 add_env TF_VAR_ssh_source_cidr "$SSH_SOURCE_CIDR"
 add_env TF_VAR_mysql_admin_username "$MYSQL_ADMIN_USERNAME"
 add_env TF_VAR_mysql_admin_password "$MYSQL_ADMIN_PASSWORD"
+add_env TF_VAR_lb_https_public_certificate "$CLOUDFLARE_ORIGIN_CERT_PEM"
+add_env TF_VAR_lb_https_private_key "$CLOUDFLARE_ORIGIN_PRIVATE_KEY_PEM"
+
+if [[ -n "${CLOUDFLARE_ORIGIN_CA_PEM:-}" ]]; then
+  add_env TF_VAR_lb_https_ca_certificate "$CLOUDFLARE_ORIGIN_CA_PEM"
+fi

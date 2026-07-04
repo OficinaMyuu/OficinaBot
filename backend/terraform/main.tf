@@ -11,6 +11,8 @@ module "network" {
   api_port               = var.api_port
   mysql_port             = var.mysql_port
   lb_http_port           = var.lb_http_port
+  lb_https_port          = var.lb_https_port
+  cloudflare_ipv4_cidrs  = var.cloudflare_ipv4_cidrs
   ssh_source_cidr        = var.ssh_source_cidr
 }
 
@@ -67,6 +69,11 @@ module "load_balancer" {
   lb_min_bandwidth_mbps = var.lb_min_bandwidth_mbps
   lb_max_bandwidth_mbps = var.lb_max_bandwidth_mbps
   lb_http_port          = var.lb_http_port
+  lb_https_port         = var.lb_https_port
+  certificate_name      = var.lb_https_certificate_name
+  public_certificate    = var.lb_https_public_certificate
+  private_key           = var.lb_https_private_key
+  ca_certificate        = var.lb_https_ca_certificate
   health_return_code    = var.lb_health_return_code
   health_interval_ms    = var.lb_health_interval_ms
   health_timeout_ms     = var.lb_health_timeout_ms

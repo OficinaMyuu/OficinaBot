@@ -48,6 +48,16 @@ variable "lb_http_port" {
   description = "Public HTTP listener port."
 }
 
+variable "lb_https_port" {
+  type        = number
+  description = "Public HTTPS listener port."
+}
+
+variable "cloudflare_ipv4_cidrs" {
+  type        = list(string)
+  description = "Cloudflare IPv4 CIDR ranges allowed to reach the public load balancer."
+}
+
 variable "ssh_source_cidr" {
   type        = string
   description = "Source CIDR allowed to SSH into application VMs."
