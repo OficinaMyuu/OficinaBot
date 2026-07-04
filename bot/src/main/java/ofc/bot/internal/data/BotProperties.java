@@ -3,6 +3,10 @@ package ofc.bot.internal.data;
 import ofc.bot.domain.database.DB;
 import org.jetbrains.annotations.Nullable;
 import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.Record1;
+import org.jooq.SelectConditionStep;
+import org.jooq.Table;
 import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,12 +15,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.quotedName;
 import static org.jooq.impl.DSL.table;
 
 public final class BotProperties {
     public static final long DEV_ID = 596939790532739075L;
     private static final Logger LOGGER = LoggerFactory.getLogger(BotProperties.class);
     private static final Map<String, String> data = new HashMap<>();
+    private static final Table<?> CONFIG_TABLE = table(quotedName("config"));
+    private static final Field<String> CONFIG_KEY = field(quotedName("key"), String.class);
+    private static final Field<String> CONFIG_VALUE = field(quotedName("value"), String.class);
 
     private BotProperties() {}
 
@@ -52,15 +60,18 @@ public final class BotProperties {
 
     public static String fetch(String key) throws DataAccessException {
         DSLContext ctx = DB.getContext();
-        String value = ctx.select(field("value"))
-                .from(table("config"))
-                .where(field("key").eq(key))
-                .fetchOneInto(String.class);
+        String value = selectConfigValue(ctx, key).fetchOneInto(String.class);
 
         if (value == null)
             LOGGER.warn("Found no values for key \"{}\"", key);
 
         data.put(key, value);
         return value;
+    }
+
+    static SelectConditionStep<Record1<String>> selectConfigValue(DSLContext ctx, String key) {
+        return ctx.select(CONFIG_VALUE)
+                .from(CONFIG_TABLE)
+                .where(CONFIG_KEY.eq(key));
     }
 }
