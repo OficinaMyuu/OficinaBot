@@ -110,8 +110,8 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - For doc-only changes, a file review is enough.
 
 ## Deployments
-- Bot image workflow: `.github/workflows/deploy.yml`; pushes multi-arch `linux/amd64` and `linux/arm64` images to `ghcr.io/<owner>/oficina-bot:latest` and `ghcr.io/<owner>/oficina-bot:<sha>`.
-- Registrar image workflow: `.github/workflows/deploy-registrar.yml`; pushes multi-arch `linux/amd64` and `linux/arm64` images to `ghcr.io/<owner>/oficina-registrar:latest` and `ghcr.io/<owner>/oficina-registrar:<sha>`.
+- Bot image workflow: `.github/workflows/deploy.yml`; pushes `ghcr.io/<owner>/oficina-bot:latest` and `ghcr.io/<owner>/oficina-bot:<sha>`.
+- Registrar image workflow: `.github/workflows/deploy-registrar.yml`; pushes `ghcr.io/<owner>/oficina-registrar:latest` and `ghcr.io/<owner>/oficina-registrar:<sha>`.
 - Backend image workflow: `.github/workflows/deploy-backend.yml`; builds from the repository root with `backend/Dockerfile`, then pushes `ghcr.io/<owner>/oficina-backend:latest` and `ghcr.io/<owner>/oficina-backend:<sha>`.
 - Bot and registrar Dockerfiles are service-local. They build shaded Maven jars in a builder stage, copy only the final jar into an Eclipse Temurin Alpine JRE runtime, and run through `dumb-init` as the non-root `app` user.
 - CodeQL workflow: `.github/workflows/codeql.yml`; scans Java/Kotlin and Go with explicit monorepo build steps.

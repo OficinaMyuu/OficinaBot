@@ -39,7 +39,6 @@ jobs:
         with:
           context: ./registrar
           file: ./registrar/Dockerfile
-          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/${{ steps.repo-owner.outputs.owner }}/oficina-registrar:latest
