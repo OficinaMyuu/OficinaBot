@@ -199,13 +199,13 @@ variable "bots_instance_image_ocid" {
 
 variable "boot_volume_size_gbs" {
   type        = number
-  description = "Boot volume size override. Leave null to use the OCI image/default size."
-  default     = null
-  nullable    = true
+  description = "Boot volume size override."
+  default     = 50
+  nullable    = false
 
   validation {
-    condition     = var.boot_volume_size_gbs == null || var.boot_volume_size_gbs == 50
-    error_message = "Use the default boot volume size or exactly 50 GB to stay within the intended Always Free footprint."
+    condition     = var.boot_volume_size_gbs == 50
+    error_message = "Use exactly 50 GB to stay within the intended Always Free footprint and OCI minimum boot volume size."
   }
 }
 
