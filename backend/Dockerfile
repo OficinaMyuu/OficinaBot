@@ -20,7 +20,9 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     PLAYWRIGHT_DRIVER_PATH=/tmp/playwright-driver \
-    go run github.com/playwright-community/playwright-go/cmd/playwright --version
+    printf 'package main\nimport "github.com/playwright-community/playwright-go"\nfunc main() { if err := playwright.Install(&playwright.RunOptions{DriverDirectory: "/tmp/playwright-driver", SkipInstallBrowsers: true}); err != nil { panic(err) } }\n' > /tmp/install-playwright-driver.go && \
+    go run /tmp/install-playwright-driver.go && \
+    rm /tmp/install-playwright-driver.go
 
 FROM debian:bookworm-slim
 
