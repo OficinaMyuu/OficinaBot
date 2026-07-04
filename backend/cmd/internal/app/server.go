@@ -3,8 +3,10 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -29,8 +31,8 @@ func NewServer(cfg Config) (*Server, error) {
 	}
 
 	runOptions := playwrightRunOptions()
-	if err := playwright.Install(runOptions); err != nil {
-		return nil, err
+	if err := ensurePlaywrightDriver(runOptions.DriverDirectory); err != nil {
+		return nil, fmt.Errorf("playwright driver is not available: %w", err)
 	}
 
 	pw, err := playwright.Run(runOptions)
@@ -109,6 +111,30 @@ func playwrightRunOptions() *playwright.RunOptions {
 		DriverDirectory:     driverPath,
 		SkipInstallBrowsers: true,
 	}
+}
+
+func ensurePlaywrightDriver(driverDirectory string) error {
+	if driverDirectory == "" {
+		return errors.New("driver directory is empty")
+	}
+
+	for _, path := range []string{
+		filepath.Join(driverDirectory, "node"),
+		filepath.Join(driverDirectory, "package", "cli.js"),
+	} {
+		info, err := os.Stat(path)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				return fmt.Errorf("missing required driver file %s", path)
+			}
+			return fmt.Errorf("cannot inspect required driver file %s: %w", path, err)
+		}
+		if info.IsDir() {
+			return fmt.Errorf("required driver file %s is a directory", path)
+		}
+	}
+
+	return nil
 }
 
 func ignoreServerClosed(err error) error {
