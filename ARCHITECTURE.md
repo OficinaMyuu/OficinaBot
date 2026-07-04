@@ -5,7 +5,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 
 ## Services
 - `bot/`: Java 21 Discord bot using JDA 6, Maven, MySQL, jOOQ, HikariCP, Quartz, OkHttp, and the OpenAI Java SDK.
-- `backend/`: Go HTTP backend that started as OficinaImagery and is expected to take on broader API responsibilities. Its current entrypoint is `backend/cmd/api/main.go`, with server bootstrapping under `backend/cmd/internal/app/`.
+- `backend/`: Go HTTP backend for Playwright-backed level card image generation. Its current entrypoint is `backend/cmd/api/main.go`, with server bootstrapping under `backend/cmd/internal/app/`.
 - `registrar/`: Java 17 Discord registration service using JDA 5 and Maven. Its entrypoint is `registrar/src/main/java/ofc/bot/RegisterMaster.java`.
 
 ## Repository Structure
@@ -173,42 +173,27 @@ Approval and rejection buttons use IDs prefixed with `nick-`, so the durable lis
 `ThrottledAction<T>` is a generic latest-value coalescer. Each `post(T)` replaces the pending value, and the scheduled flush runs only the latest value for that interval. It owns a scheduler and exposes `shutdown()`/`close()` so long-lived features can release it when the related workflow ends.
 
 ## Backend Boot Flow
-The backend entrypoint loads configuration, creates a signal-aware root context, builds the application server through `backend/cmd/internal/app`, and starts Echo through `Server.Start`. The app package owns MySQL connection startup, Playwright installation/startup, route registration, and graceful shutdown. `Server.Close` explicitly releases the database handle, card renderer browser, and Playwright runtime.
+The backend entrypoint loads configuration, creates a signal-aware root context, builds the application server through `backend/cmd/internal/app`, and starts Echo through `Server.Start`. The app package owns Playwright installation/startup, route registration, and graceful shutdown. `Server.Close` explicitly releases the card renderer browser and Playwright runtime.
 
 The backend container runs as non-root `appuser` with a real writable home directory. The image installs Debian Chromium and pre-bakes the Playwright Go driver into `/var/lib/oficina/backend/playwright-driver`; runtime sets `PLAYWRIGHT_DRIVER_PATH`, `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`, `HOME`, and `XDG_CACHE_HOME` so startup does not try to write under an unmanaged `/home/appuser` path or download browser bundles. Application code calls Playwright with `SkipInstallBrowsers` and launches the system Chromium executable.
 
-HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, and the external video route uses an injected downloader. This keeps route behavior testable without launching Playwright or shelling out to `yt-dlp`.
+HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, which keeps route behavior testable without launching Playwright.
 
-## Backend Persistence
-The backend uses the provisioned OCI MySQL DB system for future persistence, but its current table model is pending redesign. Do not add backend/dashboard tables to the bot migration stream until the backend schema is deliberately reintroduced.
+## Backend API Surface
+The backend intentionally exposes only:
+- `GET /health` for unauthenticated liveness checks.
+- `POST /api/levels/cards` for level profile card screenshots.
+- `POST /api/levels/roles` for level-role list screenshots.
+- `/static/*` for the HTML templates and image assets consumed by Playwright.
 
-## Backend Admin Auth
-The current deployment phase is owned by the proprietary Oficina website rather than Discord OAuth. Backend runtime still needs `SESSION_SECRET` for signed session and CSRF state handling. CORS intentionally allows all origins without browser credentials in this phase. Discord OAuth wiring remains in the backend for a later rollout, but `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URL`, and `OFICINA_OWNER_DISCORD_ID` are not required until that flow is deliberately enabled.
-
-When Discord OAuth is enabled later, admin login will use Discord OAuth2 with the `identify` scope. Backend admin persistence is pending redesign and is not part of the current bot-only migration stream.
-
-Admin session persistence is pending redesign. The browser receives an HttpOnly SameSite=Lax session cookie. `SESSION_COOKIE_SECURE` defaults to true and should only be disabled for local HTTP development.
-
-Auth routes live under `/api/auth/*`: Discord login start/callback, current admin lookup, and logout. Owner-only admin management lives under `/api/admin/users`.
-
-## Backend Service Auth
-Bot-to-backend APIs live under `/api/service/*` and use `Authorization: Bearer <token>`. Backend service-token persistence is pending redesign and is not part of the current bot-only migration stream.
-
-The protected service endpoint shape is legacy/pending redesign. Do not add its old persistence tables back to `database/migrations` without a deliberate backend schema pass.
-
-Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, wildcard CORS without browser credentials, CSRF checks for cookie-backed mutating admin routes, and a basic in-memory rate limiter. CSRF is intentionally not applied to bearer-token service routes.
+Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, wildcard CORS without browser credentials, and a basic in-memory rate limiter. There is no CSRF middleware because the backend no longer has cookie-backed mutating admin routes.
 
 Unauthenticated `GET /health` returns a small `{"status":"ok"}` response for backend liveness checks. The backend Docker image and compose definition both probe this route with `curl`.
 
-## Backend Dashboard APIs
-Admin dashboard APIs live under `/api/dashboard/*` and require the admin session cookie. Dashboard persistence is pending redesign and is not part of the current bot-only migration stream.
+## Backend Persistence
+The backend application currently has no database dependency and does not open MySQL at runtime. Do not add backend tables to the bot migration stream unless backend persistence is deliberately reintroduced.
 
-Backend-managed config versioning is pending redesign. Current bot runtime config is read from the bot `config` table.
-
-## Backend Discord REST Metadata
-The backend has a REST-only Discord integration built with `discordgo` and authenticated by `DISCORD_BOT_TOKEN`. It creates a `discordgo.Session` for HTTP methods only and must not call `Session.Open()`, configure gateway intents, or connect to Discord websockets. The Discord-facing bots remain responsible for gateway events.
-
-Dashboard metadata endpoints expose trimmed guild, channel, role, and user DTOs under `/api/dashboard/discord/*`. Metadata is cached in-process for five minutes to reduce repeated Discord REST calls; the cache is intentionally local and disposable.
+The backend does not currently include admin users, Discord OAuth/REST metadata, service-token sync APIs, dashboard APIs, config synchronization, repositories, or video downloads. Reintroducing any of those surfaces should start with an explicit design and tests instead of reviving the removed legacy code paths by habit.
 
 ## History Preservation
 This mono-repo was assembled with history-preserving subtree imports:

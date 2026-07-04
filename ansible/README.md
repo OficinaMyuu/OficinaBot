@@ -60,11 +60,14 @@ Edit private group vars:
 - Set `oficina_image_namespace` to the lowercase GHCR owner.
 - Set `oficina_registry_username` and `oficina_registry_token` only if GHCR packages are private.
 - Put service secrets in private vars or Ansible Vault, not in committed example files.
-- Backend runtime currently requires `SESSION_SECRET`, `DISCORD_BOT_TOKEN`, and MySQL connection values. Use the Terraform `mysql_private_host_hint` or `mysql_private_ip` as `backend_database_host`.
-- Create the backend schema and application MySQL user manually from the operator machine before running the playbook. Keep MySQL admin credentials out of Ansible inventories and application VMs; this playbook does not manage MySQL users or schemas.
+- Service `.env` files are mounted through Docker Compose with `env_file.format: raw`.
+  Keep this raw format when secrets contain `$`, because Compose interpolation would
+  otherwise treat password fragments such as `$TOKEN` as variables and alter the
+  value before the container starts.
+- Backend runtime currently has no required secret or database environment variables. Set optional values such as `ADDRESS` or `BODY_LIMIT` in `backend_env` only when the defaults are not suitable.
 - Bot runtime config is currently loaded from the bot SQLite `config` table. The bots inventory already passes future MySQL `DATABASE_*` values to `bot` and `registrar` using a separate `oficina_bots` application user; create that schema/user manually before enabling MySQL in the Java services.
 - Add more bot containers as separate `oficina_services` entries only when they need separate processes, state directories, or images. Reuse the `bots_database_*` vars for any future bot container that should share the bots database user.
-- CORS intentionally allows all origins without browser credentials for the proprietary website phase. Discord OAuth client env vars are intentionally omitted until that login flow is enabled.
+- CORS intentionally allows all origins without browser credentials. The backend currently exposes only level card generation endpoints plus `GET /health`.
 
 Validate before applying:
 
@@ -84,13 +87,10 @@ Apply:
 ansible-playbook -i ansible/inventories/prod/hosts.yml ansible/playbooks/site.yml
 ```
 
-## Backend MySQL Validation
+## Backend Validation
 
-Backend database tests can run against a live MySQL server by setting an admin-capable disposable-test DSN. The helper creates a temporary schema, runs migrations, and drops the schema after each test.
+Backend tests no longer require MySQL. Run them from `backend/cmd/`:
 
 ```sh
-OFICINA_TEST_MYSQL_DSN='admin:password@tcp(mysql.db.community.oraclevcn.com:3306)/oficina_test?parseTime=true' \
-  go test -p 1 ./internal/database ./internal/repository
+go test ./...
 ```
-
-Run that command from `backend/cmd/`. Use a non-production schema name in the DSN; the helper creates a unique temporary schema for each test.
