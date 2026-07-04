@@ -175,6 +175,8 @@ Approval and rejection buttons use IDs prefixed with `nick-`, so the durable lis
 ## Backend Boot Flow
 The backend entrypoint loads configuration, creates a signal-aware root context, builds the application server through `backend/cmd/internal/app`, and starts Echo through `Server.Start`. The app package owns MySQL connection startup, Playwright installation/startup, route registration, and graceful shutdown. `Server.Close` explicitly releases the database handle, card renderer browser, and Playwright runtime.
 
+The backend container runs as non-root `appuser` with a real writable home directory. The image installs Debian Chromium and pre-bakes the Playwright Go driver into `/var/lib/oficina/backend/playwright-driver`; runtime sets `PLAYWRIGHT_DRIVER_PATH`, `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`, `HOME`, and `XDG_CACHE_HOME` so startup does not try to write under an unmanaged `/home/appuser` path or download browser bundles. Application code calls Playwright with `SkipInstallBrowsers` and launches the system Chromium executable.
+
 HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, and the external video route uses an injected downloader. This keeps route behavior testable without launching Playwright or shelling out to `yt-dlp`.
 
 ## Backend Persistence
