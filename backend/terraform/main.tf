@@ -23,6 +23,7 @@ module "compute" {
   compartment_id               = var.compartment_id
   common_tags                  = local.common_tags
   availability_domain          = local.selected_ad_name
+  bots_availability_domain     = local.selected_bots_ad_name
   api_compute_shape            = var.api_compute_shape
   bots_compute_shape           = var.bots_compute_shape
   bots_compute_ocpus           = var.bots_compute_ocpus

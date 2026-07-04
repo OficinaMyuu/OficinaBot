@@ -151,6 +151,7 @@ The configuration is intentionally constrained to OCI Always Free shapes and siz
 
 - One API `VM.Standard.E2.1.Micro` compute instance.
 - One bots `VM.Standard.A1.Flex` compute instance with 1 OCPU and 6 GB RAM.
+- The bots VM has its own `bots_availability_domain_index` so A1 capacity can be targeted separately from the rest of the stack.
 - Flexible load balancer fixed at 10 Mbps.
 - `MySQL.Free` with 50 GB storage.
 - Default 50 GB boot volumes for each compute instance.

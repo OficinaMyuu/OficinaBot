@@ -33,7 +33,7 @@ resource "oci_core_instance" "api" {
 }
 
 resource "oci_core_instance" "bots" {
-  availability_domain = var.availability_domain
+  availability_domain = var.bots_availability_domain
   compartment_id      = var.compartment_id
   display_name        = "${var.project_name}-bots-vm"
   shape               = var.bots_compute_shape

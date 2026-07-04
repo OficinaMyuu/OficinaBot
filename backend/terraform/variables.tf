@@ -50,6 +50,17 @@ variable "availability_domain_index" {
   }
 }
 
+variable "bots_availability_domain_index" {
+  type        = number
+  description = "Zero-based availability domain index for the bots VM."
+  default     = 0
+
+  validation {
+    condition     = var.bots_availability_domain_index >= 0
+    error_message = "bots_availability_domain_index must be zero or greater."
+  }
+}
+
 variable "vcn_dns_label" {
   type        = string
   description = "DNS label for the VCN."

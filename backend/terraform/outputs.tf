@@ -2,6 +2,10 @@ output "selected_availability_domain" {
   value = local.selected_ad_name
 }
 
+output "selected_bots_availability_domain" {
+  value = local.selected_bots_ad_name
+}
+
 output "api_vm_private_ip" {
   value = module.compute.api_vm_private_ip
 }

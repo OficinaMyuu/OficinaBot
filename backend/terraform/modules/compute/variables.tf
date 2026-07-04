@@ -15,7 +15,12 @@ variable "common_tags" {
 
 variable "availability_domain" {
   type        = string
-  description = "Availability domain where instances are created."
+  description = "Availability domain where the API instance is created."
+}
+
+variable "bots_availability_domain" {
+  type        = string
+  description = "Availability domain where the bot instance is created."
 }
 
 variable "api_compute_shape" {
