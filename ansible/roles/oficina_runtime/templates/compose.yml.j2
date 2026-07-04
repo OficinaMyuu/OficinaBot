@@ -8,7 +8,8 @@ services:
     restart: "{{ service.restart | default('unless-stopped') }}"
     pull_policy: "{{ service.pull_policy | default(oficina_compose_pull_policy) }}"
     env_file:
-      - "{{ service.name }}.env"
+      - path: "{{ service.name }}.env"
+        format: raw
 {% if service.ports is defined and service.ports %}
     ports:
 {% for port in service.ports %}
