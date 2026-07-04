@@ -61,6 +61,16 @@
     - oficina_registry_token | length > 0
   no_log: true
 
+- name: Copy compose-adjacent asset directories
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ oficina_compose_dir }}/{{ item.dest }}"
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: "{{ item.mode | default('0644') }}"
+    directory_mode: "{{ item.directory_mode | default('0755') }}"
+  loop: "{{ oficina_compose_assets }}"
+
 - name: Write service environment files
   ansible.builtin.template:
     src: service.env.j2

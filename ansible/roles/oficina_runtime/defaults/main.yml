@@ -17,4 +17,5 @@ oficina_watchtower_cleanup: true
 oficina_watchtower_rolling_restart: true
 
 oficina_state_directories: []
+oficina_compose_assets: []
 oficina_services: []

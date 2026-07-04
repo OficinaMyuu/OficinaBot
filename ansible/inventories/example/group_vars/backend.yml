@@ -13,6 +13,12 @@ oficina_state_directories:
     group: root
     mode: "0755"
 
+oficina_compose_assets:
+  - src: "{{ playbook_dir }}/../../backend/static/"
+    dest: static/
+    mode: "0644"
+    directory_mode: "0755"
+
 oficina_services:
   - name: api
     image: "{{ oficina_registry }}/{{ oficina_image_namespace }}/oficina-backend:latest"
@@ -20,6 +26,8 @@ oficina_services:
     env: "{{ backend_env }}"
     ports:
       - "{{ backend_host_port }}:{{ backend_container_port }}"
+    volumes:
+      - "./static:/app/static:ro"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
       interval: 30s
