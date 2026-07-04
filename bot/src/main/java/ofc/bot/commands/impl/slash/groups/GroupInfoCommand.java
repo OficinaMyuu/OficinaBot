@@ -48,11 +48,11 @@ public class GroupInfoCommand extends SlashSubcommand {
             return Status.GROUP_ROLE_NOT_FOUND;
 
         ctx.ack();
-        guild.findMembersWithRoles(role).onSuccess((members) -> {
-            MessageEmbed embed = embed(role.getColors().getPrimaryRaw(), members, guild, group);
+        guild.retrieveRoleMemberCounts().queue((counts) -> {
+            MessageEmbed embed = embed(role.getColors().getPrimaryRaw(), counts.get(role), guild, group);
 
             ctx.replyEmbeds(embed);
-        }).onError((err) -> {
+        }, (err) -> {
             LOGGER.error("Could not fetch members from group {}", group.getId(), err);
             ctx.reply(Status.COULD_NOT_EXECUTE_SUCH_OPERATION);
         });
@@ -79,14 +79,12 @@ public class GroupInfoCommand extends SlashSubcommand {
         );
     }
 
-    private MessageEmbed embed(int color, List<Member> members, Guild guild, OficinaGroup group) {
+    private MessageEmbed embed(int color, int memberCount, Guild guild, OficinaGroup group) {
         EmbedBuilder builder = new EmbedBuilder();
-        long rent = group.calcRawRent(members);
         long now = Bot.unixNow();
         RentStatus rentStatus = group.getRentStatus();
         String hex = Bot.fmtColorHex(color);
-        String fmtRent = String.format("%s/mês", Bot.fmtMoney(rent));
-        String fmtMembers = Bot.fmtNum(members.size());
+        String fmtMembers = formatMemberCount(memberCount);
         String fmtTimestamp = String.format("<t:%d>", group.getTimeCreated());
         String fmtRentStatus = group.isRentLate() ? "⚠️ Atrasado" : rentStatus.getDisplayStatus();
         String fmtDistance = Bot.formatDateDistance(now, group.getTimeCreated());
@@ -97,12 +95,20 @@ public class GroupInfoCommand extends SlashSubcommand {
                 .addField("🎨 Cor", hex, true)
                 .addField("💳 Economia", group.getCurrency().getName(), true)
                 .addField("👶 Idade do Grupo", fmtDistance, true)
-                .addField("📅 Aluguel", fmtRent, true)
+                .addField("📅 Aluguel", formatRent(), true)
                 .addField("👑 Dono", group.getOwnerAsMention(), true)
                 .addField("🏡 Status de Aluguel", fmtRentStatus, true)
                 .addField("👥 Membros", fmtMembers, true)
                 .addField("📅 Criação", fmtTimestamp, true)
                 .setFooter(guild.getName(), guild.getIconUrl())
                 .build();
+    }
+
+    static String formatMemberCount(int memberCount) {
+        return Bot.fmtNum(memberCount);
+    }
+
+    static String formatRent() {
+        return "Desativado";
     }
 }

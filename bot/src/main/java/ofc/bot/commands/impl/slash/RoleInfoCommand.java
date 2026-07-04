@@ -1,6 +1,5 @@
 package ofc.bot.commands.impl.slash;
 
-import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -39,11 +38,11 @@ public class RoleInfoCommand extends SlashCommand {
         if (role == null)
             return Status.ROLE_NOT_FOUND;
 
-        guild.findMembersWithRoles(role).onSuccess((members) -> {
-            MessageEmbed embed = embed(members, role);
+        guild.retrieveRoleMemberCounts().queue((counts) -> {
+            MessageEmbed embed = embed(counts.get(role), role);
             ctx.replyEmbeds(embed);
-        }).onError((e) -> {
-            MessageEmbed embed = embed(List.of(), role);
+        }, (e) -> {
+            MessageEmbed embed = embed(0, role);
             ctx.create()
                     .setContent("Não foi possível encontrar membros para o cargo, tente novamente.")
                     .setEmbeds(embed)
@@ -67,16 +66,13 @@ public class RoleInfoCommand extends SlashCommand {
     }
 
     @SuppressWarnings("ConstantConditions")
-    private MessageEmbed embed(List<Member> members, Role role) {
+    private MessageEmbed embed(int memberCount, Role role) {
         OficinaEmbed builder = new OficinaEmbed();
         int color = role.getColors().getPrimaryRaw();
         long creation = role.getTimeCreated().toEpochSecond();
-        List<Member> onlineMembers = members.stream().filter((m) -> m.getOnlineStatus() != OnlineStatus.OFFLINE).toList();
         RoleIcon icon = role.getIcon();
         OficinaGroup group = grpRepo.findByRoleId(role.getIdLong());
         Guild guild = role.getGuild();
-        String memberCount = Bot.fmtNum(members.size());
-        String onlineCount = Bot.fmtNum(onlineMembers.size());
         String colorField = getColorField(color);
         String groupOwner = group == null ? null : group.getOwnerAsMention();
         boolean isGroupRole = group != null;
@@ -87,12 +83,16 @@ public class RoleInfoCommand extends SlashCommand {
                 .addField("📅 Criação", "<t:" + creation + ">\n<t:" + creation + ":R>", true)
                 .addField("💻 Role ID", "`" + role.getIdLong() + "`", true)
                 .addField("🎨 Cor", colorField, true)
-                .addField("👥 Membros", "Total: `" + memberCount + "`\nOnline: `" + onlineCount + "`", true)
+                .addField("👥 Membros", formatMemberField(memberCount), true)
                 .addFieldIf(isGroupRole, "👑 Dono do Grupo", groupOwner, true)
                 .addField("🔒 Permissões", stringifyPermissions(role), role.getPermissions().isEmpty())
                 .setFooter(guild.getName(), guild.getIconUrl())
                 .setThumbnailIf(icon != null, () -> icon.getIconUrl())
                 .build();
+    }
+
+    static String formatMemberField(int memberCount) {
+        return "Total: `" + Bot.fmtNum(memberCount) + "`";
     }
 
     private String getColorField(int rgb) {
