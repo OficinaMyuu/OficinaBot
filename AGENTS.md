@@ -40,6 +40,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Sad Monday/Sunday image posts are configured with `SAD_MONDAY_URL` and `SAD_SUNDAY_URL` environment variables.
 - The DB schema is migration-first: product DDL lives in `database/migrations/`; Java table classes are query mappings only.
 - Do not add automatic migration logic or `CREATE TABLE IF NOT EXISTS` startup DDL to application services.
+- Do not add interactive console SQL/query handlers to bot startup; database access should go through typed repositories, migrations, or purpose-built admin tooling.
 - Many features are registered centrally, so missing behavior is often a registration problem, not a logic problem.
 
 ## Bot Directory Index

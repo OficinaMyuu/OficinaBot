@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import ofc.bot.domain.database.DB;
-import ofc.bot.handlers.ConsoleQueryHandler;
 import ofc.bot.handlers.EntityInitializerManager;
 import ofc.bot.util.Bot;
 import org.slf4j.Logger;
@@ -35,7 +34,6 @@ public final class Main {
 
             initTime = Bot.unixNow();
 
-            ConsoleQueryHandler.init();
             EntityInitializerManager.initializeCronJobs();
         } catch (Exception e) {
             LOGGER.error("Failed to initialize some essential bot services", e);
