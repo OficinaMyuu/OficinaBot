@@ -20,13 +20,14 @@ CREATE TABLE users_economy (
     last_work_at BIGINT,
     created_at BIGINT NOT NULL,
     updated_at BIGINT NOT NULL,
-    CHECK (wallet >= 0)
+    CHECK (wallet >= 0 AND wallet <= 2147483647),
+    CHECK (bank >= -2147483648 AND bank <= 2147483647)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE users_xp (
     id INT PRIMARY KEY AUTO_INCREMENT,
     xp INT NOT NULL,
-    level INT NOT NULL,
+    level INT NOT NULL DEFAULT 0,
     user_id BIGINT NOT NULL,
     created_at BIGINT NOT NULL,
     updated_at BIGINT NOT NULL,
@@ -109,7 +110,7 @@ CREATE TABLE birthdays (
     user_id BIGINT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     birthday DATE NOT NULL,
-    zone_hours INT NOT NULL,
+    zone_hours INT NOT NULL DEFAULT -3,
     created_at BIGINT NOT NULL,
     updated_at BIGINT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -155,7 +156,7 @@ CREATE TABLE commands_history (
     id INT PRIMARY KEY AUTO_INCREMENT,
     command_name VARCHAR(128) NOT NULL,
     exit_status VARCHAR(64) NOT NULL,
-    ticks_cooldown BOOLEAN NOT NULL,
+    ticks_cooldown BOOLEAN NOT NULL DEFAULT TRUE,
     guild_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     created_at BIGINT NOT NULL
@@ -266,7 +267,7 @@ CREATE TABLE `groups` (
     text_channel_id BIGINT,
     voice_channel_id BIGINT,
     name VARCHAR(255) NOT NULL,
-    emoji VARCHAR(64) NOT NULL,
+    emoji VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
     currency VARCHAR(64) NOT NULL,
     amount_paid INT NOT NULL,
     invoice_amount BIGINT NOT NULL,
@@ -325,7 +326,7 @@ CREATE INDEX idx_marriages_target ON marriages(target_id);
 
 CREATE TABLE members_emojis (
     user_id BIGINT PRIMARY KEY,
-    emoji VARCHAR(64) NOT NULL,
+    emoji VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
     created_at BIGINT NOT NULL,
     updated_at BIGINT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -372,7 +373,7 @@ CREATE TABLE message_transcriptions (
     requester_id BIGINT NOT NULL,
     audio_length DOUBLE NOT NULL,
     transcription TEXT NOT NULL,
-    file_extension VARCHAR(32) NOT NULL,
+    file_extension VARCHAR(32) NOT NULL DEFAULT 'wav',
     is_harmful BOOLEAN,
     sexual_score DOUBLE,
     hate_score DOUBLE,
@@ -405,6 +406,7 @@ CREATE TABLE messages_versions (
 
 CREATE INDEX idx_messages_versions_message ON messages_versions(message_id, created_at);
 CREATE INDEX idx_messages_versions_author ON messages_versions(author_id);
+CREATE INDEX idx_messages_versions_channel_created ON messages_versions(channel_id, created_at);
 
 CREATE TABLE nickname_update_requests (
     request_id VARCHAR(128) PRIMARY KEY,
@@ -507,7 +509,7 @@ CREATE TABLE users_emojis_permissions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     author_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
-    emoji VARCHAR(64) NOT NULL,
+    emoji VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
     created_at BIGINT NOT NULL,
     UNIQUE (user_id, emoji)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -533,8 +535,8 @@ CREATE TABLE voice_heartbeats (
     channel_id BIGINT NOT NULL,
     is_muted BOOLEAN NOT NULL,
     is_deafened BOOLEAN NOT NULL,
-    is_video BOOLEAN NOT NULL,
-    is_stream BOOLEAN NOT NULL,
+    is_video BOOLEAN NOT NULL DEFAULT FALSE,
+    is_stream BOOLEAN NOT NULL DEFAULT FALSE,
     created_at BIGINT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

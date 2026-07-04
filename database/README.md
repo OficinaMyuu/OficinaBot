@@ -1,6 +1,8 @@
 # Oficina Database
 
-This module owns the single product-wide database migration stream.
+This module owns the current MySQL migration stream for the main Discord bot.
+Backend/dashboard tables are intentionally not part of this stream until the
+backend persistence model is redesigned.
 
 Run migrations with a database user that is allowed to execute DDL:
 
@@ -13,9 +15,9 @@ $env:DATABASE_PASSWORD="..."
 go run ./cmd/migrator up
 ```
 
-Application services must not run schema migrations at startup. The bot,
-registrar, and backend all connect to the schema after this migrator has
-successfully applied the ordered SQL files in `database/migrations`.
+Application services must not run schema migrations at startup. The bot connects
+to the schema after this migrator has successfully applied the ordered SQL files
+in `database/migrations`.
 
 Use separate credentials:
 
@@ -24,5 +26,4 @@ Use separate credentials:
 
 Live integration tests:
 
-- Go backend tests use `OFICINA_TEST_MYSQL_DSN`, for example `admin:password@tcp(host:3306)/oficina_test?parseTime=true`.
 - Java bot tests use `OFICINA_TEST_MYSQL_JDBC_URL`, plus optional `OFICINA_TEST_MYSQL_USER` and `OFICINA_TEST_MYSQL_PASSWORD` when credentials are not embedded in the JDBC URL.

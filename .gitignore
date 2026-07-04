@@ -46,6 +46,7 @@ target/
 go.work
 go.work.sum
 .env
+.local/
 
 # IDE/project metadata
 *.iws

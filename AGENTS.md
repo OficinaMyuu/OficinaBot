@@ -7,7 +7,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - `bot/` contains the Oficina Discord bot, formerly `OficinaMyuu/OficinaBot`.
 - `backend/` contains the Go backend, formerly `OficinaMyuu/OficinaImagery`.
 - `backend/terraform/` contains the OCI Terraform source for backend infrastructure.
-- `database/` contains the single product-wide MySQL migration runner and ordered migration SQL stream.
+- `database/` contains the current bot MySQL migration runner and ordered migration SQL stream.
 - `ansible.cfg` configures Ansible role and collection paths for repo-root commands.
 - `ansible/` contains the Docker runtime provisioning and deployment playbooks for the OCI VMs.
 - `registrar/` contains the registration Discord service, formerly `OficinaMyuu/RegistroOficina`.
@@ -70,7 +70,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Economy: `commands/impl/slash/economy/`, `listeners/discord/economy/`, `handlers/economy/`, `UserEconomyRepository`. `/rob` steals wallet only and fines bank on failure. `PolicyType.BLOCK_MONEY_GAINS` blocks automated money earnings only.
 - Color roles: `/colors` Components V2 store lives in `commands/impl/slash/colors/`; rendering lives in `handlers/shop/ColorRoleStoreMessageFactory.java`; final buy/remove actions stay in the shop button handlers.
 - Accumulator prizes: `/accumulator add/import/list` live in `commands/impl/slash/accumulator/`; money prizes default to the UnbelievaBoat economy; import reads newline-separated user IDs from a same-channel message and can forbid duplicates against both the import payload and pending prizes. Durable list controls live in `listeners/discord/interactions/buttons/accumulator/`; rendering, import planning, and payout orchestration live in `handlers/accumulator/`; rows live in `accumulator_prizes`.
-- Groups: `commands/impl/slash/groups/`, `listeners/discord/interactions/buttons/groups/`, `handlers/groups/`, `OficinaGroupRepository`. Group emojis are unique across groups. Role emoji display is stored on `groups.has_role_emoji`; when enabled the role name is `{emoji}⠀⠀⠀⠀{name}⠀⠀⠀⠀{emoji}`, otherwise it is `⠀⠀⠀⠀⠀⠀{name}⠀⠀⠀⠀⠀⠀`.
+- Groups: `commands/impl/slash/groups/`, `listeners/discord/interactions/buttons/groups/`, `handlers/groups/`, `OficinaGroupRepository`. Group emojis are unique across groups and must use binary MySQL collation when persisted. Role emoji display is stored on `groups.has_role_emoji`; when enabled the role name is `{emoji}⠀⠀⠀⠀{name}⠀⠀⠀⠀{emoji}`, otherwise it is `⠀⠀⠀⠀⠀⠀{name}⠀⠀⠀⠀⠀⠀`.
 - Marriage/relationships: `commands/impl/slash/relationships/`, `MarriageRepository`, `MarriageRequestRepository`.
 - Userinfo: `commands/impl/slash/userinfo/`, with the counting punishment release buttons under `listeners/discord/interactions/buttons/userinfo/`; the release role id is read from `fun.counting.punishments.role.id` and purchases charge bank through `PaymentManagerProvider`. The release button is shown only when a member views their own `/userinfo` and currently has the configured role.
   Member join history is stored in `member_join_events`; `/userinfo` shows the earliest known join event and falls back to JDA's current member join timestamp when no row exists yet. Live joins are recorded by `MemberJoinUpsert`.
@@ -103,7 +103,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Database migrator tests/build: run `go test ./...` from `database/`.
 - Run product migrations with `go run ./cmd/migrator up` from `database/` after setting `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD` for a DDL-capable migration user.
 - Backend Terraform validation: run `terraform fmt -check -recursive`, `terraform init -backend=false`, and `terraform validate` from `backend/terraform/`.
-- Backend DB integration tests use live MySQL when `OFICINA_TEST_MYSQL_DSN` is set; run `OFICINA_TEST_MYSQL_DSN='admin:password@tcp(host:3306)/oficina_test?parseTime=true' go test -p 1 ./internal/database ./internal/repository` from `backend/cmd/`. The helper creates a temporary schema, applies the central `database/migrations` stream, and drops the schema after the test.
+- Backend DB integration tests are pending redesign because the current `database/migrations` stream is bot-only.
 - Ansible validation: run `ansible-galaxy collection install -r ansible/requirements.yml`, then `ansible-playbook -i ansible/inventories/example/hosts.yml ansible/playbooks/site.yml --syntax-check` from the repository root. Use a private inventory for real hosts.
 - For doc-only changes, a file review is enough.
 
@@ -126,7 +126,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Backend runtime auth/session config currently requires `SESSION_SECRET`. Discord OAuth env vars are optional future configuration and must be supplied as a complete set only when that login flow is enabled.
 - Backend Discord REST metadata requires `DISCORD_BOT_TOKEN`; the backend must not call `discordgo.Session.Open()` or otherwise connect to the gateway.
 - Use `SESSION_COOKIE_SECURE=false` only for local HTTP development; production cookies should remain secure.
-- Backend service APIs live under `/api/service/*` and require `Authorization: Bearer <token>`; only token hashes are stored in `bot_clients`.
+- Backend service APIs live under `/api/service/*` and require `Authorization: Bearer <token>`; service-token persistence is pending redesign and is not part of the current bot-only migration stream.
 - Backend dashboard APIs live under `/api/dashboard/*` and use the admin session cookie.
 - Backend liveness is exposed by unauthenticated `GET /health`; the Docker image and compose file use this endpoint for container health checks. Build the image from the repository root with `docker build -f backend/Dockerfile -t oficina-backend .`.
 - Service batch ingestion endpoints require caller-provided `batch_id` values and treat duplicate batches as successful no-ops.
@@ -149,6 +149,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Roulette stakes are deducted from bank when accepted, and replacing an active entry releases the previous reserved stake before reserving the new one. Winners receive `stake * multiplier` back to bank when the shared spin resolves. Do not change this to wallet or total balance unless the whole betting policy is deliberately revised.
 - Blackjack stakes are deducted from bank when accepted. Double down and split each reserve one extra equal stake before changing the hand. Winners receive `stake * 2` back to bank, pushes receive `stake`, and losses receive nothing because the stake is already reserved. Do not add a Help button or player-vs-player flow to `/bets blackjack`.
 - `/nick` rejects unauthorized staff emojis outright; do not reintroduce the old "send anyway" confirmation flow.
+- Emoji columns used as identifiers or permission keys must use `utf8mb4_bin`, not the schema default `utf8mb4_unicode_ci`, because MySQL linguistic collations can compare unrelated emoji as equal.
 - Nickname emoji enforcement is event-driven for guild nickname updates, global-name updates, nickname resets, and member joins. Staff members from `Staff.isStaff(Member)`, emoji owners, explicitly authorized users, and unowned emojis are allowed. When sanitizing would leave an empty nickname, fallback replacements come from `Bot.getArray("nicks.replacements")`.
 
 ## Documentation

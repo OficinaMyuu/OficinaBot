@@ -12,7 +12,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - Repo-level GitHub Actions workflows live in `.github/workflows/`.
 - Service source, build descriptors, and service-owned assets live inside each service directory.
 - Runtime files, generated artifacts, local databases, and package outputs are ignored and are not source of truth.
-- Product database migrations live in `database/`; service code must not create or alter schema at startup.
+- Bot database migrations live in `database/`; service code must not create or alter schema at startup.
 - Backend infrastructure source lives in `backend/terraform/`.
 - Docker host provisioning and runtime deployment source lives in `ansible/`.
 
@@ -42,13 +42,13 @@ The OCI Terraform backend uses partial configuration in source (`backend "oci" {
 The backend infrastructure is constrained to OCI Always Free shapes and sizes: two `VM.Standard.E2.1.Micro` compute instances, a 10 Mbps flexible load balancer, `MySQL.Free` with 50 GB storage, and default 50 GB compute boot volumes. The current load balancer is public IPv4 HTTP-only for initial reachability and smoke tests. SSH to both application VMs is allowed only from the configured admin CIDR, while backend HTTP traffic reaches the API VM only through the load balancer security group. Production HTTPS should be added later through Cloudflare DNS/proxying, a Cloudflare Origin CA certificate installed on the OCI load balancer, a 443 listener, and Cloudflare Full (strict) SSL/TLS mode.
 
 ## Database Schema Management
-Terraform owns the OCI MySQL DB system, networking, and compute plumbing only. Product schema is owned by the root `database/` module, which embeds ordered goose SQL migrations and exposes `database/cmd/migrator`. Run the migrator as a separate deployment step with a DDL-capable migration user:
+Terraform owns the OCI MySQL DB system, networking, and compute plumbing only. The current bot schema is owned by the root `database/` module, which embeds ordered goose SQL migrations and exposes `database/cmd/migrator`. Run the migrator as a separate deployment step with a DDL-capable migration user:
 
 ```powershell
 go run ./cmd/migrator up
 ```
 
-The bot, registrar, and backend all connect to the same product schema after migrations have run. Runtime application users should be restricted to the DML privileges they need; MySQL admin or migration credentials should not be placed on application VMs. The backend's dashboard allowlist table is named `admin_users` to avoid colliding with the bot's canonical Discord `users` table.
+The main bot connects to this schema after migrations have run. Runtime application users should be restricted to the DML privileges they need; MySQL admin or migration credentials should not be placed on application VMs. Backend/dashboard persistence is intentionally pending redesign and is not represented in the current migration stream.
 
 ## Bot Boot Flow
 1. `DB.init()` creates the MySQL/Hikari datasource and verifies connectivity.
@@ -76,6 +76,7 @@ The bot, registrar, and backend all connect to the same product schema after mig
 - `voice_channel_income_rules` customizes scheduled voice money and XP payouts per channel and payout type.
 - `member_join_events` stores every known guild join event per user. `/userinfo` reads the earliest stored event and falls back to Discord's current member join timestamp when no history exists.
 - `groups.has_role_emoji` controls whether a group role name includes the group's emoji around the display name. Group channels always use the group emoji, while role names use either six braille-blank spacers without emoji or four braille-blank spacers between emoji and name when the flag is enabled.
+- Emoji values that are used as identifiers, such as group emoji ownership and nickname emoji permissions, are stored as `utf8mb4` strings with `utf8mb4_bin` column collation. Do not use the schema default `utf8mb4_unicode_ci` for these columns, because MySQL linguistic collations can compare distinct emoji as equal and break unique indexes or exact permission checks.
 
 Legacy SQLite-era manual snippets are no longer source of truth; add future changes as ordered MySQL migrations under `database/migrations/`.
 
@@ -177,32 +178,30 @@ The backend entrypoint loads configuration, creates a signal-aware root context,
 HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, and the external video route uses an injected downloader. This keeps route behavior testable without launching Playwright or shelling out to `yt-dlp`.
 
 ## Backend Persistence
-The backend uses the provisioned OCI MySQL DB system. Runtime configuration uses the explicit MySQL values `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD`. Startup opens the MySQL connection and configures the connection pool only; schema migrations are applied by the separate root `database/` migrator before deployment.
-
-The repository layer uses GORM models mapped to migration-owned tables. Current persistence tables cover admin users, bot clients, event batches, message logs, punishments, config versions, config acknowledgements, audit actions, registrations, and sync heartbeats. Live MySQL integration tests run when `OFICINA_TEST_MYSQL_DSN` is set; the test helper creates a temporary schema, applies the central migration stream, and drops the schema after each test.
+The backend uses the provisioned OCI MySQL DB system for future persistence, but its current table model is pending redesign. Do not add backend/dashboard tables to the bot migration stream until the backend schema is deliberately reintroduced.
 
 ## Backend Admin Auth
 The current deployment phase is owned by the proprietary Oficina website rather than Discord OAuth. Backend runtime still needs `SESSION_SECRET` for signed session and CSRF state handling. CORS intentionally allows all origins without browser credentials in this phase. Discord OAuth wiring remains in the backend for a later rollout, but `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URL`, and `OFICINA_OWNER_DISCORD_ID` are not required until that flow is deliberately enabled.
 
-When Discord OAuth is enabled later, admin login will use Discord OAuth2 with the `identify` scope. The backend stores allowlisted admins in `admin_users`; the configured `OFICINA_OWNER_DISCORD_ID` can bootstrap itself on first login and is the only account allowed to add or remove other admins. There is intentionally no role or permission system in this phase.
+When Discord OAuth is enabled later, admin login will use Discord OAuth2 with the `identify` scope. Backend admin persistence is pending redesign and is not part of the current bot-only migration stream.
 
-Admin sessions are stored in `admin_sessions` with hashed session tokens, expiration timestamps, and last-seen timestamps. The browser receives an HttpOnly SameSite=Lax session cookie. `SESSION_COOKIE_SECURE` defaults to true and should only be disabled for local HTTP development.
+Admin session persistence is pending redesign. The browser receives an HttpOnly SameSite=Lax session cookie. `SESSION_COOKIE_SECURE` defaults to true and should only be disabled for local HTTP development.
 
 Auth routes live under `/api/auth/*`: Discord login start/callback, current admin lookup, and logout. Owner-only admin management lives under `/api/admin/users`.
 
 ## Backend Service Auth
-Bot-to-backend APIs live under `/api/service/*` and use `Authorization: Bearer <token>`. The backend hashes bearer tokens with SHA-256 and compares them against `bot_clients.token_hash`; raw service tokens are not stored. Successful service authentication updates the client `last_seen_at` timestamp and stores the authenticated client in the Echo context for service handlers.
+Bot-to-backend APIs live under `/api/service/*` and use `Authorization: Bearer <token>`. Backend service-token persistence is pending redesign and is not part of the current bot-only migration stream.
 
-The protected service endpoints include `/api/service/me`, batch ingestion for message logs, punishments, registrations, sync heartbeats, pending config polling, and config ACKs. Batch ingestion requires caller-provided `batch_id` values. A repeated batch id returns success without inserting duplicate rows, so bots can retry network failures without inventing ghosts.
+The protected service endpoint shape is legacy/pending redesign. Do not add its old persistence tables back to `database/migrations` without a deliberate backend schema pass.
 
 Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, wildcard CORS without browser credentials, CSRF checks for cookie-backed mutating admin routes, and a basic in-memory rate limiter. CSRF is intentionally not applied to bearer-token service routes.
 
 Unauthenticated `GET /health` returns a small `{"status":"ok"}` response for backend liveness checks. The backend Docker image and compose definition both probe this route with `curl`.
 
 ## Backend Dashboard APIs
-Admin dashboard APIs live under `/api/dashboard/*` and require the admin session cookie. Current read endpoints expose recent message logs, punishments, registrations, sync health, audit actions, and config versions with simple limit-based pagination.
+Admin dashboard APIs live under `/api/dashboard/*` and require the admin session cookie. Dashboard persistence is pending redesign and is not part of the current bot-only migration stream.
 
-Config writes create immutable `config_versions` rows and audit actions. Bots poll `/api/service/configs/pending` for unapplied config versions and ACK each applied version through `/api/service/configs/:version_id/ack`. Polling is non-destructive; data is not removed just because a bot asked for it.
+Backend-managed config versioning is pending redesign. Current bot runtime config is read from the bot `config` table.
 
 ## Backend Discord REST Metadata
 The backend has a REST-only Discord integration built with `discordgo` and authenticated by `DISCORD_BOT_TOKEN`. It creates a `discordgo.Session` for HTTP methods only and must not call `Session.Open()`, configure gateway intents, or connect to Discord websockets. The Discord-facing bots remain responsible for gateway events.

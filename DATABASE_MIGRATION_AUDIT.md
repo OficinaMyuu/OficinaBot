@@ -4,8 +4,8 @@ Date: 2026-07-01
 
 ## Scope
 
-Audit and migration preparation for moving Oficina services from SQLite-era
-local persistence to one shared OCI MySQL product database. The services are:
+Audit and migration preparation for moving Oficina's main Discord bot from
+SQLite-era local persistence to OCI MySQL. The broader repo contains:
 
 - `bot/` general Discord bot
 - `registrar/` registration Discord bot
@@ -13,7 +13,7 @@ local persistence to one shared OCI MySQL product database. The services are:
 
 ## Decision
 
-Use one centralized, versioned schema migrator for the whole product database.
+Use one centralized, versioned schema migrator for the bot database schema.
 Terraform provisions OCI infrastructure only. Application services open pooled
 runtime connections only and must not create, alter, or migrate schema at
 startup.
@@ -24,19 +24,15 @@ connectivity and health validation. The selected implementation is the root
 Go `database/` module using goose with ordered SQL migrations.
 
 Runtime applications should not receive DDL credentials. Use a DDL-capable
-migration user only for the migrator, then run the bot, registrar, and backend
-with application users limited to DML privileges.
+migration user only for the migrator, then run the bot with an application user
+limited to DML privileges.
 
 ## Implemented
 
 - Added `database/` as the centralized migration module.
-- Moved backend migrations into the central migration stream.
-- Added MySQL DDL for bot and registrar tables to the central migration stream.
-- Renamed the backend dashboard allowlist table from `users` to `admin_users`
-  to avoid colliding with the bot's canonical Discord `users` table.
+- Replaced the initial mixed backend/bot migration stream with a bot-only
+  migration stream.
 - Removed backend startup migration execution.
-- Reworked backend database integration helpers to apply the central migration
-  stream in temporary MySQL schemas.
 - Replaced bot SQLite wiring with MySQL Connector/J, jOOQ MySQL dialect, and
   HikariCP.
 - Replaced registrar SQLite wiring with MySQL Connector/J, jOOQ MySQL dialect,
@@ -103,7 +99,6 @@ statements, and batched-statement rewriting.
 Completed:
 
 - `go test ./...` from `database/`
-- `go test ./...` from `backend/cmd/`
 - `mvn -q "-Dmaven.repo.local=../.m2" test` from `bot/`
 - `mvn -q "-Dmaven.repo.local=../.m2" test` from `registrar/`
 
@@ -133,8 +128,5 @@ $env:OFICINA_TEST_MYSQL_PASSWORD='password'
 mvn "-Dmaven.repo.local=../.m2" test
 ```
 
-```powershell
-cd backend/cmd
-$env:OFICINA_TEST_MYSQL_DSN='test_user:password@tcp(host:3306)/oficina_test?parseTime=true'
-go test -p 1 ./internal/database ./internal/repository
-```
+Backend/database integration tests are intentionally excluded until the backend
+schema is redesigned against the shared MySQL model.
