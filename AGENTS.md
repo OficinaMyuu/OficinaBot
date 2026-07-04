@@ -99,7 +99,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot and registrar database config comes from `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD`. Optional Hikari knobs are `DATABASE_MAX_POOL_SIZE`, `DATABASE_MIN_IDLE`, `DATABASE_CONNECTION_TIMEOUT_MS`, `DATABASE_VALIDATION_TIMEOUT_MS`, `DATABASE_IDLE_TIMEOUT_MS`, `DATABASE_MAX_LIFETIME_MS`, and `DATABASE_KEEPALIVE_TIME_MS`.
 - Registrar package: run `mvn clean package` from `registrar/`.
 - Registrar container image: run `docker build -t oficina-registrar ./registrar` from the repository root. The image runs as UID/GID `10001` with writable runtime state under `/var/lib/oficina/registrar`.
-- Backend tests: run `go test ./...` from `backend/cmd/`.
+- Backend tests: run `go test ./...` from `backend/cmd/`. The backend module uses a local replace to the root `database/` Go module for migration-backed integration helpers, so backend Docker builds use the repository root as build context.
 - Database migrator tests/build: run `go test ./...` from `database/`.
 - Run product migrations with `go run ./cmd/migrator up` from `database/` after setting `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD` for a DDL-capable migration user.
 - Backend Terraform validation: run `terraform fmt -check -recursive`, `terraform init -backend=false`, and `terraform validate` from `backend/terraform/`.
@@ -110,7 +110,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 ## Deployments
 - Bot image workflow: `.github/workflows/deploy.yml`; pushes `ghcr.io/<owner>/oficina-bot:latest` and `ghcr.io/<owner>/oficina-bot:<sha>`.
 - Registrar image workflow: `.github/workflows/deploy-registrar.yml`; pushes `ghcr.io/<owner>/oficina-registrar:latest` and `ghcr.io/<owner>/oficina-registrar:<sha>`.
-- Backend image workflow: `.github/workflows/deploy-backend.yml`; pushes `ghcr.io/<owner>/oficina-backend:latest` and `ghcr.io/<owner>/oficina-backend:<sha>`.
+- Backend image workflow: `.github/workflows/deploy-backend.yml`; builds from the repository root with `backend/Dockerfile` so the backend's local `database/` module replacement is available, then pushes `ghcr.io/<owner>/oficina-backend:latest` and `ghcr.io/<owner>/oficina-backend:<sha>`.
 - Bot and registrar Dockerfiles are service-local. They build shaded Maven jars in a builder stage, copy only the final jar into an Eclipse Temurin Alpine JRE runtime, and run through `dumb-init` as the non-root `app` user.
 - CodeQL workflow: `.github/workflows/codeql.yml`; scans Java/Kotlin and Go with explicit monorepo build steps.
 - Runtime deployment is managed by Ansible from `ansible/`. The bots VM runs the `bot`, any additional bot containers defined in inventory, and `registrar`; the backend/API VM runs the `backend` container.
@@ -128,7 +128,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Use `SESSION_COOKIE_SECURE=false` only for local HTTP development; production cookies should remain secure.
 - Backend service APIs live under `/api/service/*` and require `Authorization: Bearer <token>`; only token hashes are stored in `bot_clients`.
 - Backend dashboard APIs live under `/api/dashboard/*` and use the admin session cookie.
-- Backend liveness is exposed by unauthenticated `GET /health`; the Docker image and compose file use this endpoint for container health checks.
+- Backend liveness is exposed by unauthenticated `GET /health`; the Docker image and compose file use this endpoint for container health checks. Build the image from the repository root with `docker build -f backend/Dockerfile -t oficina-backend .`.
 - Service batch ingestion endpoints require caller-provided `batch_id` values and treat duplicate batches as successful no-ops.
 - Backend CORS allows all origins without browser credentials, body limit defaults to `BODY_LIMIT=8M`, and cookie-backed mutating admin routes require CSRF headers.
 - Private Ansible inventories, registry tokens, and service environment values must stay out of git. Use `ansible/inventories/prod/` or Ansible Vault for real values.
