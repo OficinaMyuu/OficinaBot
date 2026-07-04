@@ -23,8 +23,12 @@ module "compute" {
   compartment_id               = var.compartment_id
   common_tags                  = local.common_tags
   availability_domain          = local.selected_ad_name
-  compute_shape                = var.compute_shape
-  image_id                     = local.instance_image_id
+  api_compute_shape            = var.api_compute_shape
+  bots_compute_shape           = var.bots_compute_shape
+  bots_compute_ocpus           = var.bots_compute_ocpus
+  bots_compute_memory_gbs      = var.bots_compute_memory_gbs
+  api_image_id                 = local.api_instance_image_id
+  bots_image_id                = local.bots_instance_image_id
   public_subnet_id             = module.network.public_apps_subnet_id
   api_nsg_id                   = module.network.api_nsg_id
   bots_nsg_id                  = module.network.bots_nsg_id

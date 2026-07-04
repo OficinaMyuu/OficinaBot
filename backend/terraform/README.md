@@ -149,7 +149,8 @@ Do not send admin cookies, bearer tokens, OAuth callbacks, or other sensitive tr
 
 The configuration is intentionally constrained to OCI Always Free shapes and sizes:
 
-- Two `VM.Standard.E2.1.Micro` compute instances.
+- One API `VM.Standard.E2.1.Micro` compute instance.
+- One bots `VM.Standard.A1.Flex` compute instance with 1 OCPU and 6 GB RAM.
 - Flexible load balancer fixed at 10 Mbps.
 - `MySQL.Free` with 50 GB storage.
 - Default 50 GB boot volumes for each compute instance.

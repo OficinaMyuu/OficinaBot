@@ -4,7 +4,7 @@
 OficinaServices is the mono-repo for Oficina's Discord-facing services and shared backend work. Keep this file as the single architecture guide for the repository; do not add child `ARCHITECTURE.md` files.
 
 ## Services
-- `bot/`: Java 21 Discord bot using JDA 6, Maven, MySQL, jOOQ, HikariCP, Quartz, OkHttp, and the OpenAI Java SDK.
+- `bot/`: Java 21 Discord bot using JDA 6, Maven, MySQL, jOOQ, HikariCP, Quartz, and OkHttp.
 - `backend/`: Go HTTP backend for Playwright-backed level card image generation. Its current entrypoint is `backend/cmd/api/main.go`, with server bootstrapping under `backend/cmd/internal/app/`.
 - `registrar/`: Java 17 Discord registration service using JDA 5 and Maven. Its entrypoint is `registrar/src/main/java/ofc/bot/RegisterMaster.java`.
 
@@ -39,7 +39,7 @@ Backend OCI infrastructure is managed from `backend/terraform/`. The root Terraf
 
 The OCI Terraform backend uses partial configuration in source (`backend "oci" {}`), with the real bucket, namespace, region, and state key supplied through an ignored local `backend.oci.tfbackend` file or generated from GitHub secrets in CI. The OCI API private key is represented as `private_key_path` in Terraform; the GitHub Actions helper script writes `OCI_PRIVATE_KEY_PEM` into a temporary PEM file and exports `TF_VAR_private_key_path` to keep local and CI provider configuration equivalent.
 
-The backend infrastructure is constrained to OCI Always Free shapes and sizes: two `VM.Standard.E2.1.Micro` compute instances, a 10 Mbps flexible load balancer, `MySQL.Free` with 50 GB storage, and default 50 GB compute boot volumes. The current load balancer is public IPv4 HTTP-only for initial reachability and smoke tests. SSH to both application VMs is allowed only from the configured admin CIDR. Backend HTTP reaches the API VM from the load balancer security group, and the bots NSG may also reach the API port privately for bot-owned card rendering calls. Production HTTPS should be added later through Cloudflare DNS/proxying, a Cloudflare Origin CA certificate installed on the OCI load balancer, a 443 listener, and Cloudflare Full (strict) SSL/TLS mode.
+The backend infrastructure is constrained to OCI Always Free shapes and sizes: the API VM uses `VM.Standard.E2.1.Micro`, the bots VM uses `VM.Standard.A1.Flex` with 1 OCPU and 6 GB RAM, the load balancer is fixed at 10 Mbps, MySQL uses `MySQL.Free` with 50 GB storage, and compute boot volumes default to 50 GB. The current load balancer is public IPv4 HTTP-only for initial reachability and smoke tests. SSH to both application VMs is allowed only from the configured admin CIDR. Backend HTTP reaches the API VM from the load balancer security group, and the bots NSG may also reach the API port privately for bot-owned card rendering calls. Production HTTPS should be added later through Cloudflare DNS/proxying, a Cloudflare Origin CA certificate installed on the OCI load balancer, a 443 listener, and Cloudflare Full (strict) SSL/TLS mode.
 
 ## Database Schema Management
 Terraform owns the OCI MySQL DB system, networking, and compute plumbing only. The current bot schema is owned by the root `database/` module, which embeds ordered goose SQL migrations and exposes `database/cmd/migrator`. Run the migrator as a separate deployment step with a DDL-capable migration user:
@@ -55,7 +55,6 @@ The main bot connects to this schema after migrations have run. Runtime applicat
 2. JDA is built and awaited.
 3. Console handler and Quartz jobs are initialized.
 4. Services, listeners, slash commands, and composed interactions are registered.
-5. OpenAI client is created from `openai.key`.
 
 ## Bot Architectural Pieces
 - Entry point: `bot/src/main/java/ofc/bot/Main.java`
@@ -89,7 +88,7 @@ Legacy SQLite-era manual snippets are no longer source of truth; add future chan
 
 `/rolemembers` resolves role members through JDA, reports the same online/offline/total statistics for the unsorted role membership set, and renders aligned `id -> username` rows sorted alphabetically by Discord username. The same ordering is used when large responses are sent as `members.txt`.
 
-Voice message transcriptions are offered by `MessageTranscriptionsHandler` through the microphone reaction. The listener skips automatic reactions for voice-message authors listed in `messages.transcriptions.banned-user-ids`, and it also rejects manual microphone reactions on those authors' messages before cached or newly generated transcript output is sent. The key is read with `Bot.getArray(...)` and stores raw Discord user IDs.
+`/roleinfo` and `/group info` use Discord role member counts instead of JDA member chunking. They must not load all guild members just to display total role/group membership. `/roleinfo` does not show online-by-role counts, and `/group info` shows rent as disabled until rent can be computed without hydrating all role members.
 
 Coinflip message inference is handled by `CoinflipInferenceHandler` for plain `cara`/`coroa` messages. Channels listed in `messages.coinflip.banned-channel-ids` are ignored before pending flips or cooldowns are touched. The key is read with `Bot.getArray(...)` and stores raw Discord channel IDs.
 
@@ -97,6 +96,8 @@ Attachment preservation is handled by `AttachmentForwardingLogger`. When a non-b
 
 ## Bot Tickets
 Ticket creation sends a durable initial message with add-member, remove-member, and close controls. Close opens the existing close-reason modal. Add/remove member controls are handled by durable component IDs in `TicketMemberManagementHandler` instead of the temporary interaction memory manager, because ticket messages can outlive a bot process restart. Only members with `Manage Server` or Support Superior-or-higher staff roles may use those member controls. Adding skips users that already have ticket access. Removing deletes only explicit member permission overrides, skips the ticket initiator, and ignores administrators.
+
+`/tickets view` renders one ticket at a time and derives the involved users from `messages_versions` with a distinct author lookup for the ticket channel. Keep `messages_versions(channel_id, author_id)`, `support_tickets(created_at)`, and `support_tickets(initiator_id, created_at)` indexed so ticket pagination and participant lookup stay bounded as archived messages and tickets grow. Apply ticket index changes through the `database/` migrator, for example `go run ./cmd/migrator up` from `database/` with the `DATABASE_*` variables set for a DDL-capable MySQL user.
 
 ## Bot Economy
 Automated income is split by economy provider: `ChatMoneyHandler` credits Oficina wallet money for eligible guild messages, while `VoiceChatMoneyHandler` credits UnbelievaBoat cash or bank money for eligible voice activity. Voice channels configured in `income.voice.bank-channel-ids` are semicolon-separated Discord channel IDs that pay the doubled voice income amount to bank instead of cash. Both paths honor `PolicyType.BLOCK_MONEY_GAINS` through `AutomatedMoneyGainPolicy`, matching blocked users, roles, or channels. The policy is intentionally limited to automated income and does not block explicit command rewards such as `/daily` and `/work`, nor manual or claim-based prize fulfillment such as giveaway money claims.

@@ -32,7 +32,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Registrar entrypoint: `registrar/src/main/java/ofc/bot/RegisterMaster.java`.
 
 ## Bot Project Snapshot
-- Stack: Java 21, Maven, JDA 6, MySQL, jOOQ, HikariCP, Quartz, OkHttp, OpenAI Java SDK.
+- Stack: Java 21, Maven, JDA 6, MySQL, jOOQ, HikariCP, Quartz, and OkHttp.
 - App type: Discord bot for one server/community.
 - Packaging: shaded jar built as `bot/target/bot.jar`.
 - Runtime config is partly database-backed, not `.env`-driven.
@@ -71,22 +71,22 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Economy: `commands/impl/slash/economy/`, `listeners/discord/economy/`, `handlers/economy/`, `UserEconomyRepository`. `/rob` steals wallet only and fines bank on failure. `PolicyType.BLOCK_MONEY_GAINS` blocks automated money earnings only.
 - Color roles: `/colors` Components V2 store lives in `commands/impl/slash/colors/`; rendering lives in `handlers/shop/ColorRoleStoreMessageFactory.java`; final buy/remove actions stay in the shop button handlers.
 - Accumulator prizes: `/accumulator add/import/list` live in `commands/impl/slash/accumulator/`; money prizes default to the UnbelievaBoat economy; import reads newline-separated user IDs from a same-channel message and can forbid duplicates against both the import payload and pending prizes. Durable list controls live in `listeners/discord/interactions/buttons/accumulator/`; rendering, import planning, and payout orchestration live in `handlers/accumulator/`; rows live in `accumulator_prizes`.
-- Groups: `commands/impl/slash/groups/`, `listeners/discord/interactions/buttons/groups/`, `handlers/groups/`, `OficinaGroupRepository`. Group emojis are unique across groups and must use binary MySQL collation when persisted. Role emoji display is stored on `groups.has_role_emoji`; when enabled the role name is `{emoji}⠀⠀⠀⠀{name}⠀⠀⠀⠀{emoji}`, otherwise it is `⠀⠀⠀⠀⠀⠀{name}⠀⠀⠀⠀⠀⠀`.
+- Groups: `commands/impl/slash/groups/`, `listeners/discord/interactions/buttons/groups/`, `handlers/groups/`, `OficinaGroupRepository`. Group emojis are unique across groups and must use binary MySQL collation when persisted. Role emoji display is stored on `groups.has_role_emoji`; when enabled the role name is `{emoji}⠀⠀⠀⠀{name}⠀⠀⠀⠀{emoji}`, otherwise it is `⠀⠀⠀⠀⠀⠀{name}⠀⠀⠀⠀⠀⠀`. `/group info` uses Discord role member counts, must not chunk/load all guild members, and shows rent as disabled while member-intersection-based rent is unavailable.
 - Marriage/relationships: `commands/impl/slash/relationships/`, `MarriageRepository`, `MarriageRequestRepository`.
 - Userinfo: `commands/impl/slash/userinfo/`, with the counting punishment release buttons under `listeners/discord/interactions/buttons/userinfo/`; the release role id is read from `fun.counting.punishments.role.id` and purchases charge bank through `PaymentManagerProvider`. The release button is shown only when a member views their own `/userinfo` and currently has the configured role.
   Member join history is stored in `member_join_events`; `/userinfo` shows the earliest known join event and falls back to JDA's current member join timestamp when no row exists yet. Live joins are recorded by `MemberJoinUpsert`.
 - Reminders: `commands/impl/slash/reminders/`, `jobs/RemindersHandler.java`, `ReminderRepository`.
 - Moderation: `commands/impl/slash/moderation/`, `listeners/discord/moderation/`, `handlers/moderation/`, punishment repositories.
 - Events: `ToggleEventsCommand.java`, configured by `channels.events.text.id` and `channels.events.voice.id`.
-- Message transcriptions: `listeners/discord/guilds/messages/MessageTranscriptionsHandler.java`; users listed in `messages.transcriptions.banned-user-ids` do not receive automatic microphone reactions on voice messages and cannot have those voice messages transcribed through manual microphone reactions.
 - Role member lookup: `commands/impl/slash/RoleMembersCommand.java`; `/rolemembers` keeps the response syntax as aligned `id -> username` rows and sorts rows alphabetically by Discord username before sending inline text or the large-result file fallback.
+- Role info: `commands/impl/slash/RoleInfoCommand.java`; `/roleinfo` uses Discord role member counts and must not chunk/load all guild members or show online-by-role counts.
 - Attachment forwarding log: `listeners/discord/logs/messages/AttachmentForwardingLogger.java`; user-sent guild messages with attachments are forwarded to the text channel configured by `channels.attachments-log.id` through Discord's native message forward action.
 - World Cup 2026 reaction role: `listeners/discord/guilds/reactionroles/WorldCup2026ReactionRoleHandler.java`; messages in `worldcup2026.channel_id` receive a soccer ball reaction, and users who add/remove that reaction are idempotently granted/removed from `worldcup2026.role_id`.
 - Levels/XP: `commands/impl/slash/levels/`, `UsersXPHandler.java`, `VoiceXPHandler.java`, `LevelManager.java`. Voice XP channel payout overrides live in `voice_channel_income_rules` with `payout_type = LEVEL_EXPERIENCE`.
   Rank and level-role card rendering posts to the backend card API configured by `backend.api.base-url`, for example `http://10.0.1.10:8080`; the bot appends `/api/levels/cards` or `/api/levels/roles`.
 - Automated money income: `ChatMoneyHandler.java`, `VoiceChatMoneyHandler.java`, and `AutomatedMoneyGainPolicy.java`. Voice channels listed in `income.voice.bank-channel-ids` pay UnbelievaBoat income to bank with the voice multiplier instead of cash. Voice money channel payout overrides live in `voice_channel_income_rules` with `payout_type = MONEY`.
 - Tickets: `commands/impl/slash/tickets/`, modal/button handlers under `listeners/discord/interactions/.../tickets/`.
-  Initial ticket messages expose durable add/remove member buttons plus close; member add/remove handling lives in `listeners/discord/interactions/buttons/tickets/TicketMemberManagementHandler.java`. Managing ticket members is restricted to users with `Manage Server` or Support Superior-or-higher staff roles.
+  Initial ticket messages expose durable add/remove member buttons plus close; member add/remove handling lives in `listeners/discord/interactions/buttons/tickets/TicketMemberManagementHandler.java`. Managing ticket members is restricted to users with `Manage Server` or Support Superior-or-higher staff roles. `/tickets view` relies on indexed ticket ordering plus `messages_versions(channel_id, author_id)` for participant lookup.
 - Mafia/bets/games: `commands/impl/slash/mafia/`, `commands/impl/slash/bets/`, `handlers/games/`. `/bets roulette` uses a timed channel lobby, bank-only stakes, and UnbelievaBoat-style roulette spaces under `handlers/games/betting/roulette/`. A user may have only one active roulette entry per lobby; repeating the command replaces that user's previous entry. `/bets blackjack` is single-player against the bot/dealer under `handlers/games/betting/blackjack/`; it is not player-vs-player.
 - Giveaways: `/giveaway create/end/reroll`, `handlers/giveaway/`, `GiveawayInteractionListener.java`, `GiveawayVoiceConditionListener.java`, `GiveawayEndHandler.java`, and the `giveaways`, `giveaway_entries`, and `giveaway_winners` tables.
 - Oficina Dorme internals: `handlers/games/mafia/service/`, `handlers/games/mafia/domain/`, `handlers/games/mafia/discord/`, `MafiaInteractionListener.java`, `MafiaLifecycleListener.java`, and `game_mafia_logs`.
@@ -110,8 +110,8 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - For doc-only changes, a file review is enough.
 
 ## Deployments
-- Bot image workflow: `.github/workflows/deploy.yml`; pushes `ghcr.io/<owner>/oficina-bot:latest` and `ghcr.io/<owner>/oficina-bot:<sha>`.
-- Registrar image workflow: `.github/workflows/deploy-registrar.yml`; pushes `ghcr.io/<owner>/oficina-registrar:latest` and `ghcr.io/<owner>/oficina-registrar:<sha>`.
+- Bot image workflow: `.github/workflows/deploy.yml`; pushes multi-arch `linux/amd64` and `linux/arm64` images to `ghcr.io/<owner>/oficina-bot:latest` and `ghcr.io/<owner>/oficina-bot:<sha>`.
+- Registrar image workflow: `.github/workflows/deploy-registrar.yml`; pushes multi-arch `linux/amd64` and `linux/arm64` images to `ghcr.io/<owner>/oficina-registrar:latest` and `ghcr.io/<owner>/oficina-registrar:<sha>`.
 - Backend image workflow: `.github/workflows/deploy-backend.yml`; builds from the repository root with `backend/Dockerfile`, then pushes `ghcr.io/<owner>/oficina-backend:latest` and `ghcr.io/<owner>/oficina-backend:<sha>`.
 - Bot and registrar Dockerfiles are service-local. They build shaded Maven jars in a builder stage, copy only the final jar into an Eclipse Temurin Alpine JRE runtime, and run through `dumb-init` as the non-root `app` user.
 - CodeQL workflow: `.github/workflows/codeql.yml`; scans Java/Kotlin and Go with explicit monorepo build steps.
@@ -123,7 +123,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - The VMs do not need `git` for deployment. They pull images from GHCR, so they need Docker, DNS, outbound HTTPS, and GHCR credentials only when packages are private.
 - Backend Terraform workflow: `.github/workflows/backend-terraform.yml`; pull requests validate without secrets, pushes to `main` plan against the OCI backend, and applies require manual dispatch with the `backend-infra` environment.
 - Backend Terraform state backend values are not committed. Use an ignored `backend.oci.tfbackend` locally, and GitHub secrets `OCI_OBJECT_STORAGE_NAMESPACE` and `OCI_TF_STATE_BUCKET` in CI.
-- Backend Terraform is constrained for OCI Always Free: `VM.Standard.E2.1.Micro`, 10 Mbps flexible load balancer, `MySQL.Free`, 50 GB MySQL storage, and default 50 GB compute boot volumes.
+- Backend Terraform is constrained for OCI Always Free: the API VM uses `VM.Standard.E2.1.Micro`, the bots VM uses `VM.Standard.A1.Flex` with 1 OCPU and 6 GB RAM, the load balancer is fixed at 10 Mbps, MySQL uses `MySQL.Free` with 50 GB storage, and compute boot volumes default to 50 GB.
 - Backend Terraform currently exposes the OCI load balancer as public IPv4 HTTP-only. SSH to both application VMs is allowed from `ssh_source_cidr` for direct admin and Ansible access. Add HTTPS later through Cloudflare DNS/proxying, Cloudflare Origin CA material on the OCI load balancer, and a 443 listener.
 - Backend Terraform allows the bots NSG to reach the API NSG on `api_port` so bot commands can call the backend private address configured in `backend.api.base-url`.
 - Persistence uses the provisioned MySQL DB system. Terraform provisions infrastructure only; schema changes are applied by the separate `database/` migrator. Use a DDL-capable migration user for the migrator and restricted application users for runtime services.
@@ -139,7 +139,6 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - The `config` table column is named `key`; always quote it in SQL/jOOQ lookups because current MySQL versions treat it as reserved syntax.
 - Voice income bank-channel overrides are configured through `income.voice.bank-channel-ids` as semicolon-separated Discord channel IDs; do not hard-code channel snowflakes in `VoiceChatMoneyHandler`.
 - Voice channel income customizations are database-backed in `voice_channel_income_rules`, keyed by `(channel_id, payout_type)`. Use `multiplier = 1.25`, `allow_muted = true`, and `allow_solo = true` for event channels that should pay 125% to muted or solo undeafened humans.
-- Message transcription author bans are configured through `messages.transcriptions.banned-user-ids` as Discord user IDs returned by `Bot.getArray(...)`; this is separate from `AppUserBanRepository`, which blocks requesters from using bot actions.
 - Coinflip inference channel bans are configured through `messages.coinflip.banned-channel-ids` as Discord channel IDs returned by `Bot.getArray(...)`; banned channels are ignored before pending flips or cooldowns are updated.
 - Attachment forwarding uses `channels.attachments-log.id` as a Discord text channel ID. It is stateless: do not add a table, scan archive history, or re-upload attachment bytes unless the preservation policy is deliberately changed.
 - Do not assume a missing bot feature is unimplemented before checking central registration.

@@ -18,14 +18,34 @@ variable "availability_domain" {
   description = "Availability domain where instances are created."
 }
 
-variable "compute_shape" {
+variable "api_compute_shape" {
   type        = string
-  description = "Compute shape for the instances."
+  description = "Compute shape for the API instance."
 }
 
-variable "image_id" {
+variable "bots_compute_shape" {
   type        = string
-  description = "Image OCID used by the instances."
+  description = "Compute shape for the bot instance."
+}
+
+variable "bots_compute_ocpus" {
+  type        = number
+  description = "OCPU count for the bot instance flexible shape."
+}
+
+variable "bots_compute_memory_gbs" {
+  type        = number
+  description = "Memory in GB for the bot instance flexible shape."
+}
+
+variable "api_image_id" {
+  type        = string
+  description = "Image OCID used by the API instance."
+}
+
+variable "bots_image_id" {
+  type        = string
+  description = "Image OCID used by the bot instance."
 }
 
 variable "public_subnet_id" {

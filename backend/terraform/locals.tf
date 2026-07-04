@@ -1,7 +1,8 @@
 locals {
   selected_ad_name = data.oci_identity_availability_domains.ads.availability_domains[var.availability_domain_index].name
 
-  instance_image_id = var.instance_image_ocid != null ? var.instance_image_ocid : data.oci_core_images.ubuntu[0].images[0].id
+  api_instance_image_id  = var.api_instance_image_ocid != null ? var.api_instance_image_ocid : data.oci_core_images.api_ubuntu[0].images[0].id
+  bots_instance_image_id = var.bots_instance_image_ocid != null ? var.bots_instance_image_ocid : data.oci_core_images.bots_ubuntu[0].images[0].id
 
   common_tags = merge(
     var.freeform_tags,

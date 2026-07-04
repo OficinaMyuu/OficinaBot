@@ -127,14 +127,47 @@ variable "ssh_source_cidr" {
   description = "Public source CIDR allowed to SSH into the VMs."
 }
 
-variable "compute_shape" {
+variable "api_compute_shape" {
   type        = string
-  description = "Compute shape for API and bot VMs."
+  description = "Compute shape for the API VM."
   default     = "VM.Standard.E2.1.Micro"
 
   validation {
-    condition     = var.compute_shape == "VM.Standard.E2.1.Micro"
-    error_message = "Only VM.Standard.E2.1.Micro is allowed so the compute instances stay in OCI Always Free."
+    condition     = var.api_compute_shape == "VM.Standard.E2.1.Micro"
+    error_message = "Only VM.Standard.E2.1.Micro is allowed for the API VM so it stays in the intended Always Free footprint."
+  }
+}
+
+variable "bots_compute_shape" {
+  type        = string
+  description = "Compute shape for the bots VM."
+  default     = "VM.Standard.A1.Flex"
+
+  validation {
+    condition     = var.bots_compute_shape == "VM.Standard.A1.Flex"
+    error_message = "Only VM.Standard.A1.Flex is allowed for the bots VM so it stays in the intended Always Free footprint."
+  }
+}
+
+variable "bots_compute_ocpus" {
+  type        = number
+  description = "OCPU count for the bots VM flexible shape."
+  default     = 1
+
+  validation {
+    condition     = var.bots_compute_ocpus > 0 && var.bots_compute_ocpus <= 1
+    error_message = "The bots VM must use at most 1 OCPU."
+  }
+}
+
+variable "bots_compute_memory_gbs" {
+  type        = number
+  description = "Memory in GB for the bots VM flexible shape."
+  default     = 6
+
+  validation {
+    condition     = var.bots_compute_memory_gbs > 0 && var.bots_compute_memory_gbs <= 6
+    error_message = "The bots VM must use at most 6 GB of memory."
   }
 }
 
@@ -150,9 +183,16 @@ variable "image_operating_system_version" {
   default     = "22.04"
 }
 
-variable "instance_image_ocid" {
+variable "api_instance_image_ocid" {
   type        = string
-  description = "Explicit image OCID override. When null, Terraform searches for the latest matching Ubuntu image."
+  description = "Explicit API VM image OCID override. When null, Terraform searches for the latest matching Ubuntu image."
+  default     = null
+  nullable    = true
+}
+
+variable "bots_instance_image_ocid" {
+  type        = string
+  description = "Explicit bots VM image OCID override. When null, Terraform searches for the latest matching Ubuntu image."
   default     = null
   nullable    = true
 }
