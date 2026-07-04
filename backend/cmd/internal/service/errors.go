@@ -11,7 +11,6 @@ var (
 	ErrorMalformedJSON      = NewError(400, "Malformed JSON body")
 	ErrorXpGreaterThanNext  = NewError(400, "Field 'xp' is greater than 'xp_next', which should be impossible")
 	ErrorArrayHasNulls      = NewError(400, "Array cannot have nulls")
-	ErrorURLNotPresent      = NewError(400, "URL not provided")
 	ErrorDuplicateLevelRole = NewError(400, "The array contains 2 or more roles with the same `level` value")
 )
 
@@ -37,14 +36,6 @@ func ErrorInvalidArrayLength(length, valid int) *APIError {
 
 func ErrorValueMustBePositive(fieldName string, value int) *APIError {
 	return NewError(400, "Field '%s' should be positive, provided: %d", fieldName, value)
-}
-
-func ErrorResponseTooLarge(got, max int64) *APIError {
-	return NewError(400, "The response was larger than %d bytes (max), we got %d", max, got)
-}
-
-func ErrorDomainNotSupported(domain string) *APIError {
-	return NewError(400, "Domain '%s' not supported", domain)
 }
 
 func ErrorInvalidValue(fieldName string, provided any, validValues ...any) *APIError {

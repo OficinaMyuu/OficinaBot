@@ -67,6 +67,30 @@ func TestCardHandlerEncodesRendererResponse(t *testing.T) {
 	}
 }
 
+func TestCardHandlerEncodesRolesRendererResponse(t *testing.T) {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/api/levels/roles", strings.NewReader(`{"guild":{"name":"Oficina","icon_url":"https://example.com/icon.png"},"levels":[]}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+
+	err := NewCardHandler(&stubCardRenderer{roles: []byte{4, 5, 6}}).GetLevelsRoles(e.NewContext(req, rec))
+
+	if err != nil {
+		t.Fatalf("expected no echo error, got %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+
+	var body map[string]string
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("expected JSON response, got %v", err)
+	}
+	if body["image"] != "BAUG" {
+		t.Fatalf("expected base64 image BAUG, got %q", body["image"])
+	}
+}
+
 func TestCardHandlerReturnsRendererError(t *testing.T) {
 	e := echo.New()
 	expected := service.NewError(http.StatusTeapot, "renderer exploded")
@@ -75,6 +99,24 @@ func TestCardHandlerReturnsRendererError(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	err := NewCardHandler(&stubCardRenderer{levelCardErr: expected}).GetLevelCard(e.NewContext(req, rec))
+
+	if err != nil {
+		t.Fatalf("expected no echo error, got %v", err)
+	}
+	if rec.Code != http.StatusTeapot {
+		t.Fatalf("expected status %d, got %d", http.StatusTeapot, rec.Code)
+	}
+	assertAPIError(t, rec.Body.String(), expected)
+}
+
+func TestCardHandlerReturnsRolesRendererError(t *testing.T) {
+	e := echo.New()
+	expected := service.NewError(http.StatusTeapot, "roles renderer exploded")
+	req := httptest.NewRequest(http.MethodPost, "/api/levels/roles", strings.NewReader(`{"levels":[]}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+
+	err := NewCardHandler(&stubCardRenderer{rolesErr: expected}).GetLevelsRoles(e.NewContext(req, rec))
 
 	if err != nil {
 		t.Fatalf("expected no echo error, got %v", err)
