@@ -17,6 +17,11 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/server ./api/main.go
 
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    PLAYWRIGHT_DRIVER_PATH=/tmp/playwright-driver \
+    go run github.com/playwright-community/playwright-go/cmd/playwright --version
+
 FROM debian:bookworm-slim
 
 RUN apt-get update && \
@@ -33,18 +38,25 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN groupadd -r appgroup && useradd -r -g appgroup -u 10001 appuser
+RUN groupadd -r appgroup && \
+    useradd -r -g appgroup -u 10001 -m -d /home/appuser appuser && \
+    mkdir -p /var/lib/oficina/backend/playwright-driver /var/cache/oficina/backend
 
 WORKDIR /app
 COPY --from=build /app/server /app/server
+COPY --from=build /tmp/playwright-driver /var/lib/oficina/backend/playwright-driver
 COPY backend/static/ /app/static/
 
-RUN chown -R appuser:appgroup /app
+RUN chown -R appuser:appgroup /app /home/appuser /var/lib/oficina/backend /var/cache/oficina/backend
 
 USER appuser
 
 ENV PATH="/app:/usr/local/bin:${PATH}"
 ENV TMPDIR="/tmp"
+ENV HOME="/home/appuser"
+ENV XDG_CACHE_HOME="/var/cache/oficina/backend"
+ENV PLAYWRIGHT_DRIVER_PATH="/var/lib/oficina/backend/playwright-driver"
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH="/usr/bin/chromium"
 
 EXPOSE 8080
 

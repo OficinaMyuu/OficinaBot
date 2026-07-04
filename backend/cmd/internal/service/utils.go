@@ -2,6 +2,8 @@ package service
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/playwright-community/playwright-go"
 )
 
@@ -11,6 +13,8 @@ const (
 	Billion  = 1_000 * Million
 
 	MaxColorValue = 0xFFFFFF
+
+	defaultChromiumExecutablePath = "/usr/bin/chromium"
 )
 
 type Color struct {
@@ -54,8 +58,14 @@ func HumanizeNumber(value int) string {
 }
 
 func getLaunchOptions() playwright.BrowserTypeLaunchOptions {
+	executablePath := os.Getenv("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH")
+	if executablePath == "" {
+		executablePath = defaultChromiumExecutablePath
+	}
+
 	return playwright.BrowserTypeLaunchOptions{
-		Args: []string{"--headless"},
+		Args:           []string{"--no-sandbox", "--disable-dev-shm-usage"},
+		ExecutablePath: playwright.String(executablePath),
 	}
 }
 

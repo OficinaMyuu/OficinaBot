@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -31,6 +32,7 @@ type Server struct {
 }
 
 const shutdownTimeout = 10 * time.Second
+const defaultPlaywrightDriverPath = "/var/lib/oficina/backend/playwright-driver"
 
 func NewServer(cfg Config) (*Server, error) {
 	if err := cfg.ValidateRuntime(); err != nil {
@@ -47,12 +49,13 @@ func NewServer(cfg Config) (*Server, error) {
 		return nil, err
 	}
 
-	if err := playwright.Install(); err != nil {
+	runOptions := playwrightRunOptions()
+	if err := playwright.Install(runOptions); err != nil {
 		db.Close()
 		return nil, err
 	}
 
-	pw, err := playwright.Run()
+	pw, err := playwright.Run(runOptions)
 	if err != nil {
 		db.Close()
 		return nil, err
@@ -133,6 +136,17 @@ func (s *Server) Close() error {
 		err = errors.Join(err, s.database.Close())
 	}
 	return err
+}
+
+func playwrightRunOptions() *playwright.RunOptions {
+	driverPath := os.Getenv("PLAYWRIGHT_DRIVER_PATH")
+	if driverPath == "" {
+		driverPath = defaultPlaywrightDriverPath
+	}
+	return &playwright.RunOptions{
+		DriverDirectory:     driverPath,
+		SkipInstallBrowsers: true,
+	}
 }
 
 func ignoreServerClosed(err error) error {
