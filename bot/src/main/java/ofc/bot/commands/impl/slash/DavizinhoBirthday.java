@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import ofc.bot.Main;
 import ofc.bot.domain.entity.Birthday;
-import ofc.bot.domain.sqlite.repository.BirthdayRepository;
+import ofc.bot.domain.database.repository.BirthdayRepository;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;

@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import ofc.bot.domain.entity.UserEconomy;
-import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
+import ofc.bot.domain.database.repository.UserEconomyRepository;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;

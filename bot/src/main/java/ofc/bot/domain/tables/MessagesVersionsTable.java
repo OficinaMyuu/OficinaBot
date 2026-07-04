@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Query;
+import org.jooq.impl.SQLDataType;
 
 import static ofc.bot.domain.tables.UsersTable.USERS;
 
@@ -122,17 +123,17 @@ import static ofc.bot.domain.tables.UsersTable.USERS;
 public class MessagesVersionsTable extends InitializableTable<MessageVersion> {
     public static final MessagesVersionsTable MESSAGE_VERSIONS = new MessagesVersionsTable();
 
-    public final Field<Integer> ID          = newField("id",             INT.identity(true));
-    public final Field<Long> MESSAGE_ID     = newField("message_id",     BIGINT.notNull());
-    public final Field<Long> AUTHOR_ID      = newField("author_id",      BIGINT.notNull());
-    public final Field<Long> CHANNEL_ID     = newField("channel_id",     BIGINT.notNull());
-    public final Field<Long> MESSAGE_REF_ID = newField("message_ref_id", BIGINT);
-    public final Field<String> CONTENT      = newField("content",        CHAR);
-    public final Field<Long> STICKER_ID     = newField("sticker_id",     BIGINT);
-    public final Field<Boolean> IS_DELETED  = newField("is_deleted",     BOOL.notNull());
-    public final Field<Boolean> IS_ORIGINAL = newField("is_original",    BOOL.notNull().defaultValue(false));
-    public final Field<Long> DELETED_BY_ID  = newField("deleted_by_id",  BIGINT);
-    public final Field<Long> CREATED_AT     = newField("created_at",     BIGINT.notNull());
+    public final Field<Integer> ID          = newField("id",             SQLDataType.INTEGER.identity(true));
+    public final Field<Long> MESSAGE_ID     = newField("message_id",     SQLDataType.BIGINT.notNull());
+    public final Field<Long> AUTHOR_ID      = newField("author_id",      SQLDataType.BIGINT.notNull());
+    public final Field<Long> CHANNEL_ID     = newField("channel_id",     SQLDataType.BIGINT.notNull());
+    public final Field<Long> MESSAGE_REF_ID = newField("message_ref_id", SQLDataType.BIGINT);
+    public final Field<String> CONTENT      = newField("content",        SQLDataType.VARCHAR(255));
+    public final Field<Long> STICKER_ID     = newField("sticker_id",     SQLDataType.BIGINT);
+    public final Field<Boolean> IS_DELETED  = newField("is_deleted",     SQLDataType.BOOLEAN.notNull());
+    public final Field<Boolean> IS_ORIGINAL = newField("is_original",    SQLDataType.BOOLEAN.notNull().defaultValue(false));
+    public final Field<Long> DELETED_BY_ID  = newField("deleted_by_id",  SQLDataType.BIGINT);
+    public final Field<Long> CREATED_AT     = newField("created_at",     SQLDataType.BIGINT.notNull());
 
     public MessagesVersionsTable() {
         super("messages_versions");

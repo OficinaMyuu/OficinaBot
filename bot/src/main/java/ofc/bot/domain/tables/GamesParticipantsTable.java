@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Query;
+import org.jooq.impl.SQLDataType;
 
 import static ofc.bot.domain.tables.BetGamesTable.BET_GAMES;
 import static ofc.bot.domain.tables.UsersTable.USERS;
@@ -13,11 +14,11 @@ import static ofc.bot.domain.tables.UsersTable.USERS;
 public class GamesParticipantsTable extends InitializableTable<GameParticipant> {
     public static final GamesParticipantsTable GAMES_PARTICIPANTS = new GamesParticipantsTable();
 
-    public final Field<Integer> ID      = newField("id",         INT.identity(true));
-    public final Field<Long> GAME_ID    = newField("game_id",    BIGINT.notNull());
-    public final Field<Long> USER_ID    = newField("user_id",    BIGINT.notNull());
-    public final Field<Boolean> HAS_WON = newField("has_won",    BOOL.notNull());
-    public final Field<Long> CREATED_AT = newField("created_at", BIGINT.notNull());
+    public final Field<Integer> ID      = newField("id",         SQLDataType.INTEGER.identity(true));
+    public final Field<Long> GAME_ID    = newField("game_id",    SQLDataType.BIGINT.notNull());
+    public final Field<Long> USER_ID    = newField("user_id",    SQLDataType.BIGINT.notNull());
+    public final Field<Boolean> HAS_WON = newField("has_won",    SQLDataType.BOOLEAN.notNull());
+    public final Field<Long> CREATED_AT = newField("created_at", SQLDataType.BIGINT.notNull());
 
     public GamesParticipantsTable() {
         super("games_participants");

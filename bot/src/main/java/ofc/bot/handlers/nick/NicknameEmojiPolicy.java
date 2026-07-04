@@ -4,8 +4,8 @@ import com.vdurmont.emoji.EmojiParser;
 import net.dv8tion.jda.api.entities.Member;
 import ofc.bot.domain.entity.MemberEmoji;
 import ofc.bot.domain.entity.UserEmojiPermission;
-import ofc.bot.domain.sqlite.repository.MemberEmojiRepository;
-import ofc.bot.domain.sqlite.repository.UserEmojiPermissionRepository;
+import ofc.bot.domain.database.repository.MemberEmojiRepository;
+import ofc.bot.domain.database.repository.UserEmojiPermissionRepository;
 import ofc.bot.util.content.Staff;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,7 +37,12 @@ public class NicknameEmojiPolicy {
 
     public NicknameEmojiReport inspect(long targetUserId, @NotNull String nickname) {
         List<String> emojis = EmojiParser.extractEmojis(nickname);
-        Map<String, Long> staffEmojiOwners = memberEmojiRepo.findAll()
+        if (emojis.isEmpty()) {
+            return new NicknameEmojiReport(nickname, emojis, List.of(), List.of());
+        }
+
+        Set<String> uniqueEmojis = new LinkedHashSet<>(emojis);
+        Map<String, Long> staffEmojiOwners = memberEmojiRepo.findByEmojis(uniqueEmojis)
                 .stream()
                 .collect(Collectors.toMap(
                         MemberEmoji::getEmoji,
@@ -48,19 +53,28 @@ public class NicknameEmojiPolicy {
 
         List<ApprovedEmojiUse> approved = new ArrayList<>();
         List<UnauthorizedEmojiUse> unauthorized = new ArrayList<>();
-        Set<String> checkedStaffEmojis = new LinkedHashSet<>();
+        Set<String> relevantStaffEmojis = new LinkedHashSet<>();
 
         for (String emoji : emojis) {
-            if (!checkedStaffEmojis.add(emoji)) {
+            Long ownerId = staffEmojiOwners.get(emoji);
+            if (ownerId == null || ownerId == targetUserId) {
                 continue;
             }
+            relevantStaffEmojis.add(emoji);
+        }
 
+        Map<String, UserEmojiPermission> permissions = emojiPermissionRepo.findByUserAndEmojis(
+                targetUserId,
+                relevantStaffEmojis
+        );
+
+        for (String emoji : relevantStaffEmojis) {
             Long ownerId = staffEmojiOwners.get(emoji);
             if (ownerId == null || ownerId == targetUserId) {
                 continue;
             }
 
-            UserEmojiPermission permission = emojiPermissionRepo.findByUserAndEmoji(targetUserId, emoji);
+            UserEmojiPermission permission = permissions.get(emoji);
             if (permission == null) {
                 unauthorized.add(new UnauthorizedEmojiUse(emoji, ownerId));
                 continue;

@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import ofc.bot.Main;
 import ofc.bot.commands.impl.slash.levels.LevelsRolesCommand;
 import ofc.bot.domain.entity.LevelRole;
-import ofc.bot.domain.sqlite.repository.LevelRoleRepository;
+import ofc.bot.domain.database.repository.LevelRoleRepository;
 import ofc.bot.handlers.economy.PaymentManagerProvider;
 import ofc.bot.handlers.economy.unb.UnbelievaBoatClient;
 import ofc.bot.handlers.interactions.commands.Cooldown;

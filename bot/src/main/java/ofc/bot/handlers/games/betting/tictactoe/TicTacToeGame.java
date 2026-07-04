@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.internal.utils.Checks;
 import ofc.bot.domain.entity.*;
-import ofc.bot.domain.sqlite.repository.*;
+import ofc.bot.domain.database.repository.*;
 import ofc.bot.handlers.games.GameArgs;
 import ofc.bot.handlers.games.GameStatus;
 import ofc.bot.handlers.games.GameType;

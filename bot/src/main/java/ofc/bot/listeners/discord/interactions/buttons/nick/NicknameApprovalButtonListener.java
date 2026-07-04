@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ofc.bot.domain.entity.NicknameUpdateRequest;
 import ofc.bot.domain.entity.enums.NicknameRequestStatus;
-import ofc.bot.domain.sqlite.repository.NicknameUpdateRequestRepository;
+import ofc.bot.domain.database.repository.NicknameUpdateRequestRepository;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 import ofc.bot.util.embeds.EmbedFactory;

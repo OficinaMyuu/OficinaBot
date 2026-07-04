@@ -3,7 +3,7 @@ package ofc.bot.listeners.discord.interactions.buttons.pagination;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import ofc.bot.domain.sqlite.repository.MarriageRequestRepository;
+import ofc.bot.domain.database.repository.MarriageRequestRepository;
 import ofc.bot.domain.viewmodels.ProposalsView;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.InteractionListener;

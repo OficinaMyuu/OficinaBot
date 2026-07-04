@@ -6,18 +6,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Query;
+import org.jooq.impl.SQLDataType;
 
 import static ofc.bot.domain.tables.UsersTable.USERS;
 
 public class UsersXPTable extends InitializableTable<UserXP> {
     public static final UsersXPTable USERS_XP = new UsersXPTable();
 
-    public final Field<Integer> ID      = newField("id",         INT.identity(true));
-    public final Field<Integer> XP      = newField("xp",         INT.notNull());
-    public final Field<Integer> LEVEL   = newField("level",      INT.notNull());
-    public final Field<Long> USER_ID    = newField("user_id",    BIGINT.notNull());
-    public final Field<Long> CREATED_AT = newField("created_at", BIGINT.notNull());
-    public final Field<Long> UPDATED_AT = newField("updated_at", BIGINT.notNull());
+    public final Field<Integer> ID      = newField("id",         SQLDataType.INTEGER.identity(true));
+    public final Field<Integer> XP      = newField("xp",         SQLDataType.INTEGER.notNull());
+    public final Field<Integer> LEVEL   = newField("level",      SQLDataType.INTEGER.notNull());
+    public final Field<Long> USER_ID    = newField("user_id",    SQLDataType.BIGINT.notNull());
+    public final Field<Long> CREATED_AT = newField("created_at", SQLDataType.BIGINT.notNull());
+    public final Field<Long> UPDATED_AT = newField("updated_at", SQLDataType.BIGINT.notNull());
 
     public UsersXPTable() {
         super("users_xp");

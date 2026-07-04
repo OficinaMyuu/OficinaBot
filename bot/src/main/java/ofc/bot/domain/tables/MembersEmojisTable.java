@@ -13,7 +13,7 @@ public class MembersEmojisTable extends InitializableTable<MemberEmoji> {
     public static final MembersEmojisTable MEMBERS_EMOJIS = new MembersEmojisTable();
 
     public final Field<Long> USER_ID    = newField("user_id",    SQLDataType.BIGINT.notNull());
-    public final Field<String> EMOJI    = newField("emoji",      SQLDataType.CHAR.notNull());
+    public final Field<String> EMOJI    = newField("emoji",      SQLDataType.VARCHAR(255).notNull());
     public final Field<Long> CREATED_AT = newField("created_at", SQLDataType.BIGINT.notNull());
     public final Field<Long> UPDATED_AT = newField("updated_at", SQLDataType.BIGINT.notNull());
 

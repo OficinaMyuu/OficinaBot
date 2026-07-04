@@ -6,9 +6,9 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 import ofc.bot.domain.entity.BetGame;
 import ofc.bot.domain.entity.GameParticipant;
 import ofc.bot.domain.entity.UserEconomy;
-import ofc.bot.domain.sqlite.repository.BetGameRepository;
-import ofc.bot.domain.sqlite.repository.GameParticipantRepository;
-import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
+import ofc.bot.domain.database.repository.BetGameRepository;
+import ofc.bot.domain.database.repository.GameParticipantRepository;
+import ofc.bot.domain.database.repository.UserEconomyRepository;
 import ofc.bot.handlers.games.GameStatus;
 import ofc.bot.handlers.games.GameType;
 import ofc.bot.handlers.games.betting.BetManager;
@@ -318,15 +318,7 @@ public final class RouletteGame {
      * @param values bank deltas keyed by Discord user id
      */
     private void addBankBalances(Map<Long, Integer> values) {
-        for (Map.Entry<Long, Integer> value : values.entrySet()) {
-            long userId = value.getKey();
-            int amount = value.getValue();
-            UserEconomy eco = ecoRepo.findByUserId(userId, UserEconomy.fromUserId(userId));
-            long nextBank = (long) eco.getBank() + amount;
-
-            eco.setBank((int) Math.min(nextBank, Integer.MAX_VALUE)).tickUpdate();
-            ecoRepo.upsert(eco);
-        }
+        ecoRepo.addBankBalances(values, Bot.unixNow());
     }
 
     /**

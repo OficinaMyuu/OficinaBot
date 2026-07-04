@@ -6,15 +6,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Query;
+import org.jooq.impl.SQLDataType;
 
 public class TempBansTable extends InitializableTable<TempBan> {
     public static final TempBansTable TEMP_BANS = new TempBansTable();
 
-    public final Field<Integer> ID        = newField("id",           INT.identity(true));
-    public final Field<Long> USER_ID      = newField("user_id",      BIGINT.notNull());
-    public final Field<Long> GUILD_ID     = newField("guild_id",     BIGINT.notNull());
-    public final Field<Long> EXPIRES_AT   = newField("expires_at",   BIGINT.notNull());
-    public final Field<Long> CREATED_AT   = newField("created_at",   BIGINT.notNull());
+    public final Field<Integer> ID        = newField("id",           SQLDataType.INTEGER.identity(true));
+    public final Field<Long> USER_ID      = newField("user_id",      SQLDataType.BIGINT.notNull());
+    public final Field<Long> GUILD_ID     = newField("guild_id",     SQLDataType.BIGINT.notNull());
+    public final Field<Long> EXPIRES_AT   = newField("expires_at",   SQLDataType.BIGINT.notNull());
+    public final Field<Long> CREATED_AT   = newField("created_at",   SQLDataType.BIGINT.notNull());
 
     public TempBansTable() {
         super("temp_bans");

@@ -8,7 +8,7 @@ import net.dv8tion.jda.internal.utils.Checks;
 import ofc.bot.domain.entity.LevelRole;
 import ofc.bot.domain.entity.UserXP;
 import ofc.bot.domain.entity.enums.PolicyType;
-import ofc.bot.domain.sqlite.repository.*;
+import ofc.bot.domain.database.repository.*;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.Channels;
 import org.jetbrains.annotations.NotNull;

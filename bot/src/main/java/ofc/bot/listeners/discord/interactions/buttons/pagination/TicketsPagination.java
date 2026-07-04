@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
 import ofc.bot.Main;
 import ofc.bot.domain.entity.SupportTicket;
-import ofc.bot.domain.sqlite.repository.MessageVersionRepository;
+import ofc.bot.domain.database.repository.MessageVersionRepository;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.InteractionListener;

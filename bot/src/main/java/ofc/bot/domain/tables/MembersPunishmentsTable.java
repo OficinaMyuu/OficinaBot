@@ -18,7 +18,7 @@ public class MembersPunishmentsTable extends InitializableTable<MemberPunishment
     public final Field<Long> GUILD_ID           = newField("guild_id",           SQLDataType.BIGINT.notNull());
     public final Field<Long> USER_ID            = newField("user_id",            SQLDataType.BIGINT.notNull());
     public final Field<Long> MODERATOR_ID       = newField("moderator_id",       SQLDataType.BIGINT.notNull());
-    public final Field<String> REASON           = newField("reason",             SQLDataType.CHAR.notNull());
+    public final Field<String> REASON           = newField("reason",             SQLDataType.VARCHAR(255).notNull());
     public final Field<Boolean> ACTIVE          = newField("active",             SQLDataType.BOOLEAN.notNull());
     public final Field<Long> DELETION_AUTHOR_ID = newField("deletion_author_id", SQLDataType.BIGINT);
     public final Field<Long> CREATED_AT         = newField("created_at",         SQLDataType.BIGINT.notNull());

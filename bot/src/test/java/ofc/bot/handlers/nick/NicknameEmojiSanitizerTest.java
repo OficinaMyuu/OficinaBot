@@ -1,11 +1,13 @@
 package ofc.bot.handlers.nick;
 
+import ofc.bot.testing.MySQLTestDatabase;
+
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import ofc.bot.domain.entity.MemberEmoji;
 import ofc.bot.domain.entity.UserEmojiPermission;
-import ofc.bot.domain.sqlite.repository.MemberEmojiRepository;
-import ofc.bot.domain.sqlite.repository.UserEmojiPermissionRepository;
+import ofc.bot.domain.database.repository.MemberEmojiRepository;
+import ofc.bot.domain.database.repository.UserEmojiPermissionRepository;
 import ofc.bot.domain.tables.MembersEmojisTable;
 import ofc.bot.domain.tables.UsersEmojisPermissionsTable;
 import ofc.bot.util.content.Staff;
@@ -103,8 +105,8 @@ class NicknameEmojiSanitizerTest {
     }
 
     private TestContext createContext(String... replacements) throws Exception {
-        Connection connection = DriverManager.getConnection("jdbc:sqlite::memory:");
-        DSLContext ctx = DSL.using(connection, SQLDialect.SQLITE);
+        Connection connection = MySQLTestDatabase.open();
+        DSLContext ctx = MySQLTestDatabase.context(connection);
         MembersEmojisTable.MEMBERS_EMOJIS.getSchema(ctx).execute();
         UsersEmojisPermissionsTable.USERS_EMOJIS_PERMS.getSchema(ctx).execute();
 

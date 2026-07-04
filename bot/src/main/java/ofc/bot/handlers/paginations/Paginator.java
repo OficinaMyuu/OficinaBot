@@ -5,7 +5,7 @@ import net.dv8tion.jda.internal.utils.Checks;
 import ofc.bot.domain.entity.MemberPunishment;
 import ofc.bot.domain.entity.Reminder;
 import ofc.bot.domain.entity.SupportTicket;
-import ofc.bot.domain.sqlite.repository.*;
+import ofc.bot.domain.database.repository.*;
 import ofc.bot.domain.viewmodels.LevelView;
 import ofc.bot.util.Bot;
 

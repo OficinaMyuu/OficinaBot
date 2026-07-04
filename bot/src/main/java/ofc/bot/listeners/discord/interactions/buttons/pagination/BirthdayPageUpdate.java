@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import ofc.bot.domain.entity.Birthday;
-import ofc.bot.domain.sqlite.repository.BirthdayRepository;
+import ofc.bot.domain.database.repository.BirthdayRepository;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.InteractionListener;

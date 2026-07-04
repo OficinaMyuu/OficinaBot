@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import ofc.bot.domain.entity.BlockedWord;
 import ofc.bot.domain.entity.enums.PolicyType;
-import ofc.bot.domain.sqlite.repository.*;
+import ofc.bot.domain.database.repository.*;
 import ofc.bot.handlers.cache.PolicyService;
 import ofc.bot.handlers.moderation.PunishmentData;
 import ofc.bot.handlers.moderation.PunishmentManager;

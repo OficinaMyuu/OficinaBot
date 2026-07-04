@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.enums.NameScope;
-import ofc.bot.domain.sqlite.repository.UserNameUpdateRepository;
+import ofc.bot.domain.database.repository.UserNameUpdateRepository;
 import ofc.bot.domain.viewmodels.NamesHistoryView;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;

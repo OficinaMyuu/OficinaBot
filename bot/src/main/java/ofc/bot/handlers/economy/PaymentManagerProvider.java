@@ -1,7 +1,7 @@
 package ofc.bot.handlers.economy;
 
-import ofc.bot.domain.sqlite.repository.Repositories;
-import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
+import ofc.bot.domain.database.repository.Repositories;
+import ofc.bot.domain.database.repository.UserEconomyRepository;
 import ofc.bot.handlers.economy.oficina.OficinaBankClient;
 import ofc.bot.handlers.economy.unb.UnbelievaBoatClient;
 import ofc.bot.util.Bot;

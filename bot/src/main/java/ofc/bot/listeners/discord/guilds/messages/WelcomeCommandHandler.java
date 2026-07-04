@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import ofc.bot.domain.entity.WelcomedUser;
-import ofc.bot.domain.sqlite.repository.WelcomedUserRepository;
+import ofc.bot.domain.database.repository.WelcomedUserRepository;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 import org.jooq.exception.DataAccessException;

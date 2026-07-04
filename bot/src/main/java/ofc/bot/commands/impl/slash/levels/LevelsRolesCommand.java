@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.utils.data.DataArray;
 import net.dv8tion.jda.api.utils.data.DataObject;
 import ofc.bot.domain.entity.LevelRole;
-import ofc.bot.domain.sqlite.repository.LevelRoleRepository;
+import ofc.bot.domain.database.repository.LevelRoleRepository;
 import ofc.bot.handlers.interactions.commands.Cooldown;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;

@@ -1,8 +1,8 @@
 package ofc.bot.handlers.games.betting.roulette;
 
-import ofc.bot.domain.sqlite.repository.BetGameRepository;
-import ofc.bot.domain.sqlite.repository.GameParticipantRepository;
-import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
+import ofc.bot.domain.database.repository.BetGameRepository;
+import ofc.bot.domain.database.repository.GameParticipantRepository;
+import ofc.bot.domain.database.repository.UserEconomyRepository;
 
 import java.util.HashMap;
 import java.util.Map;

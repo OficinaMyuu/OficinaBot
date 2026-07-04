@@ -5,8 +5,8 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ofc.bot.domain.entity.AppUser;
 import ofc.bot.domain.entity.MemberJoinEvent;
-import ofc.bot.domain.sqlite.repository.MemberJoinEventRepository;
-import ofc.bot.domain.sqlite.repository.UserRepository;
+import ofc.bot.domain.database.repository.MemberJoinEventRepository;
+import ofc.bot.domain.database.repository.UserRepository;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 
 @DiscordEventHandler

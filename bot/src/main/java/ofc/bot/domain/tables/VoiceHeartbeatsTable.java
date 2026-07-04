@@ -6,20 +6,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Query;
+import org.jooq.impl.SQLDataType;
 
 import static ofc.bot.domain.tables.UsersTable.USERS;
 
 public class VoiceHeartbeatsTable extends InitializableTable<VoiceHeartbeat> {
     public static final VoiceHeartbeatsTable VOICE_HEARTBEATS = new VoiceHeartbeatsTable();
 
-    public final Field<Integer> ID          = newField("id",          INT.identity(true));
-    public final Field<Long> USER_ID        = newField("user_id",     BIGINT.notNull());
-    public final Field<Long> CHANNEL_ID     = newField("channel_id",  BIGINT.notNull());
-    public final Field<Boolean> IS_MUTED    = newField("is_muted",    BOOL.notNull());
-    public final Field<Boolean> IS_DEAFENED = newField("is_deafened", BOOL.notNull());
-    public final Field<Boolean> IS_VIDEO    = newField("is_video",    BOOL.notNull());
-    public final Field<Boolean> IS_STREAM   = newField("is_stream",   BOOL.notNull());
-    public final Field<Long> CREATED_AT     = newField("created_at",  BIGINT.notNull());
+    public final Field<Integer> ID          = newField("id",          SQLDataType.INTEGER.identity(true));
+    public final Field<Long> USER_ID        = newField("user_id",     SQLDataType.BIGINT.notNull());
+    public final Field<Long> CHANNEL_ID     = newField("channel_id",  SQLDataType.BIGINT.notNull());
+    public final Field<Boolean> IS_MUTED    = newField("is_muted",    SQLDataType.BOOLEAN.notNull());
+    public final Field<Boolean> IS_DEAFENED = newField("is_deafened", SQLDataType.BOOLEAN.notNull());
+    public final Field<Boolean> IS_VIDEO    = newField("is_video",    SQLDataType.BOOLEAN.notNull());
+    public final Field<Boolean> IS_STREAM   = newField("is_stream",   SQLDataType.BOOLEAN.notNull());
+    public final Field<Long> CREATED_AT     = newField("created_at",  SQLDataType.BIGINT.notNull());
 
     public VoiceHeartbeatsTable() {
         super("voice_heartbeats");

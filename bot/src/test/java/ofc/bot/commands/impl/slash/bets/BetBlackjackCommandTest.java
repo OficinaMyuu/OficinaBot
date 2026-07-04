@@ -1,9 +1,11 @@
 package ofc.bot.commands.impl.slash.bets;
 
+import ofc.bot.testing.MySQLTestDatabase;
+
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.UserEconomy;
-import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
+import ofc.bot.domain.database.repository.UserEconomyRepository;
 import ofc.bot.domain.tables.UsersEconomyTable;
 import ofc.bot.domain.tables.UsersTable;
 import ofc.bot.handlers.games.betting.blackjack.BlackjackGame;
@@ -49,7 +51,7 @@ class BetBlackjackCommandTest {
 
     @Test
     void shouldReserveInitialStakeFromBank() throws Exception {
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite::memory:")) {
+        try (Connection connection = MySQLTestDatabase.open()) {
             DSLContext ctx = setup(connection);
             UserEconomyRepository ecoRepo = new UserEconomyRepository(ctx);
             BetBlackjackCommand command = new BetBlackjackCommand(ecoRepo, null, null);
@@ -71,7 +73,7 @@ class BetBlackjackCommandTest {
     }
 
     private DSLContext setup(Connection connection) {
-        DSLContext ctx = DSL.using(connection, SQLDialect.SQLITE);
+        DSLContext ctx = MySQLTestDatabase.context(connection);
         UsersTable.USERS.getSchema(ctx).execute();
         UsersEconomyTable.USERS_ECONOMY.getSchema(ctx).execute();
         return ctx;

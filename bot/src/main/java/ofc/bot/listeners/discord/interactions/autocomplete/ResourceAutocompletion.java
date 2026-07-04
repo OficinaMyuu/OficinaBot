@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.AppUser;
 import ofc.bot.domain.entity.enums.ResourceType;
-import ofc.bot.domain.sqlite.repository.UserRepository;
+import ofc.bot.domain.database.repository.UserRepository;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 
 import java.util.List;

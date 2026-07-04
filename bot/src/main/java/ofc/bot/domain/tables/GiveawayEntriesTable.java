@@ -6,13 +6,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Query;
+import org.jooq.impl.SQLDataType;
 
 public class GiveawayEntriesTable extends InitializableTable<GiveawayEntry> {
     public static final GiveawayEntriesTable GIVEAWAY_ENTRIES = new GiveawayEntriesTable();
 
-    public final Field<String> GIVEAWAY_ID = newField("giveaway_id", CHAR.notNull());
-    public final Field<Long> USER_ID       = newField("user_id", BIGINT.notNull());
-    public final Field<Long> CREATED_AT    = newField("created_at", BIGINT.notNull());
+    public final Field<String> GIVEAWAY_ID = newField("giveaway_id", SQLDataType.VARCHAR(255).notNull());
+    public final Field<Long> USER_ID       = newField("user_id", SQLDataType.BIGINT.notNull());
+    public final Field<Long> CREATED_AT    = newField("created_at", SQLDataType.BIGINT.notNull());
 
     public GiveawayEntriesTable() {
         super("giveaway_entries");

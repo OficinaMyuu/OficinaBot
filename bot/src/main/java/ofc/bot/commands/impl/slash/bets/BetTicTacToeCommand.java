@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
+import ofc.bot.domain.database.repository.UserEconomyRepository;
 import ofc.bot.handlers.games.betting.BetManager;
 import ofc.bot.handlers.games.betting.tictactoe.TicTacToeGame;
 import ofc.bot.handlers.interactions.EntityContextFactory;

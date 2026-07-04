@@ -1,9 +1,11 @@
 package ofc.bot.handlers.games.betting.roulette;
 
+import ofc.bot.testing.MySQLTestDatabase;
+
 import ofc.bot.domain.entity.UserEconomy;
-import ofc.bot.domain.sqlite.repository.BetGameRepository;
-import ofc.bot.domain.sqlite.repository.GameParticipantRepository;
-import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
+import ofc.bot.domain.database.repository.BetGameRepository;
+import ofc.bot.domain.database.repository.GameParticipantRepository;
+import ofc.bot.domain.database.repository.UserEconomyRepository;
 import ofc.bot.domain.tables.BetGamesTable;
 import ofc.bot.domain.tables.GamesParticipantsTable;
 import ofc.bot.domain.tables.UsersEconomyTable;
@@ -28,7 +30,7 @@ class RouletteGameTest {
     void shouldChargeBankWhenBetIsAccepted() throws Exception {
         Path db = Files.createTempFile("roulette-game", ".db");
 
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + db)) {
+        try (Connection connection = MySQLTestDatabase.open()) {
             DSLContext ctx = setup(connection);
             UserEconomyRepository ecoRepo = new UserEconomyRepository(ctx);
             RouletteGame game = new RouletteGame(
@@ -64,7 +66,7 @@ class RouletteGameTest {
     void shouldReplaceExistingUserBetAndReserveOnlyNewStake() throws Exception {
         Path db = Files.createTempFile("roulette-game-replace", ".db");
 
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + db)) {
+        try (Connection connection = MySQLTestDatabase.open()) {
             DSLContext ctx = setup(connection);
             UserEconomyRepository ecoRepo = new UserEconomyRepository(ctx);
             RouletteGame game = newGame(ctx, ecoRepo);
@@ -110,7 +112,7 @@ class RouletteGameTest {
     void shouldRefundDifferenceWhenReplacementStakeIsLower() throws Exception {
         Path db = Files.createTempFile("roulette-game-lower-replace", ".db");
 
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + db)) {
+        try (Connection connection = MySQLTestDatabase.open()) {
             DSLContext ctx = setup(connection);
             UserEconomyRepository ecoRepo = new UserEconomyRepository(ctx);
             RouletteGame game = newGame(ctx, ecoRepo);
@@ -145,7 +147,7 @@ class RouletteGameTest {
     void shouldAllowReplacementUsingReservedStake() throws Exception {
         Path db = Files.createTempFile("roulette-game-reserved-replace", ".db");
 
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + db)) {
+        try (Connection connection = MySQLTestDatabase.open()) {
             DSLContext ctx = setup(connection);
             UserEconomyRepository ecoRepo = new UserEconomyRepository(ctx);
             RouletteGame game = newGame(ctx, ecoRepo);
@@ -177,7 +179,7 @@ class RouletteGameTest {
     }
 
     private DSLContext setup(Connection connection) {
-        DSLContext ctx = DSL.using(connection, SQLDialect.SQLITE);
+        DSLContext ctx = MySQLTestDatabase.context(connection);
         UsersTable.USERS.getSchema(ctx).execute();
         UsersEconomyTable.USERS_ECONOMY.getSchema(ctx).execute();
         BetGamesTable.BET_GAMES.getSchema(ctx).execute();

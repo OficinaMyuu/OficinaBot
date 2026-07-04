@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import ofc.bot.domain.entity.Giveaway;
 import ofc.bot.domain.entity.enums.GiveawayPrizeType;
 import ofc.bot.domain.entity.enums.GiveawayStatus;
-import ofc.bot.domain.sqlite.repository.GiveawayRepository;
+import ofc.bot.domain.database.repository.GiveawayRepository;
 import ofc.bot.handlers.giveaway.GiveawayComponentFactory;
 import ofc.bot.handlers.giveaway.GiveawayInputParser;
 import ofc.bot.handlers.giveaway.GiveawayMessageFactory;

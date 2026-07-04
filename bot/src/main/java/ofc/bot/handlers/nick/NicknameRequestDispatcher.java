@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import ofc.bot.domain.entity.NicknameUpdateRequest;
 import ofc.bot.domain.entity.enums.NicknameRequestStatus;
-import ofc.bot.domain.sqlite.repository.NicknameUpdateRequestRepository;
+import ofc.bot.domain.database.repository.NicknameUpdateRequestRepository;
 import ofc.bot.util.Bot;
 import ofc.bot.util.embeds.EmbedFactory;
 import org.jetbrains.annotations.NotNull;

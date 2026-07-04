@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.*;
 import ofc.bot.domain.entity.enums.Gender;
-import ofc.bot.domain.sqlite.repository.*;
+import ofc.bot.domain.database.repository.*;
 import ofc.bot.domain.viewmodels.MarriageView;
 import ofc.bot.domain.viewmodels.UserinfoView;
 import ofc.bot.handlers.userinfo.CountingReleaseService;

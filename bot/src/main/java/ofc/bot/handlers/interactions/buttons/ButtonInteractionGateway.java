@@ -3,7 +3,7 @@ package ofc.bot.handlers.interactions.buttons;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import ofc.bot.domain.sqlite.repository.AppUserBanRepository;
+import ofc.bot.domain.database.repository.AppUserBanRepository;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.InteractionListener;
 import ofc.bot.handlers.interactions.InteractionMemoryManager;

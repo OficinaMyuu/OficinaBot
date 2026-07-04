@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.MemberPunishment;
-import ofc.bot.domain.sqlite.repository.MemberPunishmentRepository;
+import ofc.bot.domain.database.repository.MemberPunishmentRepository;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 

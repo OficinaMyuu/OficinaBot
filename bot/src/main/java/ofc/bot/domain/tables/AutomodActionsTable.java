@@ -6,16 +6,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Query;
+import org.jooq.impl.SQLDataType;
 
 public class AutomodActionsTable extends InitializableTable<AutomodAction> {
     public static final AutomodActionsTable AUTOMOD_ACTIONS = new AutomodActionsTable();
 
-    public final Field<Integer> ID        = newField("id",         INT.identity(true));
-    public final Field<Integer> THRESHOLD = newField("threshold",  INT.notNull());
-    public final Field<Integer> DURATION  = newField("duration",   INT.notNull());
-    public final Field<String> ACTION     = newField("action",     CHAR.notNull());
-    public final Field<Long> CREATED_AT   = newField("created_at", BIGINT.notNull());
-    public final Field<Long> UPDATED_AT   = newField("updated_at", BIGINT.notNull());
+    public final Field<Integer> ID        = newField("id",         SQLDataType.INTEGER.identity(true));
+    public final Field<Integer> THRESHOLD = newField("threshold",  SQLDataType.INTEGER.notNull());
+    public final Field<Integer> DURATION  = newField("duration",   SQLDataType.INTEGER.notNull());
+    public final Field<String> ACTION     = newField("action",     SQLDataType.VARCHAR(255).notNull());
+    public final Field<Long> CREATED_AT   = newField("created_at", SQLDataType.BIGINT.notNull());
+    public final Field<Long> UPDATED_AT   = newField("updated_at", SQLDataType.BIGINT.notNull());
 
     public AutomodActionsTable() {
         super("automod_actions");

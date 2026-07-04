@@ -3,7 +3,7 @@ package ofc.bot.listeners.discord.interactions.buttons.bets;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import ofc.bot.Main;
-import ofc.bot.domain.sqlite.repository.*;
+import ofc.bot.domain.database.repository.*;
 import ofc.bot.handlers.games.betting.BetManager;
 import ofc.bot.handlers.games.GameArgs;
 import ofc.bot.handlers.games.betting.tictactoe.TicTacToeGame;

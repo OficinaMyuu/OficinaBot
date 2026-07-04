@@ -38,7 +38,7 @@ public class UserEconomy extends OficinaRecord<UserEconomy> {
      * Including {@code created_at} and {@code updated_at}.
      * <p>
      * You must call
-     * {@link ofc.bot.domain.sqlite.repository.UserEconomyRepository#upsert(UserEconomy) UserEconomyRepository.save(UserEconomy)}
+     * {@link ofc.bot.domain.database.repository.UserEconomyRepository#upsert(UserEconomy) UserEconomyRepository.save(UserEconomy)}
      * on this instance in order to persist it.
      *
      * @param userId the id of the user to be instantiated.

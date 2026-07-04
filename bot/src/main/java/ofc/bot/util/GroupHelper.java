@@ -2,7 +2,7 @@ package ofc.bot.util;
 
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.StoreItemType;
-import ofc.bot.domain.sqlite.repository.GroupPerkRepository;
+import ofc.bot.domain.database.repository.GroupPerkRepository;
 
 public class GroupHelper {
     private static GroupPerkRepository grpPerkRepo;

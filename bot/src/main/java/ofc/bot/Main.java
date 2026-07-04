@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import ofc.bot.domain.sqlite.DB;
+import ofc.bot.domain.database.DB;
 import ofc.bot.handlers.ConsoleQueryHandler;
 import ofc.bot.handlers.EntityInitializerManager;
 import ofc.bot.util.Bot;
@@ -24,7 +24,7 @@ public final class Main {
         try {
             DB.init();
 
-            api = JDABuilder.createDefault(Bot.getSafe("app.token"), Bot.getIntents())
+            api = JDABuilder.createDefault(Bot.get("app.token"), Bot.getIntents())
                     .setEventPassthrough(true)
                     .setBulkDeleteSplittingEnabled(false)
                     .setMemberCachePolicy(MemberCachePolicy.ALL)

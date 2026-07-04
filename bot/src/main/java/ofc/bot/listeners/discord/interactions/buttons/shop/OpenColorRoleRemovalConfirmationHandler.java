@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import ofc.bot.domain.entity.ColorRoleState;
-import ofc.bot.domain.sqlite.repository.ColorRoleStateRepository;
+import ofc.bot.domain.database.repository.ColorRoleStateRepository;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.InteractionListener;

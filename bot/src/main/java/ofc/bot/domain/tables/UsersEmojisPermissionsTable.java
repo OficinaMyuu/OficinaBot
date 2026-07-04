@@ -6,15 +6,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Query;
+import org.jooq.impl.SQLDataType;
 
 public class UsersEmojisPermissionsTable extends InitializableTable<UserEmojiPermission> {
     public static final UsersEmojisPermissionsTable USERS_EMOJIS_PERMS = new UsersEmojisPermissionsTable();
 
-    public final Field<Integer> ID      = newField("id",         INT.identity(true));
-    public final Field<Long> AUTHOR_ID  = newField("author_id",  BIGINT.notNull());
-    public final Field<Long> USER_ID    = newField("user_id",    BIGINT.notNull());
-    public final Field<String> EMOJI    = newField("emoji",      CHAR.notNull());
-    public final Field<Long> CREATED_AT = newField("created_at", BIGINT.notNull());
+    public final Field<Integer> ID      = newField("id",         SQLDataType.INTEGER.identity(true));
+    public final Field<Long> AUTHOR_ID  = newField("author_id",  SQLDataType.BIGINT.notNull());
+    public final Field<Long> USER_ID    = newField("user_id",    SQLDataType.BIGINT.notNull());
+    public final Field<String> EMOJI    = newField("emoji",      SQLDataType.VARCHAR(255).notNull());
+    public final Field<Long> CREATED_AT = newField("created_at", SQLDataType.BIGINT.notNull());
 
     public UsersEmojisPermissionsTable() {
         super("users_emojis_permissions");

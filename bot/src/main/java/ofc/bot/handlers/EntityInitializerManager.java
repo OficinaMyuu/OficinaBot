@@ -5,7 +5,7 @@ import ofc.bot.Main;
 import ofc.bot.commands.impl.slash.groups.LeaveGroupCommand;
 import ofc.bot.commands.impl.slash.bets.BetRouletteCommand;
 import ofc.bot.commands.impl.slash.tickets.MergeTicketCommand;
-import ofc.bot.domain.sqlite.repository.Repositories;
+import ofc.bot.domain.database.repository.Repositories;
 import ofc.bot.handlers.cache.PolicyService;
 import ofc.bot.handlers.accumulator.AccumulatorPayoutService;
 import ofc.bot.handlers.giveaway.GiveawayServices;

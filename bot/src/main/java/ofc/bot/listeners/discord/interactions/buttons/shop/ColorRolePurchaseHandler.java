@@ -3,7 +3,7 @@ package ofc.bot.listeners.discord.interactions.buttons.shop;
 import net.dv8tion.jda.api.entities.*;
 import ofc.bot.domain.entity.ColorRoleItem;
 import ofc.bot.domain.entity.ColorRoleState;
-import ofc.bot.domain.sqlite.repository.ColorRoleStateRepository;
+import ofc.bot.domain.database.repository.ColorRoleStateRepository;
 import ofc.bot.handlers.economy.*;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.InteractionListener;

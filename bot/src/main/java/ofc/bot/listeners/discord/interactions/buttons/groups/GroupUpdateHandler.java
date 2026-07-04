@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import ofc.bot.domain.entity.OficinaGroup;
-import ofc.bot.domain.sqlite.repository.OficinaGroupRepository;
+import ofc.bot.domain.database.repository.OficinaGroupRepository;
 import ofc.bot.handlers.economy.BankAction;
 import ofc.bot.handlers.economy.PaymentManager;
 import ofc.bot.handlers.economy.PaymentManagerProvider;

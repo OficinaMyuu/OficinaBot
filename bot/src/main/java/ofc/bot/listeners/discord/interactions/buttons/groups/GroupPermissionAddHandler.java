@@ -3,7 +3,7 @@ package ofc.bot.listeners.discord.interactions.buttons.groups;
 import net.dv8tion.jda.api.entities.Guild;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.GroupPermission;
-import ofc.bot.domain.sqlite.repository.EntityPolicyRepository;
+import ofc.bot.domain.database.repository.EntityPolicyRepository;
 import ofc.bot.handlers.cache.PolicyService;
 import ofc.bot.handlers.economy.*;
 import ofc.bot.handlers.games.betting.BetManager;

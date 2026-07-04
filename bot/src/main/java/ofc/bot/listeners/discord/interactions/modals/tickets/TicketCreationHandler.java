@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.requests.restaction.ChannelAction;
 import ofc.bot.domain.entity.SupportTicket;
-import ofc.bot.domain.sqlite.repository.SupportTicketRepository;
+import ofc.bot.domain.database.repository.SupportTicketRepository;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.InteractionListener;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;

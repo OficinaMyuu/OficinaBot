@@ -6,8 +6,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
 import ofc.bot.domain.entity.CommandHistory;
-import ofc.bot.domain.sqlite.repository.AppUserBanRepository;
-import ofc.bot.domain.sqlite.repository.CommandHistoryRepository;
+import ofc.bot.domain.database.repository.AppUserBanRepository;
+import ofc.bot.domain.database.repository.CommandHistoryRepository;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;

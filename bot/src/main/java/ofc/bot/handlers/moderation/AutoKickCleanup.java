@@ -1,8 +1,8 @@
 package ofc.bot.handlers.moderation;
 
 import net.dv8tion.jda.internal.utils.Checks;
-import ofc.bot.domain.sqlite.repository.Repositories;
-import ofc.bot.domain.sqlite.repository.UserXPRepository;
+import ofc.bot.domain.database.repository.Repositories;
+import ofc.bot.domain.database.repository.UserXPRepository;
 import ofc.bot.handlers.economy.PaymentManager;
 import ofc.bot.handlers.economy.PaymentManagerProvider;
 import org.jetbrains.annotations.NotNull;

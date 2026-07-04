@@ -16,8 +16,8 @@ public class CustomUserinfoTable extends InitializableTable<CustomUserinfo> {
 
     public final Field<Long> USER_ID       = newField("user_id",     SQLDataType.BIGINT.notNull());
     public final Field<Integer> COLOR      = newField("color",       SQLDataType.INTEGER);
-    public final Field<String> DESCRIPTION = newField("description", SQLDataType.CHAR);
-    public final Field<String> FOOTER      = newField("footer",      SQLDataType.CHAR);
+    public final Field<String> DESCRIPTION = newField("description", SQLDataType.VARCHAR(255));
+    public final Field<String> FOOTER      = newField("footer",      SQLDataType.VARCHAR(255));
     public final Field<Long> CREATED_AT    = newField("created_at",  SQLDataType.BIGINT.notNull());
     public final Field<Long> UPDATED_AT    = newField("updated_at",  SQLDataType.BIGINT.notNull());
 

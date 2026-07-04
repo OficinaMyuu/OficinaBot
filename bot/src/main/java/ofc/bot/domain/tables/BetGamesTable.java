@@ -6,17 +6,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Query;
+import org.jooq.impl.SQLDataType;
 
 public class BetGamesTable extends InitializableTable<BetGame> {
     public static final BetGamesTable BET_GAMES = new BetGamesTable();
 
-    public final Field<Long> ID         = newField("id",         BIGINT.notNull());
-    public final Field<String> STATUS   = newField("status",     CHAR.notNull());
-    public final Field<String> BOARD    = newField("board",      CHAR);
-    public final Field<String> BET_TYPE = newField("bet_type",   CHAR.notNull());
-    public final Field<Long> STARTED_AT = newField("started_at", BIGINT.notNull());
-    public final Field<Long> ENDED_AT   = newField("ended_at",   BIGINT.notNull());
-    public final Field<Long> CREATED_AT = newField("created_at", BIGINT.notNull());
+    public final Field<Long> ID         = newField("id",         SQLDataType.BIGINT.notNull());
+    public final Field<String> STATUS   = newField("status",     SQLDataType.VARCHAR(255).notNull());
+    public final Field<String> BOARD    = newField("board",      SQLDataType.VARCHAR(255));
+    public final Field<String> BET_TYPE = newField("bet_type",   SQLDataType.VARCHAR(255).notNull());
+    public final Field<Long> STARTED_AT = newField("started_at", SQLDataType.BIGINT.notNull());
+    public final Field<Long> ENDED_AT   = newField("ended_at",   SQLDataType.BIGINT.notNull());
+    public final Field<Long> CREATED_AT = newField("created_at", SQLDataType.BIGINT.notNull());
 
     public BetGamesTable() {
         super("bet_games");

@@ -1,0 +1,278 @@
+package ofc.bot.domain.database.repository;
+
+import ofc.bot.domain.database.DB;
+import org.jooq.DSLContext;
+
+public final class Repositories {
+    private static AccumulatorPrizeRepository accumulatorPrizeRepository;
+    private static AppUserBanRepository appUserBanRepository;
+    private static AutomodActionRepository automodActionRepository;
+    private static BetGameRepository gameRepository;
+    private static BirthdayRepository birthdayRepository;
+    private static BlockedWordRepository blockedWordRepository;
+    private static ColorRoleItemRepository colorRoleItemRepository;
+    private static ColorRoleStateRepository colorRoleStateRepository;
+    private static CommandHistoryRepository commandHistoryRepository;
+    private static CustomUserinfoRepository customUserinfoRepository;
+    private static EntityPolicyRepository entityPolicyRepository;
+    private static FormerMemberRoleRepository formerMemberRoleRepository;
+    private static GameMafiaLogRepository gameMafiaLogRepository;
+    private static GameParticipantRepository gameParticipantRepository;
+    private static GiveawayEntryRepository giveawayEntryRepository;
+    private static GiveawayRepository giveawayRepository;
+    private static GiveawayWinnerRepository giveawayWinnerRepository;
+    private static GroupBotRepository groupBotRepository;
+    private static GroupPerkRepository groupPerkRepository;
+    private static LevelRoleRepository levelRoleRepository;
+    private static MarriageRepository marriageRepository;
+    private static MarriageRequestRepository marriageRequestRepository;
+    private static MemberEmojiRepository memberEmojiRepository;
+    private static MemberJoinEventRepository memberJoinEventRepository;
+    private static MemberPunishmentRepository memberPunishmentRepository;
+    private static MentionLogRepository mentionLogRepository;
+    private static MessageTranscriptionRepository messageTranscriptionRepository;
+    private static MessageVersionRepository messageVersionRepository;
+    private static NicknameUpdateRequestRepository nicknameUpdateRequestRepository;
+    private static OficinaGroupRepository oficinaGroupRepository;
+    private static RegisterRepository registerRepository;
+    private static ReminderRepository reminderRepository;
+    private static SupportTicketRepository supportTicketRepository;
+    private static TempBanRepository tempBanRepository;
+    private static UserEconomyRepository userEconomyRepository;
+    private static UserEmojiPermissionRepository userEmojiPermissionRepository;
+    private static UserNameUpdateRepository userNameUpdateRepository;
+    private static UserPreferenceRepository userPreferenceRepository;
+    private static UserRepository userRepository;
+    private static UserXPRepository userXPRepository;
+    private static VoiceChannelIncomeRuleRepository voiceChannelIncomeRuleRepository;
+    private static VoiceHeartbeatRepository voiceHeartbeatRepository;
+    private static WelcomedUserRepository welcomedUserRepository;
+
+    private Repositories() {}
+
+    public static AccumulatorPrizeRepository getAccumulatorPrizeRepository() {
+        if (accumulatorPrizeRepository == null) accumulatorPrizeRepository = new AccumulatorPrizeRepository(getDSLContext());
+        return accumulatorPrizeRepository;
+    }
+
+    public static AppUserBanRepository getAppUserBanRepository() {
+        if (appUserBanRepository == null) appUserBanRepository = new AppUserBanRepository(getDSLContext());
+        return appUserBanRepository;
+    }
+
+    public static AutomodActionRepository getAutomodActionRepository() {
+        if (automodActionRepository == null) automodActionRepository = new AutomodActionRepository(getDSLContext());
+        return automodActionRepository;
+    }
+
+    public static BetGameRepository getBetGameRepository() {
+        if (gameRepository == null) gameRepository = new BetGameRepository(getDSLContext());
+        return gameRepository;
+    }
+
+    public static BirthdayRepository getBirthdayRepository() {
+        if (birthdayRepository == null) birthdayRepository = new BirthdayRepository(getDSLContext());
+        return birthdayRepository;
+    }
+
+    public static BlockedWordRepository getBlockedWordRepository() {
+        if (blockedWordRepository == null) blockedWordRepository = new BlockedWordRepository(getDSLContext());
+        return blockedWordRepository;
+    }
+
+    public static ColorRoleItemRepository getColorRoleItemRepository() {
+        if (colorRoleItemRepository == null) colorRoleItemRepository = new ColorRoleItemRepository(getDSLContext());
+        return colorRoleItemRepository;
+    }
+
+    public static ColorRoleStateRepository getColorRoleStateRepository() {
+        if (colorRoleStateRepository == null) colorRoleStateRepository = new ColorRoleStateRepository(getDSLContext());
+        return colorRoleStateRepository;
+    }
+
+    public static CommandHistoryRepository getCommandHistoryRepository() {
+        if (commandHistoryRepository == null) commandHistoryRepository = new CommandHistoryRepository(getDSLContext());
+        return commandHistoryRepository;
+    }
+
+    public static CustomUserinfoRepository getCustomUserinfoRepository() {
+        if (customUserinfoRepository == null) customUserinfoRepository = new CustomUserinfoRepository(getDSLContext());
+        return customUserinfoRepository;
+    }
+
+    public static EntityPolicyRepository getEntityPolicyRepository() {
+        if (entityPolicyRepository == null) entityPolicyRepository = new EntityPolicyRepository(getDSLContext());
+        return entityPolicyRepository;
+    }
+
+    public static FormerMemberRoleRepository getFormerMemberRoleRepository() {
+        if (formerMemberRoleRepository == null) formerMemberRoleRepository = new FormerMemberRoleRepository(getDSLContext());
+        return formerMemberRoleRepository;
+    }
+
+    public static GameMafiaLogRepository getGameMafiaLogRepository() {
+        if (gameMafiaLogRepository == null) gameMafiaLogRepository = new GameMafiaLogRepository(getDSLContext());
+        return gameMafiaLogRepository;
+    }
+
+    public static GameParticipantRepository getGameParticipantRepository() {
+        if (gameParticipantRepository == null) gameParticipantRepository = new GameParticipantRepository(getDSLContext());
+        return gameParticipantRepository;
+    }
+
+    public static GiveawayEntryRepository getGiveawayEntryRepository() {
+        if (giveawayEntryRepository == null) giveawayEntryRepository = new GiveawayEntryRepository(getDSLContext());
+        return giveawayEntryRepository;
+    }
+
+    public static GiveawayRepository getGiveawayRepository() {
+        if (giveawayRepository == null) giveawayRepository = new GiveawayRepository(getDSLContext());
+        return giveawayRepository;
+    }
+
+    public static GiveawayWinnerRepository getGiveawayWinnerRepository() {
+        if (giveawayWinnerRepository == null) giveawayWinnerRepository = new GiveawayWinnerRepository(getDSLContext());
+        return giveawayWinnerRepository;
+    }
+
+    public static GroupBotRepository getGroupBotRepository() {
+        if (groupBotRepository == null) groupBotRepository = new GroupBotRepository(getDSLContext());
+        return groupBotRepository;
+    }
+
+    public static GroupPerkRepository getGroupPerkRepository() {
+        if (groupPerkRepository == null) groupPerkRepository = new GroupPerkRepository(getDSLContext());
+        return groupPerkRepository;
+    }
+
+    public static LevelRoleRepository getLevelRoleRepository() {
+        if (levelRoleRepository == null) levelRoleRepository = new LevelRoleRepository(getDSLContext());
+        return levelRoleRepository;
+    }
+
+    public static MarriageRepository getMarriageRepository() {
+        if (marriageRepository == null) marriageRepository = new MarriageRepository(getDSLContext());
+        return marriageRepository;
+    }
+
+    public static MarriageRequestRepository getMarriageRequestRepository() {
+        if (marriageRequestRepository == null) marriageRequestRepository = new MarriageRequestRepository(getDSLContext());
+        return marriageRequestRepository;
+    }
+
+    public static MemberEmojiRepository getMemberEmojiRepository() {
+        if (memberEmojiRepository == null) memberEmojiRepository = new MemberEmojiRepository(getDSLContext());
+        return memberEmojiRepository;
+    }
+
+    public static MemberJoinEventRepository getMemberJoinEventRepository() {
+        if (memberJoinEventRepository == null) memberJoinEventRepository = new MemberJoinEventRepository(getDSLContext());
+        return memberJoinEventRepository;
+    }
+
+    public static MemberPunishmentRepository getMemberPunishmentRepository() {
+        if (memberPunishmentRepository == null) memberPunishmentRepository = new MemberPunishmentRepository(getDSLContext());
+        return memberPunishmentRepository;
+    }
+
+    public static MentionLogRepository getMentionLogRepository() {
+        if (mentionLogRepository == null) mentionLogRepository = new MentionLogRepository(getDSLContext());
+        return mentionLogRepository;
+    }
+
+    public static MessageTranscriptionRepository getMessageTranscriptionRepository() {
+        if (messageTranscriptionRepository == null) messageTranscriptionRepository = new MessageTranscriptionRepository(getDSLContext());
+        return messageTranscriptionRepository;
+    }
+
+    public static MessageVersionRepository getMessageVersionRepository() {
+        if (messageVersionRepository == null) messageVersionRepository = new MessageVersionRepository(getDSLContext());
+        return messageVersionRepository;
+    }
+
+    public static NicknameUpdateRequestRepository getNicknameUpdateRequestRepository() {
+        if (nicknameUpdateRequestRepository == null) {
+            nicknameUpdateRequestRepository = new NicknameUpdateRequestRepository(getDSLContext());
+        }
+        return nicknameUpdateRequestRepository;
+    }
+
+    public static OficinaGroupRepository getOficinaGroupRepository() {
+        if (oficinaGroupRepository == null) oficinaGroupRepository = new OficinaGroupRepository(getDSLContext());
+        return oficinaGroupRepository;
+    }
+
+    public static RegisterRepository getRegisterRepository() {
+        if (registerRepository == null) registerRepository = new RegisterRepository(getDSLContext());
+        return registerRepository;
+    }
+
+    public static ReminderRepository getReminderRepository() {
+        if (reminderRepository == null) reminderRepository = new ReminderRepository(getDSLContext());
+        return reminderRepository;
+    }
+
+    public static SupportTicketRepository getSupportTicketRepository() {
+        if (supportTicketRepository == null) supportTicketRepository = new SupportTicketRepository(getDSLContext());
+        return supportTicketRepository;
+    }
+
+    public static TempBanRepository getTempBanRepository() {
+        if (tempBanRepository == null) tempBanRepository = new TempBanRepository(getDSLContext());
+        return tempBanRepository;
+    }
+
+    public static UserEconomyRepository getUserEconomyRepository() {
+        if (userEconomyRepository == null) userEconomyRepository = new UserEconomyRepository(getDSLContext());
+        return userEconomyRepository;
+    }
+
+    public static UserEmojiPermissionRepository getUserEmojiPermissionRepository() {
+        if (userEmojiPermissionRepository == null) userEmojiPermissionRepository = new UserEmojiPermissionRepository(getDSLContext());
+        return userEmojiPermissionRepository;
+    }
+
+    public static UserNameUpdateRepository getUserNameUpdateRepository() {
+        if (userNameUpdateRepository == null) userNameUpdateRepository = new UserNameUpdateRepository(getDSLContext());
+        return userNameUpdateRepository;
+    }
+
+    public static UserPreferenceRepository getUserPreferenceRepository() {
+        if (userPreferenceRepository == null) userPreferenceRepository = new UserPreferenceRepository(getDSLContext());
+        return userPreferenceRepository;
+    }
+
+    public static UserRepository getUserRepository() {
+        if (userRepository == null) userRepository = new UserRepository(getDSLContext());
+        return userRepository;
+    }
+
+    public static UserXPRepository getUserXPRepository() {
+        if (userXPRepository == null) userXPRepository = new UserXPRepository(getDSLContext());
+        return userXPRepository;
+    }
+
+    /**
+     * Returns the repository for configurable voice income rules.
+     */
+    public static VoiceChannelIncomeRuleRepository getVoiceChannelIncomeRuleRepository() {
+        if (voiceChannelIncomeRuleRepository == null) {
+            voiceChannelIncomeRuleRepository = new VoiceChannelIncomeRuleRepository(getDSLContext());
+        }
+        return voiceChannelIncomeRuleRepository;
+    }
+
+    public static VoiceHeartbeatRepository getVoiceHeartbeatRepository() {
+        if (voiceHeartbeatRepository == null) voiceHeartbeatRepository = new VoiceHeartbeatRepository(getDSLContext());
+        return voiceHeartbeatRepository;
+    }
+
+    public static WelcomedUserRepository getWelcomedUserRepository() {
+        if (welcomedUserRepository == null) welcomedUserRepository = new WelcomedUserRepository(getDSLContext());
+        return welcomedUserRepository;
+    }
+
+    private static DSLContext getDSLContext() {
+        return DB.getContext();
+    }
+}

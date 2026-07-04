@@ -6,16 +6,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Query;
+import org.jooq.impl.SQLDataType;
 import org.jooq.exception.DataAccessException;
 
 public class EntitiesPoliciesTable extends InitializableTable<EntityPolicy> {
     public static final EntitiesPoliciesTable ENTITIES_POLICIES = new EntitiesPoliciesTable();
 
-    public final Field<Integer> ID           = newField("id",            INT.identity(true));
-    public final Field<String> RESOURCE      = newField("resource",      CHAR.notNull());
-    public final Field<String> RESOURCE_TYPE = newField("resource_type", CHAR.notNull());
-    public final Field<String> POLICY_TYPE   = newField("policy_type",   CHAR.notNull());
-    public final Field<Long> CREATED_AT      = newField("created_at",    BIGINT.notNull());
+    public final Field<Integer> ID           = newField("id",            SQLDataType.INTEGER.identity(true));
+    public final Field<String> RESOURCE      = newField("resource",      SQLDataType.VARCHAR(255).notNull());
+    public final Field<String> RESOURCE_TYPE = newField("resource_type", SQLDataType.VARCHAR(255).notNull());
+    public final Field<String> POLICY_TYPE   = newField("policy_type",   SQLDataType.VARCHAR(255).notNull());
+    public final Field<Long> CREATED_AT      = newField("created_at",    SQLDataType.BIGINT.notNull());
 
     public EntitiesPoliciesTable() {
         super("entities_policies");

@@ -43,7 +43,7 @@ import ofc.bot.commands.impl.slash.tickets.MergeTicketCommand;
 import ofc.bot.commands.impl.slash.tickets.ViewTicketCommand;
 import ofc.bot.commands.impl.slash.userinfo.UserinfoCommand;
 import ofc.bot.commands.impl.slash.userinfo.custom.*;
-import ofc.bot.domain.sqlite.repository.Repositories;
+import ofc.bot.domain.database.repository.Repositories;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.ICommand;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashCommand;
 import ofc.bot.handlers.interactions.commands.slash.dummy.EmptySlashCommand;

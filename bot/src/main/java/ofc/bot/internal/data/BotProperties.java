@@ -1,6 +1,6 @@
 package ofc.bot.internal.data;
 
-import ofc.bot.domain.sqlite.DB;
+import ofc.bot.domain.database.DB;
 import org.jetbrains.annotations.Nullable;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;

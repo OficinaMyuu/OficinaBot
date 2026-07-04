@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import ofc.bot.domain.sqlite.repository.MarriageRequestRepository;
+import ofc.bot.domain.database.repository.MarriageRequestRepository;
 import ofc.bot.domain.viewmodels.ProposalsView;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;

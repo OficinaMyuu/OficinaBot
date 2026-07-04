@@ -1,8 +1,8 @@
 package ofc.bot.handlers.games.mafia.service;
 
 import ofc.bot.domain.entity.GameMafiaLog;
-import ofc.bot.domain.sqlite.repository.GameMafiaLogRepository;
-import ofc.bot.domain.sqlite.repository.Repositories;
+import ofc.bot.domain.database.repository.GameMafiaLogRepository;
+import ofc.bot.domain.database.repository.Repositories;
 import ofc.bot.handlers.games.mafia.domain.MafiaMatch;
 import ofc.bot.handlers.games.mafia.enums.MafiaEventType;
 import ofc.bot.handlers.games.mafia.enums.MafiaPhase;

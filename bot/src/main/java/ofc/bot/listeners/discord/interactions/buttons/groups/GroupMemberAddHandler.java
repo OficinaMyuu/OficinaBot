@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.entities.Role;
 import ofc.bot.domain.entity.GroupPerk;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.StoreItemType;
-import ofc.bot.domain.sqlite.repository.GroupPerkRepository;
+import ofc.bot.domain.database.repository.GroupPerkRepository;
 import ofc.bot.handlers.economy.*;
 import ofc.bot.handlers.games.betting.BetManager;
 import ofc.bot.handlers.interactions.AutoResponseType;

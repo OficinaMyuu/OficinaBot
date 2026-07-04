@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ofc.bot.domain.entity.MessageVersion;
-import ofc.bot.domain.sqlite.repository.MessageVersionRepository;
+import ofc.bot.domain.database.repository.MessageVersionRepository;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 
 @DiscordEventHandler

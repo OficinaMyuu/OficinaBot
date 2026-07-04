@@ -4,7 +4,7 @@ import ofc.bot.commands.impl.slash.relationships.MarryCommand;
 import ofc.bot.domain.entity.Marriage;
 import ofc.bot.domain.entity.UserEconomy;
 import ofc.bot.domain.entity.enums.PolicyType;
-import ofc.bot.domain.sqlite.repository.*;
+import ofc.bot.domain.database.repository.*;
 import ofc.bot.util.content.annotations.jobs.CronJob;
 import org.quartz.*;
 

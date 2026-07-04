@@ -17,10 +17,10 @@ public class UserNamesUpdatesTable extends InitializableTable<UserNameUpdate> {
     public final Field<Integer> ID       = newField("id",         SQLDataType.INTEGER.identity(true));
     public final Field<Long> USER_ID     = newField("user_id",    SQLDataType.BIGINT.notNull());
     public final Field<Long> GUILD_ID    = newField("guild_id",   SQLDataType.BIGINT);
-    public final Field<String> SCOPE     = newField("scope",      SQLDataType.CHAR.notNull());
+    public final Field<String> SCOPE     = newField("scope",      SQLDataType.VARCHAR(255).notNull());
     public final Field<Long> AUTHOR_ID   = newField("author_id",  SQLDataType.BIGINT.notNull());
-    public final Field<String> OLD_VALUE = newField("old_value",  SQLDataType.CHAR);
-    public final Field<String> NEW_VALUE = newField("new_value",  SQLDataType.CHAR);
+    public final Field<String> OLD_VALUE = newField("old_value",  SQLDataType.VARCHAR(255));
+    public final Field<String> NEW_VALUE = newField("new_value",  SQLDataType.VARCHAR(255));
     public final Field<Long> CREATED_AT  = newField("created_at", SQLDataType.BIGINT.notNull());
 
     public UserNamesUpdatesTable() {

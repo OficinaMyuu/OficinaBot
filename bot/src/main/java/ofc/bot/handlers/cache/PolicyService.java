@@ -2,7 +2,7 @@ package ofc.bot.handlers.cache;
 
 import net.dv8tion.jda.internal.utils.Checks;
 import ofc.bot.domain.entity.enums.PolicyType;
-import ofc.bot.domain.sqlite.repository.EntityPolicyRepository;
+import ofc.bot.domain.database.repository.EntityPolicyRepository;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

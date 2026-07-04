@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.GroupBot;
-import ofc.bot.domain.sqlite.repository.GroupBotRepository;
+import ofc.bot.domain.database.repository.GroupBotRepository;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 
 import java.util.List;

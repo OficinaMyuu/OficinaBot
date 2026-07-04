@@ -6,24 +6,25 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Query;
+import org.jooq.impl.SQLDataType;
 
 public class MessagesTranscriptionsTable extends InitializableTable<MessageTranscription> {
     public static final MessagesTranscriptionsTable MESSAGES_TRANSCRIPTIONS = new MessagesTranscriptionsTable();
 
-    public final Field<Integer> ID             = newField("id",              INT.identity(true));
-    public final Field<Long> MESSAGE_ID        = newField("message_id",      BIGINT.notNull());
-    public final Field<Long> CHANNEL_ID        = newField("channel_id",      BIGINT.notNull());
-    public final Field<Long> REQUESTER_ID      = newField("requester_id",    BIGINT.notNull());
-    public final Field<Double> AUDIO_LENGTH    = newField("audio_length",    NUMBER.notNull());
-    public final Field<String> TRANSCRIPTION   = newField("transcription",   CHAR.notNull());
-    public final Field<String> FILE_EXTENSION  = newField("file_extension",  CHAR.notNull());
-    public final Field<Boolean> IS_HARMFUL     = newField("is_harmful",      BOOL);
-    public final Field<Double> SEXUAL_SCORE    = newField("sexual_score",    NUMBER);
-    public final Field<Double> HATE_SCORE      = newField("hate_score",      NUMBER);
-    public final Field<Double> ILLICIT_SCORE   = newField("illicit_score",   NUMBER);
-    public final Field<Double> SELF_HARM_SCORE = newField("self_harm_score", NUMBER);
-    public final Field<Double> VIOLENCE_SCORE  = newField("violence_score",  NUMBER);
-    public final Field<Long> CREATED_AT        = newField("created_at",      BIGINT.notNull());
+    public final Field<Integer> ID             = newField("id",              SQLDataType.INTEGER.identity(true));
+    public final Field<Long> MESSAGE_ID        = newField("message_id",      SQLDataType.BIGINT.notNull());
+    public final Field<Long> CHANNEL_ID        = newField("channel_id",      SQLDataType.BIGINT.notNull());
+    public final Field<Long> REQUESTER_ID      = newField("requester_id",    SQLDataType.BIGINT.notNull());
+    public final Field<Double> AUDIO_LENGTH    = newField("audio_length",    SQLDataType.DOUBLE.notNull());
+    public final Field<String> TRANSCRIPTION   = newField("transcription",   SQLDataType.VARCHAR(255).notNull());
+    public final Field<String> FILE_EXTENSION  = newField("file_extension",  SQLDataType.VARCHAR(255).notNull());
+    public final Field<Boolean> IS_HARMFUL     = newField("is_harmful",      SQLDataType.BOOLEAN);
+    public final Field<Double> SEXUAL_SCORE    = newField("sexual_score",    SQLDataType.DOUBLE);
+    public final Field<Double> HATE_SCORE      = newField("hate_score",      SQLDataType.DOUBLE);
+    public final Field<Double> ILLICIT_SCORE   = newField("illicit_score",   SQLDataType.DOUBLE);
+    public final Field<Double> SELF_HARM_SCORE = newField("self_harm_score", SQLDataType.DOUBLE);
+    public final Field<Double> VIOLENCE_SCORE  = newField("violence_score",  SQLDataType.DOUBLE);
+    public final Field<Long> CREATED_AT        = newField("created_at",      SQLDataType.BIGINT.notNull());
 
     public MessagesTranscriptionsTable() {
         super("message_transcriptions");

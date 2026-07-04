@@ -3,7 +3,7 @@ package ofc.bot.handlers;
 import com.google.gson.FormattingStyle;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import ofc.bot.domain.sqlite.DB;
+import ofc.bot.domain.database.DB;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;

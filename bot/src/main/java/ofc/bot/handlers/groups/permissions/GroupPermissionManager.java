@@ -9,7 +9,7 @@ import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.GroupPermission;
 import ofc.bot.domain.entity.enums.PolicyType;
 import ofc.bot.domain.entity.enums.ResourceType;
-import ofc.bot.domain.sqlite.repository.EntityPolicyRepository;
+import ofc.bot.domain.database.repository.EntityPolicyRepository;
 import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,11 +1,13 @@
 package ofc.bot.handlers.games.betting.blackjack;
 
+import ofc.bot.testing.MySQLTestDatabase;
+
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import ofc.bot.domain.entity.UserEconomy;
-import ofc.bot.domain.sqlite.repository.BetGameRepository;
-import ofc.bot.domain.sqlite.repository.GameParticipantRepository;
-import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
+import ofc.bot.domain.database.repository.BetGameRepository;
+import ofc.bot.domain.database.repository.GameParticipantRepository;
+import ofc.bot.domain.database.repository.UserEconomyRepository;
 import ofc.bot.domain.tables.BetGamesTable;
 import ofc.bot.domain.tables.GamesParticipantsTable;
 import ofc.bot.domain.tables.UsersEconomyTable;
@@ -25,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class BlackjackComponentFactoryTest {
     @Test
     void activeButtonsShouldUsePortugueseLabelsAndNoHelpButton() throws Exception {
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite::memory:")) {
+        try (Connection connection = MySQLTestDatabase.open()) {
             DSLContext ctx = setup(connection);
             UserEconomyRepository ecoRepo = new UserEconomyRepository(ctx);
             insertUser(ctx, 1L);
@@ -64,7 +66,7 @@ class BlackjackComponentFactoryTest {
     }
 
     private DSLContext setup(Connection connection) {
-        DSLContext ctx = DSL.using(connection, SQLDialect.SQLITE);
+        DSLContext ctx = MySQLTestDatabase.context(connection);
         UsersTable.USERS.getSchema(ctx).execute();
         UsersEconomyTable.USERS_ECONOMY.getSchema(ctx).execute();
         BetGamesTable.BET_GAMES.getSchema(ctx).execute();

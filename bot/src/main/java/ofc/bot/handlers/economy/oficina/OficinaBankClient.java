@@ -2,7 +2,7 @@ package ofc.bot.handlers.economy.oficina;
 
 import net.dv8tion.jda.internal.utils.Checks;
 import ofc.bot.domain.entity.UserEconomy;
-import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
+import ofc.bot.domain.database.repository.UserEconomyRepository;
 import ofc.bot.handlers.economy.*;
 import ofc.bot.handlers.games.betting.BetManager;
 
@@ -54,8 +54,7 @@ public class OficinaBankClient implements PaymentManager {
 
     @Override
     public BankAccount update(long userId, long cash, long bank, String reason) {
-        // For update operations, there are not much checks we can run without unnecessary overhead,
-        // so lets just cross our fingers and bank it on SQLite if something goes wrong ^^
+        // Keep Oficina balance updates centralized until the remaining economy flows move to atomic SQL updates.
         UserEconomy eco = ecoRepo.findByUserId(userId, UserEconomy.fromUserId(userId))
                 .modifyBalance((int) cash, (int) bank)
                 .tickUpdate();

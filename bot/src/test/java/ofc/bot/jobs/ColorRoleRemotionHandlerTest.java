@@ -1,9 +1,11 @@
 package ofc.bot.jobs;
 
+import ofc.bot.testing.MySQLTestDatabase;
+
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import ofc.bot.domain.entity.ColorRoleState;
-import ofc.bot.domain.sqlite.repository.ColorRoleStateRepository;
+import ofc.bot.domain.database.repository.ColorRoleStateRepository;
 import ofc.bot.domain.tables.ColorRolesStateTable;
 import ofc.bot.handlers.economy.CurrencyType;
 import org.jooq.DSLContext;
@@ -20,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class ColorRoleRemotionHandlerTest {
     @Test
     void shouldDeleteExpiredColorRoleRowWhenRoleNoLongerExists() throws Exception {
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite::memory:")) {
+        try (Connection connection = MySQLTestDatabase.open()) {
             DSLContext ctx = setup(connection);
             ColorRoleStateRepository repository = new ColorRoleStateRepository(ctx);
             ColorRoleState state = state();
@@ -33,7 +35,7 @@ class ColorRoleRemotionHandlerTest {
     }
 
     private DSLContext setup(Connection connection) {
-        DSLContext ctx = DSL.using(connection, SQLDialect.SQLITE);
+        DSLContext ctx = MySQLTestDatabase.context(connection);
         ColorRolesStateTable.COLOR_ROLES_STATES.getSchema(ctx).execute();
         return ctx;
     }

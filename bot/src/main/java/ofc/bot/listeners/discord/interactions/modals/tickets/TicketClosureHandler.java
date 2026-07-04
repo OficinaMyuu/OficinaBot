@@ -2,7 +2,7 @@ package ofc.bot.listeners.discord.interactions.modals.tickets;
 
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import ofc.bot.domain.entity.SupportTicket;
-import ofc.bot.domain.sqlite.repository.SupportTicketRepository;
+import ofc.bot.domain.database.repository.SupportTicketRepository;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.InteractionListener;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;

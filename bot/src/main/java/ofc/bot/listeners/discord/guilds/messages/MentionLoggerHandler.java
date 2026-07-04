@@ -5,10 +5,12 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ofc.bot.domain.entity.MentionLog;
-import ofc.bot.domain.sqlite.repository.MentionLogRepository;
+import ofc.bot.domain.database.repository.MentionLogRepository;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 import org.apache.commons.collections4.Bag;
+import java.util.ArrayList;
+import java.util.List;
 
 @DiscordEventHandler
 public class MentionLoggerHandler extends ListenerAdapter {
@@ -28,10 +30,11 @@ public class MentionLoggerHandler extends ListenerAdapter {
         long msgId = msg.getIdLong();
         long authorId = author.getIdLong();
         long now = Bot.nowMillis();
+        List<MentionLog> logs = new ArrayList<>(mentions.size());
 
         mentions.forEach((mnt) -> {
-            MentionLog entry = new MentionLog(msgId, authorId, mnt.getIdLong(), now);
-            mentionLogRepo.save(entry);
+            logs.add(new MentionLog(msgId, authorId, mnt.getIdLong(), now));
         });
+        mentionLogRepo.bulkSave(logs);
     }
 }

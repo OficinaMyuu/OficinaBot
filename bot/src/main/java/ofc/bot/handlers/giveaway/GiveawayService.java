@@ -11,11 +11,11 @@ import ofc.bot.domain.entity.GiveawayWinner;
 import ofc.bot.domain.entity.enums.GiveawayPrizeType;
 import ofc.bot.domain.entity.enums.GiveawayStatus;
 import ofc.bot.domain.entity.enums.GiveawayWinnerStatus;
-import ofc.bot.domain.sqlite.repository.ColorRoleItemRepository;
-import ofc.bot.domain.sqlite.repository.ColorRoleStateRepository;
-import ofc.bot.domain.sqlite.repository.GiveawayEntryRepository;
-import ofc.bot.domain.sqlite.repository.GiveawayRepository;
-import ofc.bot.domain.sqlite.repository.GiveawayWinnerRepository;
+import ofc.bot.domain.database.repository.ColorRoleItemRepository;
+import ofc.bot.domain.database.repository.ColorRoleStateRepository;
+import ofc.bot.domain.database.repository.GiveawayEntryRepository;
+import ofc.bot.domain.database.repository.GiveawayRepository;
+import ofc.bot.domain.database.repository.GiveawayWinnerRepository;
 import ofc.bot.handlers.economy.BankAccount;
 import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.economy.PaymentManager;
@@ -121,16 +121,11 @@ public class GiveawayService {
     }
 
     public int removeVoiceLockedEntries(long userId, long voiceChannelId) {
-        List<String> giveawayIds = entryRepo.findActiveGiveawaysForVoiceChannel(voiceChannelId);
-        int removed = 0;
-
+        List<String> giveawayIds = entryRepo.removeUserFromVoiceLockedGiveawaysReturningIds(userId, voiceChannelId);
         for (String giveawayId : giveawayIds) {
-            if (entryRepo.removeEntry(giveawayId, userId)) {
-                removed++;
-                messageUpdater.post(giveawayId);
-            }
+            messageUpdater.post(giveawayId);
         }
-        return removed;
+        return giveawayIds.size();
     }
 
     public GiveawayEndResult endGiveaway(@NotNull Giveaway giveaway) {

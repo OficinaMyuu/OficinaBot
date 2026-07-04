@@ -2,7 +2,7 @@ package ofc.bot.listeners.discord.guilds;
 
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import ofc.bot.domain.sqlite.repository.TempBanRepository;
+import ofc.bot.domain.database.repository.TempBanRepository;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;

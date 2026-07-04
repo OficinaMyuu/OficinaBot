@@ -1,7 +1,7 @@
 package ofc.bot.jobs.roles;
 
-import ofc.bot.domain.sqlite.repository.FormerMemberRoleRepository;
-import ofc.bot.domain.sqlite.repository.Repositories;
+import ofc.bot.domain.database.repository.FormerMemberRoleRepository;
+import ofc.bot.domain.database.repository.Repositories;
 import ofc.bot.domain.tables.FormerMembersRolesTable;
 import ofc.bot.util.content.annotations.jobs.CronJob;
 import org.jooq.exception.DataAccessException;

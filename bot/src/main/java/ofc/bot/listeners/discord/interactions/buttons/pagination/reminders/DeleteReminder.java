@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import ofc.bot.domain.entity.Reminder;
-import ofc.bot.domain.sqlite.repository.ReminderRepository;
+import ofc.bot.domain.database.repository.ReminderRepository;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.InteractionListener;

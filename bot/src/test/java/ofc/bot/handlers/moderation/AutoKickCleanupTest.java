@@ -1,7 +1,9 @@
 package ofc.bot.handlers.moderation;
 
+import ofc.bot.testing.MySQLTestDatabase;
+
 import ofc.bot.domain.entity.UserXP;
-import ofc.bot.domain.sqlite.repository.UserXPRepository;
+import ofc.bot.domain.database.repository.UserXPRepository;
 import ofc.bot.domain.tables.UsersTable;
 import ofc.bot.domain.tables.UsersXPTable;
 import ofc.bot.handlers.economy.BankAccount;
@@ -71,8 +73,8 @@ class AutoKickCleanupTest {
     }
 
     private DSLContext createContext() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:sqlite::memory:");
-        DSLContext ctx = DSL.using(connection, SQLDialect.SQLITE);
+        connection = MySQLTestDatabase.open();
+        DSLContext ctx = MySQLTestDatabase.context(connection);
         USERS.getSchema(ctx).execute();
         USERS_XP.getSchema(ctx).execute();
         return ctx;

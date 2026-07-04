@@ -14,8 +14,8 @@ public class GroupBotsTable extends InitializableTable<GroupBot> {
 
     public final Field<Integer> ID          = newField("id",           SQLDataType.INTEGER.identity(true));
     public final Field<Long> BOT_ID         = newField("bot_id",       SQLDataType.BIGINT.notNull());
-    public final Field<String> BOT_NAME     = newField("bot_name",     SQLDataType.CHAR.notNull());
-    public final Field<String> BOT_CATEGORY = newField("bot_category", SQLDataType.CHAR.notNull());
+    public final Field<String> BOT_NAME     = newField("bot_name",     SQLDataType.VARCHAR(255).notNull());
+    public final Field<String> BOT_CATEGORY = newField("bot_category", SQLDataType.VARCHAR(255).notNull());
     public final Field<Long> CREATED_AT     = newField("created_at",   SQLDataType.BIGINT.notNull());
 
     public GroupBotsTable() {

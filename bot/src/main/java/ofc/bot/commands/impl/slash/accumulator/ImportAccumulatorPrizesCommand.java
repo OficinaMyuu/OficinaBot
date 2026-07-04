@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.AccumulatorPrize;
-import ofc.bot.domain.sqlite.repository.AccumulatorPrizeRepository;
+import ofc.bot.domain.database.repository.AccumulatorPrizeRepository;
 import ofc.bot.handlers.accumulator.AccumulatorImportPlanner;
 import ofc.bot.handlers.accumulator.AccumulatorImportPlanner.DuplicatePolicy;
 import ofc.bot.handlers.accumulator.AccumulatorImportPlanner.ImportPlan;

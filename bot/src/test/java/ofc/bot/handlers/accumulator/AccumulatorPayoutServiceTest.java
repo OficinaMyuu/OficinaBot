@@ -1,13 +1,15 @@
 package ofc.bot.handlers.accumulator;
 
+import ofc.bot.testing.MySQLTestDatabase;
+
 import net.dv8tion.jda.api.entities.Guild;
 import ofc.bot.domain.entity.AccumulatorPrize;
 import ofc.bot.domain.entity.ColorRoleItem;
 import ofc.bot.domain.entity.enums.AccumulatorPrizeStatus;
 import ofc.bot.domain.entity.enums.AccumulatorPrizeType;
-import ofc.bot.domain.sqlite.repository.AccumulatorPrizeRepository;
-import ofc.bot.domain.sqlite.repository.ColorRoleItemRepository;
-import ofc.bot.domain.sqlite.repository.ColorRoleStateRepository;
+import ofc.bot.domain.database.repository.AccumulatorPrizeRepository;
+import ofc.bot.domain.database.repository.ColorRoleItemRepository;
+import ofc.bot.domain.database.repository.ColorRoleStateRepository;
 import ofc.bot.domain.tables.AccumulatorPrizesTable;
 import ofc.bot.domain.tables.ColorRoleItemsTable;
 import ofc.bot.domain.tables.ColorRolesStateTable;
@@ -32,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AccumulatorPayoutServiceTest {
     @Test
     void shouldBlockApproveAllWhenAnyPrizeIsNotConfigured() throws Exception {
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite::memory:")) {
+        try (Connection connection = MySQLTestDatabase.open()) {
             TestRepos repos = setup(connection);
             FakePayment payment = new FakePayment();
             FakeBridge bridge = new FakeBridge().member(10L).member(20L);
@@ -53,7 +55,7 @@ class AccumulatorPayoutServiceTest {
 
     @Test
     void shouldPayMoneyAndColorRowsThenMarkApprovedBySameUser() throws Exception {
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite::memory:")) {
+        try (Connection connection = MySQLTestDatabase.open()) {
             TestRepos repos = setup(connection);
             FakePayment payment = new FakePayment();
             FakeBridge bridge = new FakeBridge().member(10L).member(20L).role(500L);
@@ -81,7 +83,7 @@ class AccumulatorPayoutServiceTest {
 
     @Test
     void shouldRollbackExternalChangesWhenLaterPrizeFails() throws Exception {
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite::memory:")) {
+        try (Connection connection = MySQLTestDatabase.open()) {
             TestRepos repos = setup(connection);
             FakePayment payment = new FakePayment().failUser(20L);
             FakeBridge bridge = new FakeBridge().member(10L).member(20L);
@@ -110,7 +112,7 @@ class AccumulatorPayoutServiceTest {
     }
 
     private TestRepos setup(Connection connection) {
-        DSLContext ctx = DSL.using(connection, SQLDialect.SQLITE);
+        DSLContext ctx = MySQLTestDatabase.context(connection);
         AccumulatorPrizesTable.ACCUMULATOR_PRIZES.getSchema(ctx).execute();
         ColorRoleItemsTable.COLOR_ROLE_ITEMS.getSchema(ctx).execute();
         ColorRolesStateTable.COLOR_ROLES_STATES.getSchema(ctx).execute();

@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.EntitySelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ofc.bot.domain.entity.SupportTicket;
-import ofc.bot.domain.sqlite.repository.SupportTicketRepository;
+import ofc.bot.domain.database.repository.SupportTicketRepository;
 import ofc.bot.handlers.tickets.TicketMemberAction;
 import ofc.bot.handlers.tickets.TicketMemberUpdatePolicy;
 import ofc.bot.listeners.discord.interactions.modals.tickets.TicketCreationHandler;

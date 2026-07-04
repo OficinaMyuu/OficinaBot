@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import ofc.bot.domain.entity.enums.NameScope;
-import ofc.bot.domain.sqlite.repository.UserNameUpdateRepository;
+import ofc.bot.domain.database.repository.UserNameUpdateRepository;
 import ofc.bot.domain.viewmodels.NamesHistoryView;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.EntityContextFactory;

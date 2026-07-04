@@ -6,8 +6,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ofc.bot.domain.entity.AppUser;
 import ofc.bot.domain.entity.UserNameUpdate;
 import ofc.bot.domain.entity.enums.NameScope;
-import ofc.bot.domain.sqlite.repository.UserNameUpdateRepository;
-import ofc.bot.domain.sqlite.repository.UserRepository;
+import ofc.bot.domain.database.repository.UserNameUpdateRepository;
+import ofc.bot.domain.database.repository.UserRepository;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 

@@ -1,6 +1,6 @@
 package ofc.bot.handlers.giveaway;
 
-import ofc.bot.domain.sqlite.repository.Repositories;
+import ofc.bot.domain.database.repository.Repositories;
 
 public final class GiveawayServices {
     private GiveawayServices() {}

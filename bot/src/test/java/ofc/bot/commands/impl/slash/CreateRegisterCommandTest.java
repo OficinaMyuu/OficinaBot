@@ -2,7 +2,7 @@ package ofc.bot.commands.impl.slash;
 
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import ofc.bot.domain.sqlite.repository.RegisterRepository;
+import ofc.bot.domain.database.repository.RegisterRepository;
 import ofc.bot.handlers.registration.RegistrationDevice;
 import ofc.bot.handlers.registration.RegistrationGender;
 import org.junit.jupiter.api.Test;

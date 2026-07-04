@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.RentStatus;
 import ofc.bot.domain.entity.enums.StoreItemType;
-import ofc.bot.domain.sqlite.repository.OficinaGroupRepository;
+import ofc.bot.domain.database.repository.OficinaGroupRepository;
 import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.Cooldown;

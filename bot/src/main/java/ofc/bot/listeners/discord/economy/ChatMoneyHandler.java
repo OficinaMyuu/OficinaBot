@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ofc.bot.domain.entity.UserEconomy;
-import ofc.bot.domain.sqlite.repository.UserEconomyRepository;
+import ofc.bot.domain.database.repository.UserEconomyRepository;
 import ofc.bot.handlers.economy.AutomatedMoneyGainPolicy;
 import ofc.bot.util.content.annotations.listeners.DiscordEventHandler;
 import org.jooq.exception.DataAccessException;
