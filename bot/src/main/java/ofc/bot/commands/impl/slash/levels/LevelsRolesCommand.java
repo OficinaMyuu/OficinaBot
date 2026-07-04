@@ -11,14 +11,11 @@ import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashCommand;
-import ofc.bot.handlers.requests.RequestMapper;
-import ofc.bot.handlers.requests.Route;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -60,19 +57,8 @@ public class LevelsRolesCommand extends SlashCommand {
     }
 
     public static byte[] getRolesImage(Guild guild, List<LevelRole> roles) {
-        String key = Bot.get("oficina.aws.api.key");
         DataObject payload = finalizeData(guild, roles);
-        RequestMapper result = Route.Images.CREATE_ROLES_CARD.create()
-                .addHeader("x-api-key", key)
-                .setBody(payload)
-                .send();
-
-        if (result.getStatusCode() != 200)
-            return new byte[0];
-
-        DataObject resp = result.asDataObject();
-        String cardImage = resp.getString("image");
-        return Base64.getDecoder().decode(cardImage);
+        return LevelCardBackendClient.createRolesCard(payload);
     }
 
     private static DataObject finalizeData(Guild guild, List<LevelRole> roles) {

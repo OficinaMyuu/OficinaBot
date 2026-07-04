@@ -36,13 +36,6 @@ public final class Route {
         public static final Route GET_IP_INFO = new Route(GET, "http://ip-api.com/json/{ip}");
     }
 
-    public static class Images {
-        private static final String BASE = "https://qrbe2ko4o5.execute-api.us-east-2.amazonaws.com/v1";
-
-        public static final Route CREATE_RANK_CARD  = new Route(POST, BASE, "/levels/cards");
-        public static final Route CREATE_ROLES_CARD = new Route(POST, BASE, "/levels/roles");
-    }
-
     public Route(Method method, String route) {
         this.method = method;
         this.route = route;

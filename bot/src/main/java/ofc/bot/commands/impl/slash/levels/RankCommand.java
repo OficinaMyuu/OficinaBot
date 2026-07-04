@@ -6,23 +6,18 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.utils.data.DataObject;
-import ofc.bot.domain.entity.LevelRole;
 import ofc.bot.domain.entity.UserXP;
 import ofc.bot.domain.database.repository.LevelRoleRepository;
 import ofc.bot.domain.database.repository.UserXPRepository;
+import ofc.bot.domain.entity.LevelRole;
 import ofc.bot.handlers.interactions.commands.Cooldown;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
 import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashCommand;
-import ofc.bot.handlers.requests.RequestMapper;
-import ofc.bot.handlers.requests.Route;
-import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -86,20 +81,7 @@ public class RankCommand extends SlashCommand {
     }
 
     private static byte[] getRankCard(RankData data) {
-        String key = Bot.get("oficina.aws.api.key");
-
-        RequestMapper result = Route.Images.CREATE_RANK_CARD.create()
-                .setContentType("application/json")
-                .addHeader("x-api-key", key)
-                .setBody(data)
-                .send();
-
-        if (result.getStatusCode() != 200)
-            return new byte[0];
-
-        DataObject json = result.asDataObject();
-        String cardImage = json.getString("image");
-        return Base64.getDecoder().decode(cardImage);
+        return LevelCardBackendClient.createRankCard(data);
     }
 
     private record RankData(
