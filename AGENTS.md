@@ -131,6 +131,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 
 ## Known Traps
 - Do not assume env files exist; bot config is often loaded from the DB `config` table.
+- The `config` table column is named `key`; always quote it in SQL/jOOQ lookups because current MySQL versions treat it as reserved syntax.
 - Voice income bank-channel overrides are configured through `income.voice.bank-channel-ids` as semicolon-separated Discord channel IDs; do not hard-code channel snowflakes in `VoiceChatMoneyHandler`.
 - Voice channel income customizations are database-backed in `voice_channel_income_rules`, keyed by `(channel_id, payout_type)`. Use `multiplier = 1.25`, `allow_muted = true`, and `allow_solo = true` for event channels that should pay 125% to muted or solo undeafened humans.
 - Message transcription author bans are configured through `messages.transcriptions.banned-user-ids` as Discord user IDs returned by `Bot.getArray(...)`; this is separate from `AppUserBanRepository`, which blocks requesters from using bot actions.
