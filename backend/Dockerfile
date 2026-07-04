@@ -4,14 +4,18 @@ WORKDIR /app
 
 RUN apk update && apk upgrade --no-cache
 
-COPY cmd/go.mod cmd/go.sum ./
+COPY database/go.mod database/go.sum ./database/
+COPY backend/cmd/go.mod backend/cmd/go.sum ./backend/cmd/
+
+WORKDIR /app/backend/cmd
 RUN go mod download
 
-COPY cmd/ ./
+COPY database/ /app/database/
+COPY backend/cmd/ ./
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o server ./api/main.go
+    CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/server ./api/main.go
 
 FROM debian:bookworm-slim
 
@@ -33,7 +37,7 @@ RUN groupadd -r appgroup && useradd -r -g appgroup -u 10001 appuser
 
 WORKDIR /app
 COPY --from=build /app/server /app/server
-COPY static/ /app/static/
+COPY backend/static/ /app/static/
 
 RUN chown -R appuser:appgroup /app
 

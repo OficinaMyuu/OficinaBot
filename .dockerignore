@@ -1,0 +1,14 @@
+**
+
+!backend/
+!backend/Dockerfile
+!backend/cmd/
+!backend/cmd/**
+!backend/static/
+!backend/static/**
+
+!database/
+!database/go.mod
+!database/go.sum
+!database/migrations/
+!database/migrations/**
