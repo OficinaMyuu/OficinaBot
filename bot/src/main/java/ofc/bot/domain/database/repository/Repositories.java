@@ -30,7 +30,6 @@ public final class Repositories {
     private static MemberJoinEventRepository memberJoinEventRepository;
     private static MemberPunishmentRepository memberPunishmentRepository;
     private static MentionLogRepository mentionLogRepository;
-    private static MessageTranscriptionRepository messageTranscriptionRepository;
     private static MessageVersionRepository messageVersionRepository;
     private static NicknameUpdateRequestRepository nicknameUpdateRequestRepository;
     private static OficinaGroupRepository oficinaGroupRepository;
@@ -178,11 +177,6 @@ public final class Repositories {
     public static MentionLogRepository getMentionLogRepository() {
         if (mentionLogRepository == null) mentionLogRepository = new MentionLogRepository(getDSLContext());
         return mentionLogRepository;
-    }
-
-    public static MessageTranscriptionRepository getMessageTranscriptionRepository() {
-        if (messageTranscriptionRepository == null) messageTranscriptionRepository = new MessageTranscriptionRepository(getDSLContext());
-        return messageTranscriptionRepository;
     }
 
     public static MessageVersionRepository getMessageVersionRepository() {

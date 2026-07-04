@@ -1,7 +1,5 @@
 package ofc.bot;
 
-import com.openai.client.OpenAIClient;
-import com.openai.client.okhttp.OpenAIOkHttpClient;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -17,7 +15,6 @@ public final class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private static long initTime;
     private static JDA api;
-    private static OpenAIClient openAI;
 
     public static void main(String[] args) {
         try {
@@ -46,18 +43,10 @@ public final class Main {
         EntityInitializerManager.registerSlashCommands();
         EntityInitializerManager.registerComposedInteractions();
 
-        // OpenAI
-        openAI = OpenAIOkHttpClient.builder()
-                .apiKey(Bot.getSafe("openai.key"))
-                .build();
     }
 
     public static JDA getApi() {
         return api;
-    }
-
-    public static OpenAIClient getOpenAI() {
-        return openAI;
     }
 
     public static long getInitTime() {

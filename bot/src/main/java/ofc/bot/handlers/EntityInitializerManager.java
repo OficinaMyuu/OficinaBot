@@ -222,7 +222,6 @@ public final class EntityInitializerManager {
 
     private static void registerDiscordListeners() {
         JDA api = Main.getApi();
-        var msgTrscptRepo = Repositories.getMessageTranscriptionRepository();
         var accPrizeRepo = Repositories.getAccumulatorPrizeRepository();
         var colorStateRepo = Repositories.getColorRoleStateRepository();
         var colorItemRepo = Repositories.getColorRoleItemRepository();
@@ -290,7 +289,6 @@ public final class EntityInitializerManager {
                 new MessageCreatedLogger(msgVrsRepo),
                 new MessageDeletedLogger(msgVrsRepo),
                 new MessageReferenceIndicator(),
-                new MessageTranscriptionsHandler(msgTrscptRepo, appBanRepo),
                 new MessageUpdatedLogger(msgVrsRepo),
                 new NicknameApprovalButtonListener(nickReqRepo),
                 new NicknameUpdateRequestGuard(nicknamePolicy),
