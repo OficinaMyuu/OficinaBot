@@ -4,13 +4,11 @@ WORKDIR /app
 
 RUN apk update && apk upgrade --no-cache
 
-COPY database/go.mod database/go.sum ./database/
 COPY backend/cmd/go.mod backend/cmd/go.sum ./backend/cmd/
 
 WORKDIR /app/backend/cmd
 RUN go mod download
 
-COPY database/ /app/database/
 COPY backend/cmd/ ./
 
 RUN --mount=type=cache,target=/go/pkg/mod \
@@ -30,13 +28,10 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         chromium \
-        ffmpeg \
         curl \
         ca-certificates \
         fonts-liberation \
         dumb-init && \
-    curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && \
-    chmod a+rx /usr/local/bin/yt-dlp && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
