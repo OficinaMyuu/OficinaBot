@@ -53,7 +53,7 @@ variable "availability_domain_index" {
 variable "bots_availability_domain_index" {
   type        = number
   description = "Zero-based availability domain index for the bots VM."
-  default     = 0
+  default     = 1
 
   validation {
     condition     = var.bots_availability_domain_index >= 0
