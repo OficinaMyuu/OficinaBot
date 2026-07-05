@@ -65,7 +65,7 @@ Edit private group vars:
   otherwise treat password fragments such as `$TOKEN` as variables and alter the
   value before the container starts.
 - Backend runtime currently has no required secret or database environment variables. Set optional values such as `ADDRESS` or `BODY_LIMIT` in `backend_env` only when the defaults are not suitable.
-- Bot runtime config is currently loaded from the bot SQLite `config` table. The bots inventory already passes future MySQL `DATABASE_*` values to `bot` and `registrar` using a separate `oficina_bots` application user; create that schema/user manually before enabling MySQL in the Java services.
+- Bot and registrar runtime config use the shared MySQL-backed `config` table. The bots inventory passes MySQL `DATABASE_*` values to `bot` and `registrar` using a separate `oficina_bots` application user; create that schema/user manually before deploying the services.
 - Add more bot containers as separate `oficina_services` entries only when they need separate processes, state directories, or images. Reuse the `bots_database_*` vars for any future bot container that should share the bots database user.
 - CORS intentionally allows all origins without browser credentials. The backend currently exposes only level card generation endpoints plus `GET /health`.
 

@@ -6,7 +6,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 ## Services
 - `bot/`: Java 21 Discord bot using JDA 6, Maven, MySQL, jOOQ, HikariCP, Quartz, and OkHttp.
 - `backend/`: Go HTTP backend for Playwright-backed level card image generation. Its current entrypoint is `backend/cmd/api/main.go`, with server bootstrapping under `backend/cmd/internal/app/`.
-- `registrar/`: Java 17 Discord registration service using JDA 5 and Maven. Its entrypoint is `registrar/src/main/java/ofc/bot/RegisterMaster.java`.
+- `registrar/`: Go Discord registration service using `discordgo` and MySQL. Its entrypoint is `registrar/cmd/registrar/main.go`.
 
 ## Repository Structure
 - Repo-level GitHub Actions workflows live in `.github/workflows/`.
@@ -21,8 +21,8 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 - The registrar workflow builds and pushes `ghcr.io/<owner>/oficina-registrar:latest` and a SHA-tagged image from `registrar/Dockerfile`.
 - The backend workflow builds and pushes `ghcr.io/<owner>/oficina-backend:latest` and a SHA-tagged image from `backend/Dockerfile`.
 - The bot container image is built from `bot/Dockerfile`. It uses a Maven/Java 21 builder stage, an Eclipse Temurin Java 21 Alpine JRE runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/bot`.
-- The registrar container image is built from `registrar/Dockerfile`. It uses a Maven/Java 17 builder stage, an Eclipse Temurin Java 17 Alpine JRE runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/registrar`.
-- Bot and registrar containers keep immutable jars under `/opt/oficina` and connect to the shared OCI MySQL database through `DATABASE_*` environment variables. Writable state remains available for logs and other runtime files, but database state is no longer a container-local SQLite file.
+- The registrar container image is built from `registrar/Dockerfile`. It uses a Go builder stage, copies a stripped static binary into an Alpine runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/registrar`.
+- Bot and registrar containers keep immutable application artifacts under `/opt/oficina` and connect to the shared OCI MySQL database through `DATABASE_*` environment variables. Writable state remains available for logs and other runtime files, but database state is no longer a container-local SQLite file.
 - Ansible manages runtime deployment through Docker Compose on the OCI VMs. The bots VM runs `bot`, any additional bot containers defined in inventory, `registrar`, and Watchtower. The backend/API VM runs `backend` and Watchtower.
 - Watchtower polls every 300 seconds and updates all containers on each host. The Compose template sets `DOCKER_API_VERSION` from `oficina_watchtower_docker_api_version` because newer Docker daemons reject Watchtower's legacy default API version. GHCR credentials are required on the hosts only when packages are private.
 - The backend Terraform workflow validates infrastructure changes on pull requests, plans against the remote OCI backend on pushes to `main`, and applies only through manual dispatch with the `backend-infra` GitHub Environment.
@@ -174,6 +174,20 @@ Approval and rejection buttons use IDs prefixed with `nick-`, so the durable lis
 `UrlBuilder` is a small query-string utility for features that need to safely inspect or mutate URLs without hand-splicing strings. It preserves the original URI structure, stores decoded query parameters in insertion order, supports fluent updates through `set`, `add`, `remove`, and `clear`, and can build either a `URI` via `toUri()` or a string via `build()` and `toString()`. The utility is intentionally single-value per key; if a feature needs repeated query keys, extend it deliberately instead of quietly changing its semantics.
 
 `ThrottledAction<T>` is a generic latest-value coalescer. Each `post(T)` replaces the pending value, and the scheduled flush runs only the latest value for that interval. It owns a scheduler and exposes `shutdown()`/`close()` so long-lived features can release it when the related workflow ends.
+
+## Registrar Boot Flow
+1. `registrar/cmd/registrar/main.go` creates a signal-aware context and structured logger.
+2. `registrar/internal/config` loads MySQL connection settings from `DATABASE_*` environment variables, preserving the pool-related names used by the old Java service where they still map cleanly to Go.
+3. `registrar/internal/database` opens MySQL through `database/sql` and verifies connectivity with a bounded ping.
+4. `registrar/internal/store/ConfigStore` reads `app.token`, `channels.registry`, and `channels.registry.log` from the shared `config` table, quoting the reserved `key` column.
+5. `registrar/internal/app` opens a low-state `discordgo` session with guild message, message content, and guild member intents, then registers handlers and waits for shutdown.
+
+## Registrar Interaction Model
+Registrar intentionally preserves the legacy `r!` message-command flow. `r!revoke` routes to the revoke command, while any other `r!` message routes to the registration command. Register command syntax remains compact: the first character is gender (`f`, `m`, or `n`), the digits are age, and the last character is device (`p` for desktop or `m` for mobile). Target lookup strips non-digits from the second argument so raw IDs and mentions both work.
+
+Registration roles and DB enum values live in `registrar/internal/registration`. The register command adds registered/device/gender/age roles, removes the non-registered role, writes the existing `registers` row, posts the registration log embed, deletes the target user's latest registry-channel messages, and sends a temporary success message. Revoke adds the non-registered role back and removes the registered/device/gender/age roles. Both commands run through the legacy command router in their own goroutines with panic recovery.
+
+The registry janitor deletes non-staff messages without digits in the configured registry channel and deletes recent registry-channel messages when a user leaves the guild. Permission checks are computed from guild roles with a short cache instead of a large Discord member cache, keeping the service suitable for constrained OCI Micro fallback deployments.
 
 ## Backend Boot Flow
 The backend entrypoint loads configuration, creates a signal-aware root context, builds the application server through `backend/cmd/internal/app`, and starts Echo through `Server.Start`. The app package owns Playwright startup, route registration, and graceful shutdown. `Server.Close` explicitly releases the card renderer browser and Playwright runtime.
