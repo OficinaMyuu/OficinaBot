@@ -92,7 +92,7 @@ public class UserinfoCommand extends SlashCommand {
     @NotNull
     @Override
     public String getDescription() {
-        return "Comando usado para saber informaçõe gerais do membro no servidor e do usuário do Discord.";
+        return "Comando usado para saber informações gerais do membro no servidor e do usuário do Discord.";
     }
 
     @NotNull
