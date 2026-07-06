@@ -113,7 +113,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Registrar tests/build: run `go test ./...` and `go build ./...` from `registrar/`.
 - Registrar DB integration tests use live MySQL when `OFICINA_TEST_MYSQL_DSN` is set; otherwise the live DB test is skipped.
 - Registrar container image: run `docker build -t oficina-registrar ./registrar` from the repository root. The image runs as UID/GID `10001` with writable runtime state under `/var/lib/oficina/registrar`.
-- Backend tests: run `go test ./...` from `backend/cmd/`.
+- Backend tests: run `go test ./...` from `backend/cmd/`. The backend module currently requires Go 1.25; keep `backend/Dockerfile` on a matching Go 1.25 builder image.
 - Database migrator tests/build: run `go test ./...` from `database/`.
 - Run product migrations with `go run ./cmd/migrator up` from `database/` after setting `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD` for a DDL-capable migration user.
 - Backend Terraform validation: run `terraform fmt -check -recursive`, `terraform init -backend=false`, and `terraform validate` from `backend/terraform/`.
@@ -124,7 +124,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 ## Deployments
 - Bot image workflow: `.github/workflows/deploy.yml`; pushes `ghcr.io/<owner>/oficina-bot:latest` and `ghcr.io/<owner>/oficina-bot:<sha>`.
 - Registrar image workflow: `.github/workflows/deploy-registrar.yml`; pushes `ghcr.io/<owner>/oficina-registrar:latest` and `ghcr.io/<owner>/oficina-registrar:<sha>`.
-- Backend image workflow: `.github/workflows/deploy-backend.yml`; builds from the repository root with `backend/Dockerfile`, then pushes `ghcr.io/<owner>/oficina-backend:latest` and `ghcr.io/<owner>/oficina-backend:<sha>`.
+- Backend image workflow: `.github/workflows/deploy-backend.yml`; builds from the repository root with `backend/Dockerfile` using a Go 1.25 builder, then pushes `ghcr.io/<owner>/oficina-backend:latest` and `ghcr.io/<owner>/oficina-backend:<sha>`.
 - Bot and registrar Dockerfiles are service-local. The bot builds a shaded Maven jar into an Eclipse Temurin Alpine JRE runtime. Registrar builds a static Go binary into an Alpine runtime. Both run through `dumb-init` as the non-root `app` user.
 - CodeQL workflow: `.github/workflows/codeql.yml`; scans Java/Kotlin and Go with explicit monorepo build steps.
 - Runtime deployment is managed by Ansible from `ansible/`. The bots VM runs the `bot`, any additional bot containers defined in inventory, and `registrar`; the backend/API VM runs the `backend` container.

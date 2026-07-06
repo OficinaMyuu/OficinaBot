@@ -19,7 +19,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 ## Deployment Model
 - The bot workflow builds and pushes `ghcr.io/<owner>/oficina-bot:latest` and a SHA-tagged image from `bot/Dockerfile`.
 - The registrar workflow builds and pushes `ghcr.io/<owner>/oficina-registrar:latest` and a SHA-tagged image from `registrar/Dockerfile`.
-- The backend workflow builds and pushes `ghcr.io/<owner>/oficina-backend:latest` and a SHA-tagged image from `backend/Dockerfile`.
+- The backend workflow builds and pushes `ghcr.io/<owner>/oficina-backend:latest` and a SHA-tagged image from `backend/Dockerfile`, whose builder stage tracks the backend module's Go 1.25 requirement.
 - The bot container image is built from `bot/Dockerfile`. It uses a Maven/Java 21 builder stage, an Eclipse Temurin Java 21 Alpine JRE runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/bot`.
 - The registrar container image is built from `registrar/Dockerfile`. It uses a Go builder stage, copies a stripped static binary into an Alpine runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/registrar`.
 - Bot and registrar containers keep immutable application artifacts under `/opt/oficina` and connect to the shared OCI MySQL database through `DATABASE_*` environment variables. Writable state remains available for logs and other runtime files, but database state is no longer a container-local SQLite file.
