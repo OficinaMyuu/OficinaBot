@@ -52,7 +52,9 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: "backend/cmd/go.mod"
-          cache-dependency-path: "backend/cmd/go.sum"
+          cache-dependency-path: |
+            backend/cmd/go.sum
+            registrar/go.sum
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
@@ -60,16 +62,16 @@ jobs:
           languages: ${{ matrix.language }}
           build-mode: manual
 
-      - name: Build Java services
+      - name: Build Java service
         if: matrix.language == 'java-kotlin'
         run: |
           mvn -B -DskipTests package --file bot/pom.xml
-          mvn -B -DskipTests package --file registrar/pom.xml
 
-      - name: Build Go backend
+      - name: Build Go services
         if: matrix.language == 'go'
-        working-directory: backend/cmd
-        run: go build ./...
+        run: |
+          (cd backend/cmd && go build ./...)
+          (cd registrar && go build ./...)
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v4

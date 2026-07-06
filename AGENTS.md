@@ -29,7 +29,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; Playwright-backed level card rendering lives under `backend/cmd/internal/service/`; HTTP routes live under `backend/cmd/internal/routes/`.
 - Backend Terraform entrypoint: `backend/terraform/`; the root module wires shared provider/backend/data concerns, while resources are split under `backend/terraform/modules/`.
 - Ansible runtime entrypoint: `ansible/playbooks/site.yml`; example inventory lives under `ansible/inventories/example/`, and host setup/runtime roles live under `ansible/roles/`.
-- Registrar entrypoint: `registrar/src/main/java/ofc/bot/RegisterMaster.java`.
+- Registrar entrypoint: `registrar/cmd/registrar/main.go`.
 
 ## Bot Project Snapshot
 - Stack: Java 21, Maven, JDA 6, MySQL, jOOQ, HikariCP, Quartz, and OkHttp.
@@ -42,6 +42,17 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Do not add automatic migration logic or `CREATE TABLE IF NOT EXISTS` startup DDL to application services.
 - Do not add interactive console SQL/query handlers to bot startup; database access should go through typed repositories, migrations, or purpose-built admin tooling.
 - Many features are registered centrally, so missing behavior is often a registration problem, not a logic problem.
+
+## Registrar Project Snapshot
+- Stack: Go, `discordgo`, MySQL through `database/sql`, and the Go MySQL driver.
+- App type: focused Discord registration service for the legacy `r!` registry flow.
+- Entrypoint: `registrar/cmd/registrar/main.go`; application wiring lives under `registrar/internal/app/`.
+- Runtime config uses `DATABASE_*` environment variables for MySQL connectivity, then reads `app.token`, `channels.registry`, and `channels.registry.log` from the shared `config` table.
+- Legacy command routing lives in `registrar/internal/bot/Router`; `r!revoke` routes to revoke and every other `r!` message routes to the register command.
+- Registration parsing and role IDs live in `registrar/internal/registration/`; keep the existing compact pattern syntax where gender is the first character, age is the digits, and device is the last character.
+- The registry janitor deletes non-staff messages without digits in `channels.registry`, and removes recent registry-channel messages from users who leave the guild.
+- Registrar uses Discord REST calls and short role caching instead of a large member cache; keep it light because it is intended to run on constrained OCI shapes.
+- Registrar schema writes go through `registrar/internal/store/RegisterRepository` and the existing `registers` table. Do not add DDL to Registrar startup.
 
 ## Bot Directory Index
 - `bot/src/main/java/ofc/bot/commands/`: slash command implementations by feature area.
@@ -98,8 +109,9 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot DB integration tests use live MySQL when `OFICINA_TEST_MYSQL_JDBC_URL` is set. The Java helper creates a temporary schema per test and drops it on close; otherwise DB tests are skipped.
 - Bot package: run `mvn clean package` from `bot/`.
 - Bot container image: run `docker build -t oficina-bot ./bot` from the repository root. The image runs as UID/GID `10001` with writable runtime state under `/var/lib/oficina/bot`.
-- Bot and registrar database config comes from `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD`. Optional Hikari knobs are `DATABASE_MAX_POOL_SIZE`, `DATABASE_MIN_IDLE`, `DATABASE_CONNECTION_TIMEOUT_MS`, `DATABASE_VALIDATION_TIMEOUT_MS`, `DATABASE_IDLE_TIMEOUT_MS`, `DATABASE_MAX_LIFETIME_MS`, and `DATABASE_KEEPALIVE_TIME_MS`.
-- Registrar package: run `mvn clean package` from `registrar/`.
+- Bot and registrar database config comes from `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD`. Registrar maps `DATABASE_MAX_POOL_SIZE`, `DATABASE_MIN_IDLE`, `DATABASE_CONNECTION_TIMEOUT_MS`, `DATABASE_VALIDATION_TIMEOUT_MS`, `DATABASE_IDLE_TIMEOUT_MS`, and `DATABASE_MAX_LIFETIME_MS` onto `database/sql`; the Java bot also supports the Hikari-specific `DATABASE_KEEPALIVE_TIME_MS` knob.
+- Registrar tests/build: run `go test ./...` and `go build ./...` from `registrar/`.
+- Registrar DB integration tests use live MySQL when `OFICINA_TEST_MYSQL_DSN` is set; otherwise the live DB test is skipped.
 - Registrar container image: run `docker build -t oficina-registrar ./registrar` from the repository root. The image runs as UID/GID `10001` with writable runtime state under `/var/lib/oficina/registrar`.
 - Backend tests: run `go test ./...` from `backend/cmd/`.
 - Database migrator tests/build: run `go test ./...` from `database/`.
@@ -113,7 +125,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot image workflow: `.github/workflows/deploy.yml`; pushes `ghcr.io/<owner>/oficina-bot:latest` and `ghcr.io/<owner>/oficina-bot:<sha>`.
 - Registrar image workflow: `.github/workflows/deploy-registrar.yml`; pushes `ghcr.io/<owner>/oficina-registrar:latest` and `ghcr.io/<owner>/oficina-registrar:<sha>`.
 - Backend image workflow: `.github/workflows/deploy-backend.yml`; builds from the repository root with `backend/Dockerfile`, then pushes `ghcr.io/<owner>/oficina-backend:latest` and `ghcr.io/<owner>/oficina-backend:<sha>`.
-- Bot and registrar Dockerfiles are service-local. They build shaded Maven jars in a builder stage, copy only the final jar into an Eclipse Temurin Alpine JRE runtime, and run through `dumb-init` as the non-root `app` user.
+- Bot and registrar Dockerfiles are service-local. The bot builds a shaded Maven jar into an Eclipse Temurin Alpine JRE runtime. Registrar builds a static Go binary into an Alpine runtime. Both run through `dumb-init` as the non-root `app` user.
 - CodeQL workflow: `.github/workflows/codeql.yml`; scans Java/Kotlin and Go with explicit monorepo build steps.
 - Runtime deployment is managed by Ansible from `ansible/`. The bots VM runs the `bot`, any additional bot containers defined in inventory, and `registrar`; the backend/API VM runs the `backend` container.
 - All application containers are deployed through host-level Docker Compose projects generated by Ansible. The bots stack contains `bot`, `registrar`, and `watchtower`; the backend stack contains `backend` and `watchtower`.
@@ -142,7 +154,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Coinflip inference channel bans are configured through `messages.coinflip.banned-channel-ids` as Discord channel IDs returned by `Bot.getArray(...)`; banned channels are ignored before pending flips or cooldowns are updated.
 - Attachment forwarding uses `channels.attachments-log.id` as a Discord text channel ID. It is stateless: do not add a table, scan archive history, or re-upload attachment bytes unless the preservation policy is deliberately changed.
 - Do not assume a missing bot feature is unimplemented before checking central registration.
-- Applications must not run schema creation or migrations at startup. `DB.java` files only configure MySQL/Hikari and verify connectivity.
+- Applications must not run schema creation or migrations at startup. Java `DB.java` files and Go database packages only configure MySQL connections and verify connectivity.
 - Giveaway buttons are durable component ids prefixed with `giveaway:` and must not use `InteractionMemoryManager`.
 - Accumulator controls are durable component ids prefixed with `acc:v1:` and must not use `InteractionMemoryManager`; accumulator rows are never deleted, only moved from `PENDING` to `PAID` or `REJECTED`.
 - Color role ownership uses `color_roles_state.expires_at`; do not reintroduce fixed `updated_at + 60 days` expiration logic.

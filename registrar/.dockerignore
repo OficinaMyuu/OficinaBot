@@ -1,9 +1,9 @@
-target/
+bin/
+dist/
+coverage.out
+*.test
 database*.db
 *.jar
-dependency-reduced-pom.xml
-hs_err_pid*
-replay_pid*
 *.log
 .idea/
 .vscode/
