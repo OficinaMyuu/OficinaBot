@@ -23,6 +23,7 @@ oficina_services:
   - name: api
     image: "{{ oficina_registry }}/{{ oficina_image_namespace }}/oficina-backend:latest"
     container_name: oficina-backend
+    ipc: host
     env: "{{ backend_env }}"
     ports:
       - "{{ backend_host_port }}:{{ backend_container_port }}"

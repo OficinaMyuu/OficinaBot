@@ -6,6 +6,7 @@ services:
     container_name: oficina-backend
     restart: unless-stopped
     pull_policy: always
+    ipc: host
     ports:
       - "8080:8080"
     volumes:

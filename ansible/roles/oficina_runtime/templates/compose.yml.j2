@@ -7,6 +7,9 @@ services:
     container_name: "{{ service.container_name | default('oficina-' ~ service.name) }}"
     restart: "{{ service.restart | default('unless-stopped') }}"
     pull_policy: "{{ service.pull_policy | default(oficina_compose_pull_policy) }}"
+{% if service.ipc is defined %}
+    ipc: "{{ service.ipc }}"
+{% endif %}
     env_file:
       - path: "{{ service.name }}.env"
         format: raw

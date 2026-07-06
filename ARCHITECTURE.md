@@ -194,7 +194,7 @@ The backend entrypoint loads configuration, creates a signal-aware root context,
 
 The backend container runs as non-root `appuser` with a real writable home directory. The image installs Debian Chromium and pre-bakes the Playwright Go driver into `/var/lib/oficina/backend/playwright-driver`; runtime sets `PLAYWRIGHT_DRIVER_PATH`, `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`, `HOME`, and `XDG_CACHE_HOME` so startup does not try to write under an unmanaged `/home/appuser` path or download browser bundles. Application code verifies the baked driver files before calling `playwright.Run`, does not call `playwright.Install` at runtime, uses `SkipInstallBrowsers`, and launches the system Chromium executable.
 
-Backend Compose mounts a host-side `static/` directory next to the compose file into `/app/static:ro`, because the Playwright templates and image assets are runtime inputs. Ansible keeps that directory populated from `backend/static/` through the runtime role's `oficina_compose_assets` list before deploying the stack.
+Backend Compose mounts a host-side `static/` directory next to the compose file into `/app/static:ro`, because the Playwright templates and image assets are runtime inputs. Ansible keeps that directory populated from `backend/static/` through the runtime role's `oficina_compose_assets` list before deploying the stack. The API service runs with `ipc: host` so Chromium has the shared-memory behavior expected by Playwright and does not crash during browser startup.
 
 HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, which keeps route behavior testable without launching Playwright.
 
