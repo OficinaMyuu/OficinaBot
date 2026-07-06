@@ -132,7 +132,7 @@ Automod warnings are persisted before the current threshold is resolved through 
 ## Bot Levels
 `LevelManager` grants XP, persists level progress, announces level-ups in the configured level-up channel, and applies matching level roles. `VoiceXPHandler` uses `voice_channel_income_rules` rows with `payout_type = LEVEL_EXPERIENCE` to customize voice XP payout multipliers and event-channel eligibility. Users can run `.toggle-rankup-pings` to control whether their level-up announcement mentions them. The command is a guild legacy listener available to every user, stores the deterministic boolean value in `users_preferences.rankup_pings_enabled`, and preserves `users_preferences.locale`, which can remain null until Discord exposes it through an interaction.
 
-`/rank` and `/levels-roles` render image cards through the backend card API. The bot reads `backend.api.base-url` from the shared `config` table and appends `/api/levels/cards` or `/api/levels/roles`; production should point this key at the backend private subnet address, such as `http://10.0.1.10:8080`. These backend endpoints are unauthenticated and do not use the legacy AWS API Gateway `x-api-key` header.
+`/rank` and `/levels-roles` render image cards through the backend card API. The bot reads `backend.api.base-url` from the shared `config` table and appends `/api/levels/cards` or `/api/levels/roles`; production should point this key at the backend private subnet address, such as `http://10.0.1.10:8080`. Successful card responses are raw `image/png` bytes, while API errors remain JSON. These backend endpoints are unauthenticated and do not use the legacy AWS API Gateway `x-api-key` header.
 
 ## Bot Channel Permission Optimization
 `/chanoptz` is a review-first flow. It requires a target channel parameter, loads every guild member, snapshots the channel overrides, validates a local permission simulation against JDA's explicit channel permissions/access for the current state, and only proposes removals that keep every member's access and explicit channel permission set unchanged. The heavy analysis runs on virtual threads, and the review summary reports both the total number of redundant permission entries found and the optimization percentage. The approval step is guarded by an in-memory review plan plus an override signature check so stale reviews are rejected instead of applying against a changed channel.
@@ -201,8 +201,8 @@ HTTP handlers receive dependencies through small interfaces instead of calling c
 ## Backend API Surface
 The backend intentionally exposes only:
 - `GET /health` for unauthenticated liveness checks.
-- `POST /api/levels/cards` for level profile card screenshots.
-- `POST /api/levels/roles` for level-role list screenshots.
+- `POST /api/levels/cards` for level profile card screenshots, returning raw `image/png` bytes on success.
+- `POST /api/levels/roles` for level-role list screenshots, returning raw `image/png` bytes on success.
 - `/static/*` for the HTML templates and image assets consumed by Playwright.
 
 Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, wildcard CORS without browser credentials, and a basic in-memory rate limiter. There is no CSRF middleware because the backend no longer has cookie-backed mutating admin routes.
