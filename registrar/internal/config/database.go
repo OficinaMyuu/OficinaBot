@@ -58,19 +58,19 @@ func LoadDatabaseSettings() (DatabaseSettings, error) {
 		minIdle = maxOpen
 	}
 
-	connectionTimeout, err := boundedPositiveDurationMillisEnv("DATABASE_CONNECTION_TIMEOUT_MS", 10_000, maxDatabaseTimeout)
+	connectionTimeout, err := boundedPositiveDurationMillisEnv("DATABASE_CONNECTION_TIMEOUT_MS", 10*time.Second, maxDatabaseTimeout)
 	if err != nil {
 		return DatabaseSettings{}, err
 	}
-	validationTimeout, err := boundedPositiveDurationMillisEnv("DATABASE_VALIDATION_TIMEOUT_MS", 5_000, maxDatabaseTimeout)
+	validationTimeout, err := boundedPositiveDurationMillisEnv("DATABASE_VALIDATION_TIMEOUT_MS", 5*time.Second, maxDatabaseTimeout)
 	if err != nil {
 		return DatabaseSettings{}, err
 	}
-	idleTimeout, err := boundedPositiveDurationMillisEnv("DATABASE_IDLE_TIMEOUT_MS", 600_000, maxDatabaseLifetime)
+	idleTimeout, err := boundedPositiveDurationMillisEnv("DATABASE_IDLE_TIMEOUT_MS", 10*time.Minute, maxDatabaseLifetime)
 	if err != nil {
 		return DatabaseSettings{}, err
 	}
-	maxLifetime, err := boundedPositiveDurationMillisEnv("DATABASE_MAX_LIFETIME_MS", 1_500_000, maxDatabaseLifetime)
+	maxLifetime, err := boundedPositiveDurationMillisEnv("DATABASE_MAX_LIFETIME_MS", 25*time.Minute, maxDatabaseLifetime)
 	if err != nil {
 		return DatabaseSettings{}, err
 	}
@@ -130,25 +130,11 @@ func boundedPositiveIntEnv(key string, fallback int, maxValue int) (int, error) 
 	return value, nil
 }
 
-func boundedPositiveDurationMillisEnv(key string, fallbackMillis uint64, maxValue time.Duration) (time.Duration, error) {
+func boundedPositiveDurationMillisEnv(key string, fallback time.Duration, maxValue time.Duration) (time.Duration, error) {
 	if maxValue <= 0 {
 		return 0, fmt.Errorf("invalid duration limit for %s", key)
 	}
-
-	maxMillis := uint64(maxValue / time.Millisecond)
-	if fallbackMillis == 0 || fallbackMillis > maxMillis {
-		return 0, fmt.Errorf("invalid fallback for %s", key)
-	}
-
-	value, err := boundedPositiveUintEnv(key, fallbackMillis, maxMillis)
-	if err != nil {
-		return 0, err
-	}
-	return time.Duration(value) * time.Millisecond, nil
-}
-
-func boundedPositiveUintEnv(key string, fallback uint64, maxValue uint64) (uint64, error) {
-	if fallback == 0 || fallback > maxValue {
+	if fallback <= 0 || fallback > maxValue {
 		return 0, fmt.Errorf("invalid fallback for %s", key)
 	}
 
@@ -156,15 +142,28 @@ func boundedPositiveUintEnv(key string, fallback uint64, maxValue uint64) (uint6
 	if raw == "" {
 		return fallback, nil
 	}
-	value, err := strconv.ParseUint(raw, 10, 64)
-	if err != nil {
-		return 0, fmt.Errorf("%s must be a positive integer: %w", key, err)
+	if !isDecimalDigits(raw) {
+		return 0, fmt.Errorf("%s must be a positive integer", key)
 	}
-	if value == 0 {
+
+	value, err := time.ParseDuration(raw + "ms")
+	if err != nil {
+		return 0, fmt.Errorf("%s must be a valid millisecond duration: %w", key, err)
+	}
+	if value <= 0 {
 		return 0, fmt.Errorf("%s must be positive", key)
 	}
 	if value > maxValue {
-		return 0, fmt.Errorf("%s must be less than or equal to %d", key, maxValue)
+		return 0, fmt.Errorf("%s must be less than or equal to %s", key, maxValue)
 	}
 	return value, nil
+}
+
+func isDecimalDigits(value string) bool {
+	for _, char := range value {
+		if char < '0' || char > '9' {
+			return false
+		}
+	}
+	return value != ""
 }
