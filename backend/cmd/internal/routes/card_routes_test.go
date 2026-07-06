@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -43,7 +44,7 @@ func TestCardHandlerReturnsMalformedJSON(t *testing.T) {
 	assertAPIError(t, rec.Body.String(), service.ErrorMalformedJSON)
 }
 
-func TestCardHandlerEncodesRendererResponse(t *testing.T) {
+func TestCardHandlerReturnsRendererImage(t *testing.T) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/api/levels/cards", strings.NewReader(`{"username":"Myuu"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -58,16 +59,15 @@ func TestCardHandlerEncodesRendererResponse(t *testing.T) {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
 	}
 
-	var body map[string]string
-	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
-		t.Fatalf("expected JSON response, got %v", err)
+	if got := rec.Header().Get(echo.HeaderContentType); got != cardImageContentType {
+		t.Fatalf("expected content type %q, got %q", cardImageContentType, got)
 	}
-	if body["image"] != "AQID" {
-		t.Fatalf("expected base64 image AQID, got %q", body["image"])
+	if expected := []byte{1, 2, 3}; !bytes.Equal(rec.Body.Bytes(), expected) {
+		t.Fatalf("expected raw image bytes %v, got %v", expected, rec.Body.Bytes())
 	}
 }
 
-func TestCardHandlerEncodesRolesRendererResponse(t *testing.T) {
+func TestCardHandlerReturnsRolesRendererImage(t *testing.T) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/api/levels/roles", strings.NewReader(`{"guild":{"name":"Oficina","icon_url":"https://example.com/icon.png"},"levels":[]}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -82,12 +82,11 @@ func TestCardHandlerEncodesRolesRendererResponse(t *testing.T) {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
 	}
 
-	var body map[string]string
-	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
-		t.Fatalf("expected JSON response, got %v", err)
+	if got := rec.Header().Get(echo.HeaderContentType); got != cardImageContentType {
+		t.Fatalf("expected content type %q, got %q", cardImageContentType, got)
 	}
-	if body["image"] != "BAUG" {
-		t.Fatalf("expected base64 image BAUG, got %q", body["image"])
+	if expected := []byte{4, 5, 6}; !bytes.Equal(rec.Body.Bytes(), expected) {
+		t.Fatalf("expected raw image bytes %v, got %v", expected, rec.Body.Bytes())
 	}
 }
 

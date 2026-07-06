@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"oficina-img/internal/service"
@@ -15,6 +14,8 @@ type CardRenderer interface {
 type CardHandler struct {
 	renderer CardRenderer
 }
+
+const cardImageContentType = "image/png"
 
 func NewCardHandler(renderer CardRenderer) *CardHandler {
 	return &CardHandler{renderer: renderer}
@@ -31,10 +32,7 @@ func (h *CardHandler) GetLevelCard(c echo.Context) error {
 		return c.JSON(err.Status, err)
 	}
 
-	resp := map[string]string{
-		"image": base64.StdEncoding.EncodeToString(img),
-	}
-	return c.JSON(http.StatusOK, &resp)
+	return c.Blob(http.StatusOK, cardImageContentType, img)
 }
 
 func (h *CardHandler) GetLevelsRoles(c echo.Context) error {
@@ -48,8 +46,5 @@ func (h *CardHandler) GetLevelsRoles(c echo.Context) error {
 		return c.JSON(err.Status, err)
 	}
 
-	resp := map[string]string{
-		"image": base64.StdEncoding.EncodeToString(img),
-	}
-	return c.JSON(http.StatusOK, &resp)
+	return c.Blob(http.StatusOK, cardImageContentType, img)
 }
