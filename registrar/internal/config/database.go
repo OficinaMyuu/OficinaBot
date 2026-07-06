@@ -112,11 +112,22 @@ func boundedPositiveIntEnv(key string, fallback int, maxValue int) (int, error) 
 		return 0, fmt.Errorf("invalid fallback for %s", key)
 	}
 
-	value, err := boundedPositiveUintEnv(key, uint64(fallback), uint64(maxValue))
-	if err != nil {
-		return 0, err
+	raw := strings.TrimSpace(os.Getenv(key))
+	if raw == "" {
+		return fallback, nil
 	}
-	return int(value), nil
+
+	value, err := strconv.Atoi(raw)
+	if err != nil {
+		return 0, fmt.Errorf("%s must be a positive integer: %w", key, err)
+	}
+	if value <= 0 {
+		return 0, fmt.Errorf("%s must be positive", key)
+	}
+	if value > maxValue {
+		return 0, fmt.Errorf("%s must be less than or equal to %d", key, maxValue)
+	}
+	return value, nil
 }
 
 func boundedPositiveDurationMillisEnv(key string, fallbackMillis uint64, maxValue time.Duration) (time.Duration, error) {

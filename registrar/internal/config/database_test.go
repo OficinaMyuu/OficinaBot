@@ -72,6 +72,17 @@ func TestLoadDatabaseSettingsRejectsOversizedPool(t *testing.T) {
 	}
 }
 
+func TestLoadDatabaseSettingsRejectsOverflowPool(t *testing.T) {
+	t.Setenv("DATABASE_HOST", "mysql.internal")
+	t.Setenv("DATABASE_USER", "app")
+	t.Setenv("DATABASE_PASSWORD", "secret")
+	t.Setenv("DATABASE_MAX_POOL_SIZE", "18446744073709551615")
+
+	if _, err := LoadDatabaseSettings(); err == nil {
+		t.Fatal("LoadDatabaseSettings() error = nil, want pool parse error")
+	}
+}
+
 func TestLoadDatabaseSettingsRejectsOversizedDuration(t *testing.T) {
 	t.Setenv("DATABASE_HOST", "mysql.internal")
 	t.Setenv("DATABASE_USER", "app")
