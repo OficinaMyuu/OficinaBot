@@ -60,3 +60,36 @@ func TestLoadDatabaseSettingsRejectsInvalidPositiveInteger(t *testing.T) {
 		t.Fatal("LoadDatabaseSettings() error = nil, want positive integer error")
 	}
 }
+
+func TestLoadDatabaseSettingsRejectsOversizedPool(t *testing.T) {
+	t.Setenv("DATABASE_HOST", "mysql.internal")
+	t.Setenv("DATABASE_USER", "app")
+	t.Setenv("DATABASE_PASSWORD", "secret")
+	t.Setenv("DATABASE_MAX_POOL_SIZE", "51")
+
+	if _, err := LoadDatabaseSettings(); err == nil {
+		t.Fatal("LoadDatabaseSettings() error = nil, want pool limit error")
+	}
+}
+
+func TestLoadDatabaseSettingsRejectsOversizedDuration(t *testing.T) {
+	t.Setenv("DATABASE_HOST", "mysql.internal")
+	t.Setenv("DATABASE_USER", "app")
+	t.Setenv("DATABASE_PASSWORD", "secret")
+	t.Setenv("DATABASE_CONNECTION_TIMEOUT_MS", "600001")
+
+	if _, err := LoadDatabaseSettings(); err == nil {
+		t.Fatal("LoadDatabaseSettings() error = nil, want duration limit error")
+	}
+}
+
+func TestLoadDatabaseSettingsRejectsOverflowDuration(t *testing.T) {
+	t.Setenv("DATABASE_HOST", "mysql.internal")
+	t.Setenv("DATABASE_USER", "app")
+	t.Setenv("DATABASE_PASSWORD", "secret")
+	t.Setenv("DATABASE_CONNECTION_TIMEOUT_MS", "18446744073709551615")
+
+	if _, err := LoadDatabaseSettings(); err == nil {
+		t.Fatal("LoadDatabaseSettings() error = nil, want duration overflow limit error")
+	}
+}

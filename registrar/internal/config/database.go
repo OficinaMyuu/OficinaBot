@@ -12,6 +12,9 @@ const (
 	defaultDatabasePort      = "3306"
 	defaultDatabaseName      = "oficina_services"
 	defaultDatabaseCollation = "utf8mb4_unicode_ci"
+	maxDatabasePoolSize      = 50
+	maxDatabaseTimeout       = 10 * time.Minute
+	maxDatabaseLifetime      = 24 * time.Hour
 )
 
 type DatabaseSettings struct {
@@ -43,11 +46,11 @@ func LoadDatabaseSettings() (DatabaseSettings, error) {
 		return DatabaseSettings{}, err
 	}
 
-	maxOpen, err := positiveIntEnv("DATABASE_MAX_POOL_SIZE", 3)
+	maxOpen, err := boundedPositiveIntEnv("DATABASE_MAX_POOL_SIZE", 3, maxDatabasePoolSize)
 	if err != nil {
 		return DatabaseSettings{}, err
 	}
-	minIdle, err := positiveIntEnv("DATABASE_MIN_IDLE", 1)
+	minIdle, err := boundedPositiveIntEnv("DATABASE_MIN_IDLE", 1, maxDatabasePoolSize)
 	if err != nil {
 		return DatabaseSettings{}, err
 	}
@@ -55,19 +58,19 @@ func LoadDatabaseSettings() (DatabaseSettings, error) {
 		minIdle = maxOpen
 	}
 
-	connectionTimeout, err := positiveDurationMillisEnv("DATABASE_CONNECTION_TIMEOUT_MS", 10_000)
+	connectionTimeout, err := boundedPositiveDurationMillisEnv("DATABASE_CONNECTION_TIMEOUT_MS", 10_000, maxDatabaseTimeout)
 	if err != nil {
 		return DatabaseSettings{}, err
 	}
-	validationTimeout, err := positiveDurationMillisEnv("DATABASE_VALIDATION_TIMEOUT_MS", 5_000)
+	validationTimeout, err := boundedPositiveDurationMillisEnv("DATABASE_VALIDATION_TIMEOUT_MS", 5_000, maxDatabaseTimeout)
 	if err != nil {
 		return DatabaseSettings{}, err
 	}
-	idleTimeout, err := positiveDurationMillisEnv("DATABASE_IDLE_TIMEOUT_MS", 600_000)
+	idleTimeout, err := boundedPositiveDurationMillisEnv("DATABASE_IDLE_TIMEOUT_MS", 600_000, maxDatabaseLifetime)
 	if err != nil {
 		return DatabaseSettings{}, err
 	}
-	maxLifetime, err := positiveDurationMillisEnv("DATABASE_MAX_LIFETIME_MS", 1_500_000)
+	maxLifetime, err := boundedPositiveDurationMillisEnv("DATABASE_MAX_LIFETIME_MS", 1_500_000, maxDatabaseLifetime)
 	if err != nil {
 		return DatabaseSettings{}, err
 	}
@@ -104,36 +107,53 @@ func env(key string, fallback string) string {
 	return value
 }
 
-func positiveIntEnv(key string, fallback int) (int, error) {
-	value, err := positiveInt64Env(key, int64(fallback))
+func boundedPositiveIntEnv(key string, fallback int, maxValue int) (int, error) {
+	if fallback <= 0 || fallback > maxValue {
+		return 0, fmt.Errorf("invalid fallback for %s", key)
+	}
+
+	value, err := boundedPositiveUintEnv(key, uint64(fallback), uint64(maxValue))
 	if err != nil {
 		return 0, err
-	}
-	if value > int64(^uint(0)>>1) {
-		return 0, fmt.Errorf("%s must be less than or equal to max int", key)
 	}
 	return int(value), nil
 }
 
-func positiveDurationMillisEnv(key string, fallback int64) (time.Duration, error) {
-	value, err := positiveInt64Env(key, fallback)
+func boundedPositiveDurationMillisEnv(key string, fallbackMillis uint64, maxValue time.Duration) (time.Duration, error) {
+	if maxValue <= 0 {
+		return 0, fmt.Errorf("invalid duration limit for %s", key)
+	}
+
+	maxMillis := uint64(maxValue / time.Millisecond)
+	if fallbackMillis == 0 || fallbackMillis > maxMillis {
+		return 0, fmt.Errorf("invalid fallback for %s", key)
+	}
+
+	value, err := boundedPositiveUintEnv(key, fallbackMillis, maxMillis)
 	if err != nil {
 		return 0, err
 	}
 	return time.Duration(value) * time.Millisecond, nil
 }
 
-func positiveInt64Env(key string, fallback int64) (int64, error) {
+func boundedPositiveUintEnv(key string, fallback uint64, maxValue uint64) (uint64, error) {
+	if fallback == 0 || fallback > maxValue {
+		return 0, fmt.Errorf("invalid fallback for %s", key)
+	}
+
 	raw := strings.TrimSpace(os.Getenv(key))
 	if raw == "" {
 		return fallback, nil
 	}
-	value, err := strconv.ParseInt(raw, 10, 64)
+	value, err := strconv.ParseUint(raw, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("%s must be a number: %w", key, err)
+		return 0, fmt.Errorf("%s must be a positive integer: %w", key, err)
 	}
-	if value <= 0 {
+	if value == 0 {
 		return 0, fmt.Errorf("%s must be positive", key)
+	}
+	if value > maxValue {
+		return 0, fmt.Errorf("%s must be less than or equal to %d", key, maxValue)
 	}
 	return value, nil
 }
