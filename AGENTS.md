@@ -143,7 +143,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Backend liveness is exposed by unauthenticated `GET /health`; the Docker image and compose file use this endpoint for container health checks. Build the image from the repository root with `docker build -f backend/Dockerfile -t oficina-backend .`.
 - Backend Compose mounts `./static` next to the generated compose file into `/app/static:ro`. The Ansible runtime role copies `backend/static/` through `oficina_compose_assets`; keep this in sync when backend templates or assets move.
 - Backend Compose must run the API service with `ipc: host` because Chromium/Playwright can otherwise crash during startup inside Docker's default small shared-memory namespace.
-- Backend Playwright startup expects the Playwright Go driver to be pre-baked into `/var/lib/oficina/backend/playwright-driver` by `backend/Dockerfile`. Application startup must only verify and run that driver; do not call `playwright.Install` at runtime or let production download into `/home/appuser`/cache paths.
+- Backend Playwright startup expects the Playwright Go driver to be pre-baked into `/var/lib/oficina/backend/playwright-driver` and Playwright-managed Chromium to be pre-baked into `/var/lib/oficina/backend/ms-playwright` by `backend/Dockerfile`. Application startup must only verify and run those baked artifacts; do not call `playwright.Install` at runtime or let production download into `/home/appuser`/cache paths.
 - Backend CORS allows all origins without browser credentials, and body limit defaults to `BODY_LIMIT=8M`.
 - Private Ansible inventories, registry tokens, and service environment values must stay out of git. Use `ansible/inventories/prod/` or Ansible Vault for real values.
 

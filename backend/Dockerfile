@@ -27,22 +27,31 @@ FROM debian:bookworm-slim
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
-        chromium \
         curl \
         ca-certificates \
-        fonts-liberation \
         dumb-init && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 RUN groupadd -r appgroup && \
     useradd -r -g appgroup -u 10001 -m -d /home/appuser appuser && \
-    mkdir -p /var/lib/oficina/backend/playwright-driver /var/cache/oficina/backend
+    mkdir -p \
+        /var/lib/oficina/backend/ms-playwright \
+        /var/lib/oficina/backend/playwright-driver \
+        /var/cache/oficina/backend
 
 WORKDIR /app
 COPY --from=build /app/server /app/server
 COPY --from=build /tmp/playwright-driver /var/lib/oficina/backend/playwright-driver
 COPY backend/static/ /app/static/
+
+RUN apt-get update && \
+    PLAYWRIGHT_BROWSERS_PATH=/var/lib/oficina/backend/ms-playwright \
+    /var/lib/oficina/backend/playwright-driver/node \
+        /var/lib/oficina/backend/playwright-driver/package/cli.js \
+        install --with-deps chromium && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN chown -R appuser:appgroup /app /home/appuser /var/lib/oficina/backend /var/cache/oficina/backend
 
@@ -52,8 +61,8 @@ ENV PATH="/app:/usr/local/bin:${PATH}"
 ENV TMPDIR="/tmp"
 ENV HOME="/home/appuser"
 ENV XDG_CACHE_HOME="/var/cache/oficina/backend"
+ENV PLAYWRIGHT_BROWSERS_PATH="/var/lib/oficina/backend/ms-playwright"
 ENV PLAYWRIGHT_DRIVER_PATH="/var/lib/oficina/backend/playwright-driver"
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH="/usr/bin/chromium"
 
 EXPOSE 8080
 

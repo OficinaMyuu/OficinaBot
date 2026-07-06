@@ -13,8 +13,6 @@ const (
 	Billion  = 1_000 * Million
 
 	MaxColorValue = 0xFFFFFF
-
-	defaultChromiumExecutablePath = "/usr/bin/chromium"
 )
 
 type Color struct {
@@ -58,15 +56,15 @@ func HumanizeNumber(value int) string {
 }
 
 func getLaunchOptions() playwright.BrowserTypeLaunchOptions {
-	executablePath := os.Getenv("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH")
-	if executablePath == "" {
-		executablePath = defaultChromiumExecutablePath
+	options := playwright.BrowserTypeLaunchOptions{
+		Args: []string{"--no-sandbox", "--disable-dev-shm-usage"},
 	}
 
-	return playwright.BrowserTypeLaunchOptions{
-		Args:           []string{"--no-sandbox", "--disable-dev-shm-usage"},
-		ExecutablePath: playwright.String(executablePath),
+	if executablePath := os.Getenv("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"); executablePath != "" {
+		options.ExecutablePath = playwright.String(executablePath)
 	}
+
+	return options
 }
 
 func getPageOptions(viewport *playwright.Size) playwright.BrowserNewPageOptions {
