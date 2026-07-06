@@ -30,6 +30,10 @@ public class RequestMapper {
         return new String(this.bytes);
     }
 
+    public byte[] asBytes() {
+        return this.bytes.clone();
+    }
+
     public InputStream asInputStream() {
         return new ByteArrayInputStream(this.bytes);
     }

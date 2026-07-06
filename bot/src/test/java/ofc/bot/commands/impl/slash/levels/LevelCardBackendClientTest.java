@@ -4,7 +4,6 @@ import ofc.bot.handlers.requests.RequestMapper;
 import okhttp3.Request;
 import org.junit.jupiter.api.Test;
 
-import java.util.Base64;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,10 +44,9 @@ class LevelCardBackendClientTest {
     }
 
     @Test
-    void sendCardRequestPostsJsonWithoutLegacyApiKey() {
+    void sendCardRequestPostsJsonAndAcceptsRawImageWithoutLegacyApiKey() {
         AtomicReference<Request> sentRequest = new AtomicReference<>();
         byte[] expected = new byte[]{1, 2, 3};
-        String image = Base64.getEncoder().encodeToString(expected);
 
         byte[] actual = LevelCardBackendClient.sendCardRequest(
                 "http://10.0.1.10:8080/api/levels/cards",
@@ -56,7 +54,7 @@ class LevelCardBackendClientTest {
                 requestSupplier -> {
                     Request request = requestSupplier.get();
                     sentRequest.set(request);
-                    return new RequestMapper(("{\"image\":\"" + image + "\"}").getBytes(), true, 200);
+                    return new RequestMapper(expected, true, 200);
                 }
         );
 
@@ -65,6 +63,7 @@ class LevelCardBackendClientTest {
         assertNotNull(request);
         assertEquals("POST", request.method());
         assertEquals("http://10.0.1.10:8080/api/levels/cards", request.url().toString());
+        assertEquals("image/png", request.header("Accept"));
         assertNull(request.header("x-api-key"));
         assertNotNull(request.body());
     }

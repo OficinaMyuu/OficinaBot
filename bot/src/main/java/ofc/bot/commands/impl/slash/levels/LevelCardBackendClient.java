@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.Base64;
 import java.util.Locale;
 
 final class LevelCardBackendClient {
@@ -17,6 +16,7 @@ final class LevelCardBackendClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(LevelCardBackendClient.class);
     private static final String RANK_CARD_PATH = "/api/levels/cards";
     private static final String ROLES_CARD_PATH = "/api/levels/roles";
+    private static final String IMAGE_CONTENT_TYPE = "image/png";
 
     private LevelCardBackendClient() {}
 
@@ -57,6 +57,7 @@ final class LevelCardBackendClient {
         }
 
         RequestMapper result = Route.post(endpoint).create()
+                .addHeader("Accept", IMAGE_CONTENT_TYPE)
                 .setBody(payload)
                 .send();
 
@@ -65,6 +66,7 @@ final class LevelCardBackendClient {
 
     static byte[] sendCardRequest(String endpoint, Object payload, Requester requester) {
         RequestMapper result = Route.post(endpoint).create()
+                .addHeader("Accept", IMAGE_CONTENT_TYPE)
                 .setBody(payload)
                 .send(requester);
 
@@ -75,9 +77,7 @@ final class LevelCardBackendClient {
         if (result.getStatusCode() != 200)
             return new byte[0];
 
-        DataObject json = result.asDataObject();
-        String cardImage = json.getString("image");
-        return Base64.getDecoder().decode(cardImage);
+        return result.asBytes();
     }
 
     private static String resolveEndpoint(String path) {
