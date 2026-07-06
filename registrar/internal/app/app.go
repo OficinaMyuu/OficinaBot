@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	appTokenKey           = "app.token"
+	appTokenKey           = "registrar.token"
 	registryChannelKey    = "channels.registry"
 	registerLogChannelKey = "channels.registry.log"
 )
