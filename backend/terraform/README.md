@@ -126,16 +126,31 @@ Configure Cloudflare manually:
 4. Use expression `(lower(http.host) eq "api.oficinamyuu.com.br")`.
 5. Set characteristics to source IP and Cloudflare colo, threshold to 100 requests per 10 seconds, mitigation timeout to 10 seconds, and action to `Block`.
 
-The root domain `oficinamyuu.com.br` is expected to be attached to Cloudflare Pages outside this backend Terraform module. The future `cdn.oficinamyuu.com.br` hostname is intentionally not configured here yet.
+The root domain `oficinamyuu.com.br` and `www.oficinamyuu.com.br` are expected to be attached to Cloudflare Pages outside this backend Terraform module. Public dashboard traffic still uses `https://oficinamyuu.com.br/dashboard`; configure Cloudflare Pages or a Cloudflare Worker to proxy `/dashboard*` to the API origin at `https://api.oficinamyuu.com.br/dashboard*`. Without this path proxy, the Pages fallback will answer dashboard asset requests with HTML and browsers will reject the CSS/JS MIME types. The future `cdn.oficinamyuu.com.br` hostname is intentionally not configured here yet.
+
+A minimal Cloudflare Pages Function for the Pages project would look like this:
+
+```ts
+export async function onRequest(context) {
+  const url = new URL(context.request.url)
+  url.protocol = 'https:'
+  url.hostname = 'api.oficinamyuu.com.br'
+  return fetch(new Request(url, context.request))
+}
+```
+
+Place it on the Pages project route that matches `/dashboard*`, for example `functions/dashboard/[[path]].ts`.
 
 Terraform outputs `load_balancer_public_ip`, `api_http_url_hint`, and `api_https_url_hint` after apply. Direct public access to the LB IP should fail from non-Cloudflare IPs after the Cloudflare-only NSG rules are applied. Use the Cloudflare hostname for production smoke tests:
 
 ```powershell
 curl.exe -I https://api.oficinamyuu.com.br/health
+curl.exe -I https://oficinamyuu.com.br/dashboard/
+curl.exe -I https://oficinamyuu.com.br/dashboard/assets/<built-asset>.js
 curl.exe -I http://<load-balancer-public-ip>/health
 ```
 
-The first command should return the API health response through Cloudflare. The second command should time out or be blocked from ordinary public networks once the NSG update has applied.
+The health command should return the API response through Cloudflare. The dashboard command should return HTML through the root-domain path proxy, and built dashboard assets should return their real JavaScript or CSS MIME types instead of `text/html`. The raw load balancer command should time out or be blocked from ordinary public networks once the NSG update has applied.
 
 The production path is:
 

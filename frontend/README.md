@@ -27,4 +27,4 @@ npm run dev
 
 Open `http://localhost:5173/dashboard`.
 
-Production builds are copied into the backend Docker image and served from `/app/dashboard`.
+Production builds are copied into the backend Docker image and served from `/app/dashboard`. Public access uses `https://oficinamyuu.com.br/dashboard`, with Cloudflare Pages or a Cloudflare Worker proxying `/dashboard*` to the API origin.

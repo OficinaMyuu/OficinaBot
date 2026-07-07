@@ -210,7 +210,9 @@ The backend intentionally exposes:
 - `/dashboard/api/auth/me` and `/dashboard/api/auth/logout` for cookie-backed dashboard sessions.
 - `/dashboard/api/birthdays` for authenticated birthday CRUD over the existing `birthdays` table.
 
-Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, wildcard CORS without browser credentials, and a basic in-memory rate limiter. Dashboard sessions use HttpOnly SameSite cookies, in-memory session IDs, and an `X-CSRF-Token` header for mutating dashboard API requests.
+Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, origin-reflecting CORS with credentials, and a basic in-memory rate limiter. Dashboard sessions use HttpOnly SameSite cookies, in-memory session IDs, and an `X-CSRF-Token` header for mutating dashboard API requests.
+
+Production browser access uses `https://oficinamyuu.com.br/dashboard`. Because the root and `www` hostnames are served by Cloudflare Pages, Pages or a Cloudflare Worker must proxy `/dashboard*` to the API origin at `https://api.oficinamyuu.com.br/dashboard*`; otherwise the Pages fallback can return HTML for built CSS/JS assets.
 
 Unauthenticated `GET /health` returns a small `{"status":"ok"}` response for backend liveness checks. The backend Docker image and compose definition both probe this route with `curl`.
 

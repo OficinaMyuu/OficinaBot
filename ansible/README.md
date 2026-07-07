@@ -67,7 +67,9 @@ Edit private group vars:
 - Backend dashboard runtime uses `DASHBOARD_BASE_URL`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_GUILD_ID`, and `DATABASE_*` in `backend_env`. The dashboard is served from `/dashboard`; set `DASHBOARD_BASE_URL` to the exact public callback base, for example `https://oficinamyuu.com.br/dashboard`.
 - Bot and registrar runtime config use the shared MySQL-backed `config` table. The bots inventory passes MySQL `DATABASE_*` values to `bot` and `registrar` using a separate `oficina_bots` application user; create that schema/user manually before deploying the services.
 - Add more bot containers as separate `oficina_services` entries only when they need separate processes, state directories, or images. Reuse the `bots_database_*` vars for any future bot container that should share the bots database user.
-- CORS intentionally allows all origins without browser credentials. The backend exposes level card generation endpoints, `GET /health`, and the same-origin `/dashboard` OAuth/API surface.
+- CORS intentionally reflects any browser origin and allows credentials. The backend exposes level card generation endpoints, `GET /health`, and the `/dashboard` OAuth/API surface.
+
+For production browser access, keep `oficinamyuu.com.br` and `www.oficinamyuu.com.br` on Cloudflare Pages, but configure Pages or a Cloudflare Worker to proxy `/dashboard*` to `https://api.oficinamyuu.com.br/dashboard*`. Without that path proxy, Pages will serve its fallback HTML for built dashboard assets and browsers will reject the CSS/JS MIME types.
 
 Validate before applying:
 

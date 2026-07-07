@@ -155,8 +155,9 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Backend Compose mounts `./static` next to the generated compose file into `/app/static:ro`. The Ansible runtime role copies `backend/static/` through `oficina_compose_assets`; keep this in sync when backend templates or assets move.
 - Backend Compose must run the API service with `ipc: host` because Chromium/Playwright can otherwise crash during startup inside Docker's default small shared-memory namespace.
 - Backend Playwright startup expects the Playwright Go driver to be pre-baked into `/var/lib/oficina/backend/playwright-driver` and Playwright-managed Chromium to be pre-baked into `/var/lib/oficina/backend/ms-playwright` by `backend/Dockerfile`. Application startup must only verify and run those baked artifacts; do not call `playwright.Install` at runtime or let production download into `/home/appuser`/cache paths.
-- Backend CORS allows all origins without browser credentials, and body limit defaults to `BODY_LIMIT=8M`.
+- Backend CORS reflects any browser origin with credentials enabled, and body limit defaults to `BODY_LIMIT=8M`.
 - Backend dashboard runtime needs `DASHBOARD_BASE_URL`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_GUILD_ID`, and `DATABASE_*` in the backend environment. `DASHBOARD_BASE_URL` must match the Discord Developer Portal redirect base exactly, for example `https://oficinamyuu.com.br/dashboard`.
+- Production browser access expects Cloudflare Pages or a Cloudflare Worker to proxy `https://oficinamyuu.com.br/dashboard*` to the backend origin at `https://api.oficinamyuu.com.br/dashboard*`; root/www Pages fallback must not handle dashboard asset paths.
 - Private Ansible inventories, registry tokens, and service environment values must stay out of git. Use `ansible/inventories/prod/` or Ansible Vault for real values.
 
 ## Known Traps
