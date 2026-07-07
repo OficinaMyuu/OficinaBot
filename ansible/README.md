@@ -64,10 +64,10 @@ Edit private group vars:
   Keep this raw format when secrets contain `$`, because Compose interpolation would
   otherwise treat password fragments such as `$TOKEN` as variables and alter the
   value before the container starts.
-- Backend runtime currently has no required secret or database environment variables. Set optional values such as `ADDRESS` or `BODY_LIMIT` in `backend_env` only when the defaults are not suitable.
+- Backend dashboard runtime uses `DASHBOARD_BASE_URL`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_GUILD_ID`, and `DATABASE_*` in `backend_env`. The dashboard is served from `/dashboard`; set `DASHBOARD_BASE_URL` to the exact public callback base, for example `https://oficinamyuu.com.br/dashboard`.
 - Bot and registrar runtime config use the shared MySQL-backed `config` table. The bots inventory passes MySQL `DATABASE_*` values to `bot` and `registrar` using a separate `oficina_bots` application user; create that schema/user manually before deploying the services.
 - Add more bot containers as separate `oficina_services` entries only when they need separate processes, state directories, or images. Reuse the `bots_database_*` vars for any future bot container that should share the bots database user.
-- CORS intentionally allows all origins without browser credentials. The backend currently exposes only level card generation endpoints plus `GET /health`.
+- CORS intentionally allows all origins without browser credentials. The backend exposes level card generation endpoints, `GET /health`, and the same-origin `/dashboard` OAuth/API surface.
 
 Validate before applying:
 
@@ -89,7 +89,7 @@ ansible-playbook -i ansible/inventories/prod/hosts.yml ansible/playbooks/site.ym
 
 ## Backend Validation
 
-Backend tests no longer require MySQL. Run them from `backend/cmd/`:
+Backend unit tests do not require MySQL. Repository integration tests use a live temporary MySQL schema when `OFICINA_TEST_MYSQL_DSN` is set. Run them from `backend/cmd/`:
 
 ```sh
 go test ./...

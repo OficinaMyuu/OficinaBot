@@ -5,7 +5,8 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 
 ## Services
 - `bot/`: Java 21 Discord bot using JDA 6, Maven, MySQL, jOOQ, HikariCP, Quartz, and OkHttp.
-- `backend/`: Go HTTP backend for Playwright-backed level card image generation. Its current entrypoint is `backend/cmd/api/main.go`, with server bootstrapping under `backend/cmd/internal/app/`.
+- `backend/`: Go HTTP backend for Playwright-backed level card image generation and the Discord OAuth dashboard API. Its current entrypoint is `backend/cmd/api/main.go`, with server bootstrapping under `backend/cmd/internal/app/`.
+- `frontend/`: React/Vite dashboard served by the backend at `/dashboard`. It uses TanStack Router file routes, React Query, i18n locale files, and feature modules under `frontend/src/pages/`.
 - `registrar/`: Go Discord registration service using `discordgo` and MySQL. Its entrypoint is `registrar/cmd/registrar/main.go`.
 
 ## Repository Structure
@@ -19,7 +20,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 ## Deployment Model
 - The bot workflow builds and pushes `ghcr.io/<owner>/oficina-bot:latest` and a SHA-tagged image from `bot/Dockerfile`.
 - The registrar workflow builds and pushes `ghcr.io/<owner>/oficina-registrar:latest` and a SHA-tagged image from `registrar/Dockerfile`.
-- The backend workflow builds and pushes `ghcr.io/<owner>/oficina-backend:latest` and a SHA-tagged image from `backend/Dockerfile`, whose builder stage tracks the backend module's Go 1.25 requirement.
+- The backend workflow builds and pushes `ghcr.io/<owner>/oficina-backend:latest` and a SHA-tagged image from `backend/Dockerfile`. The image builds the Go backend with Go 1.25 and builds `frontend/` with Node before copying the dashboard assets into `/app/dashboard`.
 - The bot container image is built from `bot/Dockerfile`. It uses a Maven/Java 21 builder stage, an Eclipse Temurin Java 21 Alpine JRE runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/bot`.
 - The registrar container image is built from `registrar/Dockerfile`. It uses a Go builder stage, copies a stripped static binary into an Alpine runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/registrar`.
 - Bot and registrar containers keep immutable application artifacts under `/opt/oficina` and connect to the shared OCI MySQL database through `DATABASE_*` environment variables. Writable state remains available for logs and other runtime files, but database state is no longer a container-local SQLite file.
@@ -48,7 +49,7 @@ Terraform owns the OCI MySQL DB system, networking, and compute plumbing only. T
 go run ./cmd/migrator up
 ```
 
-The main bot connects to this schema after migrations have run. Runtime application users should be restricted to the DML privileges they need; MySQL admin or migration credentials should not be placed on application VMs. Backend/dashboard persistence is intentionally pending redesign and is not represented in the current migration stream.
+The main bot connects to this schema after migrations have run. Runtime application users should be restricted to the DML privileges they need; MySQL admin or migration credentials should not be placed on application VMs. The backend dashboard uses the existing `birthdays` table through a restricted `DATABASE_*` runtime user and must not create or migrate schema at startup.
 
 ## Bot Boot Flow
 1. `DB.init()` creates the MySQL/Hikari datasource and verifies connectivity.
@@ -190,29 +191,33 @@ Registration roles and DB enum values live in `registrar/internal/registration`.
 The registry janitor deletes non-staff messages without digits in the configured registry channel and deletes recent registry-channel messages when a user leaves the guild. Permission checks are computed from guild roles with a short cache instead of a large Discord member cache, keeping the service suitable for constrained OCI Micro fallback deployments.
 
 ## Backend Boot Flow
-The backend entrypoint loads configuration, creates a signal-aware root context, builds the application server through `backend/cmd/internal/app`, and starts Echo through `Server.Start`. The app package owns Playwright startup, route registration, and graceful shutdown. `Server.Close` explicitly releases the card renderer browser and Playwright runtime.
+The backend entrypoint loads configuration, creates a signal-aware root context, builds the application server through `backend/cmd/internal/app`, and starts Echo through `Server.Start`. The app package owns Playwright startup, optional dashboard MySQL connection setup, route registration, and graceful shutdown. `Server.Close` explicitly releases the card renderer browser, Playwright runtime, and any dashboard database pool.
 
 The backend container runs as non-root `appuser` with a real writable home directory. The image pre-bakes the Playwright Go driver into `/var/lib/oficina/backend/playwright-driver` and the matching Playwright-managed Chromium bundle into `/var/lib/oficina/backend/ms-playwright`; runtime sets `PLAYWRIGHT_DRIVER_PATH`, `PLAYWRIGHT_BROWSERS_PATH`, `HOME`, and `XDG_CACHE_HOME` so startup does not try to write under an unmanaged `/home/appuser` path or download browser bundles. Application code verifies the baked driver files before calling `playwright.Run`, does not call `playwright.Install` at runtime, uses `SkipInstallBrowsers`, and lets Playwright choose its managed Chromium unless `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` is deliberately set as an override.
 
-Backend Compose mounts a host-side `static/` directory next to the compose file into `/app/static:ro`, because the Playwright templates and image assets are runtime inputs. Ansible keeps that directory populated from `backend/static/` through the runtime role's `oficina_compose_assets` list before deploying the stack. The API service runs with `ipc: host` so Chromium has the shared-memory behavior expected by Playwright and does not crash during browser startup.
+Backend Compose mounts a host-side `static/` directory next to the compose file into `/app/static:ro`, because the Playwright templates and image assets are runtime inputs. Ansible keeps that directory populated from `backend/static/` through the runtime role's `oficina_compose_assets` list before deploying the stack. Dashboard assets are built into the image under `/app/dashboard`. The API service runs with `ipc: host` so Chromium has the shared-memory behavior expected by Playwright and does not crash during browser startup.
 
-HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, which keeps route behavior testable without launching Playwright.
+HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, and dashboard birthday routes use an injected repository, which keeps route behavior testable without launching Playwright or requiring MySQL in unit tests.
 
 ## Backend API Surface
-The backend intentionally exposes only:
+The backend intentionally exposes:
 - `GET /health` for unauthenticated liveness checks.
 - `POST /api/levels/cards` for level profile card screenshots, returning raw `image/png` bytes on success.
 - `POST /api/levels/roles` for level-role list screenshots, returning raw `image/png` bytes on success.
 - `/static/*` for the HTML templates and image assets consumed by Playwright.
+- `/dashboard` and `/dashboard/*` for the React dashboard shell.
+- `/dashboard/auth/discord/login` and `/dashboard/auth/discord/callback` for Discord OAuth2 Authorization Code login.
+- `/dashboard/api/auth/me` and `/dashboard/api/auth/logout` for cookie-backed dashboard sessions.
+- `/dashboard/api/birthdays` for authenticated birthday CRUD over the existing `birthdays` table.
 
-Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, wildcard CORS without browser credentials, and a basic in-memory rate limiter. There is no CSRF middleware because the backend no longer has cookie-backed mutating admin routes.
+Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, wildcard CORS without browser credentials, and a basic in-memory rate limiter. Dashboard sessions use HttpOnly SameSite cookies, in-memory session IDs, and an `X-CSRF-Token` header for mutating dashboard API requests.
 
 Unauthenticated `GET /health` returns a small `{"status":"ok"}` response for backend liveness checks. The backend Docker image and compose definition both probe this route with `curl`.
 
 ## Backend Persistence
-The backend application currently has no database dependency and does not open MySQL at runtime. Do not add backend tables to the bot migration stream unless backend persistence is deliberately reintroduced.
+When `DATABASE_*`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and `DISCORD_GUILD_ID` are present, the backend opens MySQL at startup and verifies connectivity with a bounded ping. If dashboard config is incomplete, existing health/card routes still start while dashboard auth/API calls return unavailable errors. The first dashboard module reuses the product `birthdays` table and does not add backend-owned DDL.
 
-The backend does not currently include admin users, Discord OAuth/REST metadata, service-token sync APIs, dashboard APIs, config synchronization, repositories, or video downloads. Reintroducing any of those surfaces should start with an explicit design and tests instead of reviving the removed legacy code paths by habit.
+The backend includes only the Discord OAuth metadata needed to authorize users against the configured Oficina guild. Access is granted when Discord reports guild owner, `Administrator`, or `Manage Server` permissions. The backend still does not include service-token sync APIs, config synchronization, broad admin tables, or video downloads.
 
 ## History Preservation
 This mono-repo was assembled with history-preserving subtree imports:

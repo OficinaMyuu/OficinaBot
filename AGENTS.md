@@ -6,6 +6,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 ## Layout
 - `bot/` contains the Oficina Discord bot, formerly `OficinaMyuu/OficinaBot`.
 - `backend/` contains the Go backend, formerly `OficinaMyuu/OficinaImagery`.
+- `frontend/` contains the React/Vite dashboard served by the backend at `/dashboard`.
 - `backend/terraform/` contains the OCI Terraform source for backend infrastructure.
 - `database/` contains the current bot MySQL migration runner and ordered migration SQL stream.
 - `ansible.cfg` configures Ansible role and collection paths for repo-root commands.
@@ -26,7 +27,8 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot DB connection bootstrap: `bot/src/main/java/ofc/bot/domain/database/DB.java`
 - Bot repository locator: `bot/src/main/java/ofc/bot/domain/database/repository/Repositories.java`
 - Bot DB-backed config lookup: `bot/src/main/java/ofc/bot/internal/data/BotProperties.java`
-- Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; Playwright-backed level card rendering lives under `backend/cmd/internal/service/`; HTTP routes live under `backend/cmd/internal/routes/`.
+- Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; Playwright-backed level card rendering lives under `backend/cmd/internal/service/`; HTTP routes live under `backend/cmd/internal/routes/`; dashboard MySQL repositories live under `backend/cmd/internal/store/`.
+- Frontend dashboard entrypoint: `frontend/src/main.tsx`; TanStack routes live under `frontend/src/routes/`; generated route metadata is `frontend/src/routeTree.gen.ts`; dashboard feature pages live under `frontend/src/pages/`.
 - Backend Terraform entrypoint: `backend/terraform/`; the root module wires shared provider/backend/data concerns, while resources are split under `backend/terraform/modules/`.
 - Ansible runtime entrypoint: `ansible/playbooks/site.yml`; example inventory lives under `ansible/inventories/example/`, and host setup/runtime roles live under `ansible/roles/`.
 - Registrar entrypoint: `registrar/cmd/registrar/main.go`.
@@ -53,6 +55,14 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - The registry janitor deletes non-staff messages without digits in `channels.registry`, and removes recent registry-channel messages from users who leave the guild.
 - Registrar uses Discord REST calls and short role caching instead of a large member cache; keep it light because it is intended to run on constrained OCI shapes.
 - Registrar schema writes go through `registrar/internal/store/RegisterRepository` and the existing `registers` table. Do not add DDL to Registrar startup.
+
+## Dashboard Project Snapshot
+- Stack: React 19, Vite, TypeScript, TanStack Router, TanStack Query, react-i18next, and react-icons.
+- App type: authenticated operational dashboard served at `/dashboard` by the Go backend.
+- Discord OAuth uses the existing application with `identify guilds` scopes. The callback is `/dashboard/auth/discord/callback`.
+- Dashboard access is restricted to the configured `DISCORD_GUILD_ID` when Discord reports guild owner, `Administrator`, or `Manage Server`.
+- The first module is Birthdays, backed by the existing `birthdays` table. Add schema changes through `database/migrations/`; the dashboard must not create tables at startup.
+- Mutating dashboard API requests use the session CSRF token returned by `/dashboard/api/auth/me` in `X-CSRF-Token`.
 
 ## Bot Directory Index
 - `bot/src/main/java/ofc/bot/commands/`: slash command implementations by feature area.
@@ -113,7 +123,8 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Registrar tests/build: run `go test ./...` and `go build ./...` from `registrar/`.
 - Registrar DB integration tests use live MySQL when `OFICINA_TEST_MYSQL_DSN` is set; otherwise the live DB test is skipped.
 - Registrar container image: run `docker build -t oficina-registrar ./registrar` from the repository root. The image runs as UID/GID `10001` with writable runtime state under `/var/lib/oficina/registrar`.
-- Backend tests: run `go test ./...` from `backend/cmd/`. The backend module currently requires Go 1.25; keep `backend/Dockerfile` on a matching Go 1.25 builder image.
+- Backend tests: run `go test ./...` from `backend/cmd/`. Set `OFICINA_TEST_MYSQL_DSN` to run live dashboard repository tests against a temporary schema. The backend module currently requires Go 1.25; keep `backend/Dockerfile` on a matching Go 1.25 builder image.
+- Frontend dashboard tests/build: run `npm test`, `npm run lint`, and `npm run build` from `frontend/`.
 - Database migrator tests/build: run `go test ./...` from `database/`.
 - Run product migrations with `go run ./cmd/migrator up` from `database/` after setting `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, and `DATABASE_PASSWORD` for a DDL-capable migration user.
 - Backend Terraform validation: run `terraform fmt -check -recursive`, `terraform init -backend=false`, and `terraform validate` from `backend/terraform/`.
@@ -139,12 +150,13 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Backend Terraform currently exposes the OCI load balancer as public IPv4 HTTP-only. SSH to both application VMs is allowed from `ssh_source_cidr` for direct admin and Ansible access. Add HTTPS later through Cloudflare DNS/proxying, Cloudflare Origin CA material on the OCI load balancer, and a 443 listener.
 - Backend Terraform allows the bots NSG to reach the API NSG on `api_port` so bot commands can call the backend private address configured in `backend.api.base-url`.
 - Persistence uses the provisioned MySQL DB system. Terraform provisions infrastructure only; schema changes are applied by the separate `database/` migrator. Use a DDL-capable migration user for the migrator and restricted application users for runtime services.
-- Backend app APIs are intentionally limited to Playwright-backed `POST /api/levels/cards`, `POST /api/levels/roles`, static template assets, and unauthenticated `GET /health`. The backend currently has no admin, dashboard, service-sync, Discord REST metadata, video download, auth/session, or database runtime surface.
+- Backend app APIs include Playwright-backed `POST /api/levels/cards`, `POST /api/levels/roles`, static template assets, unauthenticated `GET /health`, and the authenticated `/dashboard` OAuth/API surface. The backend still has no service-sync, video download, or broad admin/config runtime surface.
 - Backend liveness is exposed by unauthenticated `GET /health`; the Docker image and compose file use this endpoint for container health checks. Build the image from the repository root with `docker build -f backend/Dockerfile -t oficina-backend .`.
 - Backend Compose mounts `./static` next to the generated compose file into `/app/static:ro`. The Ansible runtime role copies `backend/static/` through `oficina_compose_assets`; keep this in sync when backend templates or assets move.
 - Backend Compose must run the API service with `ipc: host` because Chromium/Playwright can otherwise crash during startup inside Docker's default small shared-memory namespace.
 - Backend Playwright startup expects the Playwright Go driver to be pre-baked into `/var/lib/oficina/backend/playwright-driver` and Playwright-managed Chromium to be pre-baked into `/var/lib/oficina/backend/ms-playwright` by `backend/Dockerfile`. Application startup must only verify and run those baked artifacts; do not call `playwright.Install` at runtime or let production download into `/home/appuser`/cache paths.
 - Backend CORS allows all origins without browser credentials, and body limit defaults to `BODY_LIMIT=8M`.
+- Backend dashboard runtime needs `DASHBOARD_BASE_URL`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_GUILD_ID`, and `DATABASE_*` in the backend environment. `DASHBOARD_BASE_URL` must match the Discord Developer Portal redirect base exactly, for example `https://oficinamyuu.com.br/dashboard`.
 - Private Ansible inventories, registry tokens, and service environment values must stay out of git. Use `ansible/inventories/prod/` or Ansible Vault for real values.
 
 ## Known Traps
