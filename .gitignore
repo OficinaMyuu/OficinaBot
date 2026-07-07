@@ -34,6 +34,7 @@ replay_pid*
 # Confidential directories/files
 target/
 .m2/
+node_modules/
 
 # Go/backend local files
 *.exe
@@ -59,6 +60,7 @@ go.work.sum
 .sts4-cache/
 build/
 dist/
+frontend/dist/
 .DS_Store
 
 # Ansible local/private state

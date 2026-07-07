@@ -5,7 +5,16 @@ oficina_compose_project_name: oficina-backend
 backend_host_port: 8080
 backend_container_port: 8080
 
-backend_env: {}
+backend_env:
+  DASHBOARD_BASE_URL: "https://oficinamyuu.com.br/dashboard"
+  DISCORD_CLIENT_ID: ""
+  DISCORD_CLIENT_SECRET: ""
+  DISCORD_GUILD_ID: ""
+  DATABASE_HOST: ""
+  DATABASE_PORT: "3306"
+  DATABASE_NAME: ""
+  DATABASE_USER: ""
+  DATABASE_PASSWORD: ""
 
 oficina_state_directories:
   - path: /var/lib/oficina

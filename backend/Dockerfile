@@ -22,6 +22,16 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     go run /tmp/install-playwright-driver.go && \
     rm /tmp/install-playwright-driver.go
 
+FROM node:24-alpine AS dashboard
+
+WORKDIR /app/frontend
+
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+
+COPY frontend/ ./
+RUN npm run build
+
 FROM debian:bookworm-slim
 
 RUN apt-get update && \
@@ -44,6 +54,7 @@ WORKDIR /app
 COPY --from=build /app/server /app/server
 COPY --from=build /tmp/playwright-driver /var/lib/oficina/backend/playwright-driver
 COPY backend/static/ /app/static/
+COPY --from=dashboard /app/frontend/dist/ /app/dashboard/
 
 RUN apt-get update && \
     PLAYWRIGHT_BROWSERS_PATH=/var/lib/oficina/backend/ms-playwright \

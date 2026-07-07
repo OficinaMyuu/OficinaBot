@@ -9,6 +9,7 @@ on:
       - ".github/workflows/deploy-backend.yml"
       - "backend/**"
       - "database/**"
+      - "frontend/**"
       - "!backend/terraform/**"
 
 permissions:
