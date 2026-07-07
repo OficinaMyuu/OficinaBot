@@ -1,0 +1,343 @@
+package routes
+
+import (
+	"context"
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/labstack/echo/v4"
+	"oficina-img/internal/discord"
+)
+
+const (
+	dashboardSessionCookie  = "oficina_dashboard_session"
+	dashboardStateCookie    = "oficina_dashboard_oauth_state"
+	dashboardCookiePath     = "/dashboard"
+	sessionTTL              = 12 * time.Hour
+	stateTTL                = 10 * time.Minute
+	permissionAdministrator = uint64(1 << 3)
+	permissionManageGuild   = uint64(1 << 5)
+)
+
+type DiscordOAuthClient interface {
+	Exchange(ctx context.Context, code, redirectURI string) (string, error)
+	CurrentUser(ctx context.Context, accessToken string) (discord.User, error)
+	CurrentGuilds(ctx context.Context, accessToken string) ([]discord.Guild, error)
+}
+
+type DashboardAuthConfig struct {
+	BaseURL       string
+	AuthorizeURL  string
+	ClientID      string
+	GuildID       string
+	CookieSecure  bool
+	MissingConfig []string
+}
+
+type DashboardUser struct {
+	ID          string  `json:"id"`
+	Username    string  `json:"username"`
+	GlobalName  *string `json:"globalName"`
+	AvatarURL   *string `json:"avatarUrl"`
+	GuildName   string  `json:"guildName"`
+	Permissions string  `json:"permissions"`
+}
+
+type DashboardSession struct {
+	ID        string
+	User      DashboardUser
+	CSRFToken string
+	ExpiresAt time.Time
+}
+
+type SessionStore struct {
+	mu       sync.Mutex
+	sessions map[string]DashboardSession
+	now      func() time.Time
+}
+
+func NewSessionStore() *SessionStore {
+	return &SessionStore{
+		sessions: make(map[string]DashboardSession),
+		now:      time.Now,
+	}
+}
+
+func (s *SessionStore) Create(user DashboardUser) (DashboardSession, error) {
+	sessionID, err := secureToken()
+	if err != nil {
+		return DashboardSession{}, err
+	}
+	csrfToken, err := secureToken()
+	if err != nil {
+		return DashboardSession{}, err
+	}
+
+	session := DashboardSession{
+		ID:        sessionID,
+		User:      user,
+		CSRFToken: csrfToken,
+		ExpiresAt: s.now().Add(sessionTTL),
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.sessions[sessionID] = session
+	return session, nil
+}
+
+func (s *SessionStore) Find(sessionID string) (DashboardSession, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	session, ok := s.sessions[sessionID]
+	if !ok {
+		return DashboardSession{}, false
+	}
+	if !session.ExpiresAt.After(s.now()) {
+		delete(s.sessions, sessionID)
+		return DashboardSession{}, false
+	}
+	return session, true
+}
+
+func (s *SessionStore) Delete(sessionID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.sessions, sessionID)
+}
+
+type DashboardAuthHandler struct {
+	cfg      DashboardAuthConfig
+	discord  DiscordOAuthClient
+	sessions *SessionStore
+}
+
+func NewDashboardAuthHandler(cfg DashboardAuthConfig, discordClient DiscordOAuthClient, sessions *SessionStore) *DashboardAuthHandler {
+	return &DashboardAuthHandler{
+		cfg:      cfg,
+		discord:  discordClient,
+		sessions: sessions,
+	}
+}
+
+func (h *DashboardAuthHandler) Login(c echo.Context) error {
+	if err := h.ensureConfigured(); err != nil {
+		return err
+	}
+
+	state, err := secureToken()
+	if err != nil {
+		return jsonError(c, http.StatusInternalServerError, "Could not start OAuth login")
+	}
+
+	setCookie(c, dashboardStateCookie, state, h.cfg.CookieSecure, int(stateTTL.Seconds()))
+
+	authorizeURL, err := url.Parse(h.cfg.AuthorizeURL)
+	if err != nil {
+		return jsonError(c, http.StatusInternalServerError, "Discord authorize URL is invalid")
+	}
+	query := authorizeURL.Query()
+	query.Set("client_id", h.cfg.ClientID)
+	query.Set("redirect_uri", h.redirectURI())
+	query.Set("response_type", "code")
+	query.Set("scope", "identify guilds")
+	query.Set("state", state)
+	authorizeURL.RawQuery = query.Encode()
+
+	return c.Redirect(http.StatusTemporaryRedirect, authorizeURL.String())
+}
+
+func (h *DashboardAuthHandler) Callback(c echo.Context) error {
+	if err := h.ensureConfigured(); err != nil {
+		return err
+	}
+
+	stateCookie, err := c.Cookie(dashboardStateCookie)
+	if err != nil || stateCookie.Value == "" || stateCookie.Value != c.QueryParam("state") {
+		clearCookie(c, dashboardStateCookie, h.cfg.CookieSecure)
+		return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/login?error=state")
+	}
+	clearCookie(c, dashboardStateCookie, h.cfg.CookieSecure)
+
+	code := c.QueryParam("code")
+	if code == "" {
+		return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/login?error=oauth")
+	}
+
+	accessToken, err := h.discord.Exchange(c.Request().Context(), code, h.redirectURI())
+	if err != nil {
+		return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/login?error=oauth")
+	}
+
+	user, err := h.discord.CurrentUser(c.Request().Context(), accessToken)
+	if err != nil {
+		return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/login?error=oauth")
+	}
+
+	guilds, err := h.discord.CurrentGuilds(c.Request().Context(), accessToken)
+	if err != nil {
+		return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/login?error=oauth")
+	}
+
+	guild, ok := h.authorizedGuild(guilds)
+	if !ok {
+		return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/login?error=forbidden")
+	}
+
+	session, err := h.sessions.Create(DashboardUser{
+		ID:          user.ID,
+		Username:    user.Username,
+		GlobalName:  user.GlobalName,
+		AvatarURL:   avatarURL(user),
+		GuildName:   guild.Name,
+		Permissions: guild.Permissions,
+	})
+	if err != nil {
+		return jsonError(c, http.StatusInternalServerError, "Could not create dashboard session")
+	}
+
+	setCookie(c, dashboardSessionCookie, session.ID, h.cfg.CookieSecure, int(sessionTTL.Seconds()))
+	return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/birthdays")
+}
+
+func (h *DashboardAuthHandler) Me(c echo.Context) error {
+	if err := h.ensureConfigured(); err != nil {
+		return err
+	}
+
+	session, ok := h.sessionFromRequest(c)
+	if !ok {
+		return jsonError(c, http.StatusUnauthorized, "Not authenticated")
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{
+		"user":      session.User,
+		"csrfToken": session.CSRFToken,
+	})
+}
+
+func (h *DashboardAuthHandler) Logout(c echo.Context) error {
+	session, ok := dashboardSession(c)
+	if ok {
+		h.sessions.Delete(session.ID)
+	}
+	clearCookie(c, dashboardSessionCookie, h.cfg.CookieSecure)
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *DashboardAuthHandler) RequireSession(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if err := h.ensureConfigured(); err != nil {
+			return err
+		}
+
+		session, ok := h.sessionFromRequest(c)
+		if !ok {
+			return jsonError(c, http.StatusUnauthorized, "Not authenticated")
+		}
+
+		if isMutatingMethod(c.Request().Method) && c.Request().Header.Get("X-CSRF-Token") != session.CSRFToken {
+			return jsonError(c, http.StatusForbidden, "Invalid CSRF token")
+		}
+
+		c.Set("dashboardSession", session)
+		return next(c)
+	}
+}
+
+func (h *DashboardAuthHandler) ensureConfigured() error {
+	if len(h.cfg.MissingConfig) > 0 || h.discord == nil || h.sessions == nil {
+		missing := h.cfg.MissingConfig
+		if len(missing) == 0 {
+			missing = []string{"dashboard runtime"}
+		}
+		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("Dashboard is missing configuration: %s", strings.Join(missing, ", ")))
+	}
+	return nil
+}
+
+func (h *DashboardAuthHandler) redirectURI() string {
+	return h.cfg.BaseURL + "/auth/discord/callback"
+}
+
+func (h *DashboardAuthHandler) authorizedGuild(guilds []discord.Guild) (discord.Guild, bool) {
+	for _, guild := range guilds {
+		if guild.ID != h.cfg.GuildID {
+			continue
+		}
+		if guild.Owner {
+			return guild, true
+		}
+		permissions, err := strconv.ParseUint(guild.Permissions, 10, 64)
+		if err != nil {
+			return discord.Guild{}, false
+		}
+		if permissions&permissionAdministrator != 0 || permissions&permissionManageGuild != 0 {
+			return guild, true
+		}
+		return discord.Guild{}, false
+	}
+	return discord.Guild{}, false
+}
+
+func (h *DashboardAuthHandler) sessionFromRequest(c echo.Context) (DashboardSession, bool) {
+	cookie, err := c.Cookie(dashboardSessionCookie)
+	if err != nil || cookie.Value == "" {
+		return DashboardSession{}, false
+	}
+	return h.sessions.Find(cookie.Value)
+}
+
+func dashboardSession(c echo.Context) (DashboardSession, bool) {
+	session, ok := c.Get("dashboardSession").(DashboardSession)
+	return session, ok
+}
+
+func setCookie(c echo.Context, name, value string, secure bool, maxAge int) {
+	c.SetCookie(&http.Cookie{
+		Name:     name,
+		Value:    value,
+		Path:     dashboardCookiePath,
+		MaxAge:   maxAge,
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
+func clearCookie(c echo.Context, name string, secure bool) {
+	setCookie(c, name, "", secure, -1)
+}
+
+func secureToken() (string, error) {
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(bytes), nil
+}
+
+func avatarURL(user discord.User) *string {
+	if user.Avatar == nil || *user.Avatar == "" {
+		return nil
+	}
+	value := fmt.Sprintf("https://cdn.discordapp.com/avatars/%s/%s.png", user.ID, *user.Avatar)
+	return &value
+}
+
+func isMutatingMethod(method string) bool {
+	switch method {
+	case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
+		return true
+	default:
+		return false
+	}
+}

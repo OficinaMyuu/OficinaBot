@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,14 +13,17 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/playwright-community/playwright-go"
+	"oficina-img/internal/discord"
 	"oficina-img/internal/routes"
 	"oficina-img/internal/service"
+	"oficina-img/internal/store"
 )
 
 type Server struct {
 	Echo         *echo.Echo
 	playwright   *playwright.Playwright
 	cardRenderer *service.CardRenderer
+	db           *sql.DB
 }
 
 const shutdownTimeout = 10 * time.Second
@@ -48,11 +52,18 @@ func NewServer(cfg Config) (*Server, error) {
 
 	e := echo.New()
 	registerMiddleware(e, cfg)
-	registerRoutes(e, cardRenderer)
+	db, birthdayRepository, oauthClient, missingConfig, err := dashboardRuntime(cfg)
+	if err != nil {
+		cardRenderer.Close()
+		pw.Stop()
+		return nil, err
+	}
+	registerRoutes(e, cfg, cardRenderer, birthdayRepository, oauthClient, missingConfig)
 	return &Server{
 		Echo:         e,
 		playwright:   pw,
 		cardRenderer: cardRenderer,
+		db:           db,
 	}, nil
 }
 
@@ -65,8 +76,8 @@ func registerMiddleware(e *echo.Echo, cfg Config) {
 	}))
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
-		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodOptions},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowMethods: []string{http.MethodDelete, http.MethodGet, http.MethodPost, http.MethodPut, http.MethodOptions},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, "X-CSRF-Token"},
 	}))
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(20)))
 }
@@ -98,6 +109,9 @@ func (s *Server) Close() error {
 	}
 	if s.playwright != nil {
 		err = errors.Join(err, s.playwright.Stop())
+	}
+	if s.db != nil {
+		err = errors.Join(err, s.db.Close())
 	}
 	return err
 }
@@ -144,7 +158,14 @@ func ignoreServerClosed(err error) error {
 	return err
 }
 
-func registerRoutes(e *echo.Echo, cardRenderer routes.CardRenderer) {
+func registerRoutes(
+	e *echo.Echo,
+	cfg Config,
+	cardRenderer routes.CardRenderer,
+	birthdayRepository routes.BirthdayRepository,
+	oauthClient routes.DiscordOAuthClient,
+	missingConfig []string,
+) {
 	e.Static("/static", "./static")
 
 	cardHandler := routes.NewCardHandler(cardRenderer)
@@ -154,4 +175,52 @@ func registerRoutes(e *echo.Echo, cardRenderer routes.CardRenderer) {
 
 	e.POST("/api/levels/cards", cardHandler.GetLevelCard)
 	e.POST("/api/levels/roles", cardHandler.GetLevelsRoles)
+
+	routes.RegisterDashboardRoutes(e, routes.DashboardRoutesConfig{
+		AssetsPath: cfg.Dashboard.AssetsPath,
+		AuthConfig: routes.DashboardAuthConfig{
+			BaseURL:       cfg.Dashboard.BaseURL,
+			AuthorizeURL:  cfg.Dashboard.DiscordAuthorizeURL,
+			ClientID:      cfg.Dashboard.DiscordClientID,
+			GuildID:       cfg.Dashboard.DiscordGuildID,
+			CookieSecure:  cfg.Dashboard.CookieSecure(),
+			MissingConfig: missingConfig,
+		},
+		OAuthClient: oauthClient,
+		Sessions:    routes.NewSessionStore(),
+		Birthdays:   birthdayRepository,
+	})
+}
+
+func dashboardRuntime(cfg Config) (*sql.DB, routes.BirthdayRepository, routes.DiscordOAuthClient, []string, error) {
+	missingConfig := cfg.MissingDashboardConfig()
+	if len(missingConfig) > 0 {
+		return nil, nil, nil, missingConfig, nil
+	}
+
+	dsn, err := cfg.Database.FormatDSN()
+	if err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("dashboard database config is invalid: %w", err)
+	}
+
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("open dashboard database: %w", err)
+	}
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(30 * time.Minute)
+
+	pingCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := db.PingContext(pingCtx); err != nil {
+		db.Close()
+		return nil, nil, nil, nil, fmt.Errorf("ping dashboard database: %w", err)
+	}
+
+	return db,
+		store.NewBirthdayRepository(db),
+		discord.NewOAuthClient(cfg.Dashboard.DiscordAPIBaseURL, cfg.Dashboard.DiscordClientID, cfg.Dashboard.DiscordClientSecret),
+		nil,
+		nil
 }

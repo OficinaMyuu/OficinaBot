@@ -2,17 +2,45 @@ package app
 
 import (
 	"fmt"
+	"net"
 	"os"
+	"strings"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 )
 
 const DefaultAddress = ":8080"
 const DefaultBodyLimit = "8M"
+const DefaultDashboardAssetsPath = "./dashboard"
+const DefaultDashboardBaseURL = "http://localhost:8080/dashboard"
+const DefaultDiscordAPIBaseURL = "https://discord.com/api/v10"
+const DefaultDiscordAuthorizeURL = "https://discord.com/oauth2/authorize"
 
 type Config struct {
 	Address   string
 	BodyLimit string
+	Database  DatabaseConfig
+	Dashboard DashboardConfig
+}
+
+type DatabaseConfig struct {
+	DSN      string
+	Host     string
+	Port     string
+	Name     string
+	User     string
+	Password string
+}
+
+type DashboardConfig struct {
+	AssetsPath          string
+	BaseURL             string
+	DiscordAPIBaseURL   string
+	DiscordAuthorizeURL string
+	DiscordClientID     string
+	DiscordClientSecret string
+	DiscordGuildID      string
 }
 
 func LoadConfig() (Config, error) {
@@ -22,6 +50,23 @@ func LoadConfig() (Config, error) {
 	return Config{
 		Address:   getEnv("ADDRESS", DefaultAddress),
 		BodyLimit: getEnv("BODY_LIMIT", DefaultBodyLimit),
+		Database: DatabaseConfig{
+			DSN:      os.Getenv("DATABASE_DSN"),
+			Host:     os.Getenv("DATABASE_HOST"),
+			Port:     getEnv("DATABASE_PORT", "3306"),
+			Name:     os.Getenv("DATABASE_NAME"),
+			User:     os.Getenv("DATABASE_USER"),
+			Password: os.Getenv("DATABASE_PASSWORD"),
+		},
+		Dashboard: DashboardConfig{
+			AssetsPath:          getEnv("DASHBOARD_ASSETS_PATH", DefaultDashboardAssetsPath),
+			BaseURL:             strings.TrimRight(getEnv("DASHBOARD_BASE_URL", DefaultDashboardBaseURL), "/"),
+			DiscordAPIBaseURL:   strings.TrimRight(getEnv("DISCORD_API_BASE_URL", DefaultDiscordAPIBaseURL), "/"),
+			DiscordAuthorizeURL: getEnv("DISCORD_AUTHORIZE_URL", DefaultDiscordAuthorizeURL),
+			DiscordClientID:     os.Getenv("DISCORD_CLIENT_ID"),
+			DiscordClientSecret: os.Getenv("DISCORD_CLIENT_SECRET"),
+			DiscordGuildID:      os.Getenv("DISCORD_GUILD_ID"),
+		},
 	}, nil
 }
 
@@ -33,6 +78,99 @@ func (c Config) ValidateRuntime() error {
 		return fmt.Errorf("body limit must not be empty")
 	}
 	return nil
+}
+
+func (c Config) MissingDashboardConfig() []string {
+	missing := c.Dashboard.MissingConfig()
+	missing = append(missing, c.Database.MissingConfig()...)
+	return missing
+}
+
+func (c Config) DashboardReady() bool {
+	return len(c.MissingDashboardConfig()) == 0
+}
+
+func (c DatabaseConfig) MissingConfig() []string {
+	if c.DSN != "" {
+		return nil
+	}
+
+	var missing []string
+	if c.Host == "" {
+		missing = append(missing, "DATABASE_HOST")
+	}
+	if c.Port == "" {
+		missing = append(missing, "DATABASE_PORT")
+	}
+	if c.Name == "" {
+		missing = append(missing, "DATABASE_NAME")
+	}
+	if c.User == "" {
+		missing = append(missing, "DATABASE_USER")
+	}
+	if c.Password == "" {
+		missing = append(missing, "DATABASE_PASSWORD")
+	}
+	return missing
+}
+
+func (c DatabaseConfig) FormatDSN() (string, error) {
+	if c.DSN != "" {
+		cfg, err := mysql.ParseDSN(c.DSN)
+		if err != nil {
+			return "", err
+		}
+		cfg.ParseTime = true
+		return cfg.FormatDSN(), nil
+	}
+
+	if missing := c.MissingConfig(); len(missing) > 0 {
+		return "", fmt.Errorf("missing database config: %s", strings.Join(missing, ", "))
+	}
+
+	cfg := mysql.Config{
+		User:      c.User,
+		Passwd:    c.Password,
+		Net:       "tcp",
+		Addr:      net.JoinHostPort(c.Host, c.Port),
+		DBName:    c.Name,
+		ParseTime: true,
+		Params: map[string]string{
+			"charset":   "utf8mb4",
+			"collation": "utf8mb4_unicode_ci",
+		},
+	}
+	return cfg.FormatDSN(), nil
+}
+
+func (c DashboardConfig) MissingConfig() []string {
+	var missing []string
+	if c.AssetsPath == "" {
+		missing = append(missing, "DASHBOARD_ASSETS_PATH")
+	}
+	if c.BaseURL == "" {
+		missing = append(missing, "DASHBOARD_BASE_URL")
+	}
+	if c.DiscordAPIBaseURL == "" {
+		missing = append(missing, "DISCORD_API_BASE_URL")
+	}
+	if c.DiscordAuthorizeURL == "" {
+		missing = append(missing, "DISCORD_AUTHORIZE_URL")
+	}
+	if c.DiscordClientID == "" {
+		missing = append(missing, "DISCORD_CLIENT_ID")
+	}
+	if c.DiscordClientSecret == "" {
+		missing = append(missing, "DISCORD_CLIENT_SECRET")
+	}
+	if c.DiscordGuildID == "" {
+		missing = append(missing, "DISCORD_GUILD_ID")
+	}
+	return missing
+}
+
+func (c DashboardConfig) CookieSecure() bool {
+	return strings.HasPrefix(strings.ToLower(c.BaseURL), "https://")
 }
 
 func getEnv(key, fallback string) string {
