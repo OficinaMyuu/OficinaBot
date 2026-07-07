@@ -1,0 +1,34 @@
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.form label {
+  display: grid;
+  gap: 8px;
+}
+
+.form span {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.form input {
+  background: var(--surface-input);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  color: var(--text-main);
+  font: inherit;
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.form input:focus {
+  border-color: var(--accent);
+  outline: 2px solid rgba(62, 211, 176, 0.18);
+}
+
+.form input:disabled {
+  color: var(--text-faint);
+}

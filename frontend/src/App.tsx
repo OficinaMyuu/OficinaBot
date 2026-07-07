@@ -1,8 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
-import { router } from './routes/router'
-import { ToastProvider } from './components/ui/Toast'
-import { AuthProvider } from './context/AuthContext'
+import { SessionProvider } from '@/contexts/SessionContext'
+import { router } from '@/router'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,11 +15,9 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ToastProvider>
-          <RouterProvider router={router} />
-        </ToastProvider>
-      </AuthProvider>
+      <SessionProvider>
+        <RouterProvider router={router} />
+      </SessionProvider>
     </QueryClientProvider>
   )
 }

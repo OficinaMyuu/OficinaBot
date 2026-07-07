@@ -1,24 +1,30 @@
 {
-  "name": "frontend",
+  "name": "oficina-dashboard",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "generate-routes": "tsr generate",
+    "dev": "npm run generate-routes && vite",
+    "build": "npm run generate-routes && tsc -b && vite build",
     "lint": "eslint .",
     "format": "prettier --write .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "npm run generate-routes && vitest run"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.100.14",
     "@tanstack/react-router": "^1.170.8",
+    "i18next": "^25.6.0",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "react-i18next": "^16.2.4",
+    "react-icons": "^5.5.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@tanstack/router-cli": "^1.167.18",
+    "@tanstack/router-plugin": "^1.168.19",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^24.12.3",

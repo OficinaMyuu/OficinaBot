@@ -1,0 +1,71 @@
+{
+  "app": {
+    "dashboard": "Dashboard"
+  },
+  "auth": {
+    "title": "Oficina Dashboard",
+    "subtitle": "Sign in with Discord to manage internal Oficina modules.",
+    "loginWithDiscord": "Sign in with Discord",
+    "logout": "Log out",
+    "loading": "Validating session...",
+    "manageServer": "Manage Server",
+    "errors": {
+      "forbidden": "Your account does not have Manage Server in Oficina.",
+      "oauth": "Could not finish Discord login.",
+      "state": "The login session expired. Try again.",
+      "generic": "Could not sign in."
+    }
+  },
+  "birthdays": {
+    "title": "Birthdays",
+    "searchPlaceholder": "Search by name or ID",
+    "loading": "Loading birthdays...",
+    "empty": "No birthdays found.",
+    "deleteConfirmation": "Remove {{name}}'s birthday?",
+    "fields": {
+      "userId": "Discord ID",
+      "name": "Name",
+      "birthday": "Birthday",
+      "zoneHours": "Timezone"
+    },
+    "filters": {
+      "month": "Month",
+      "allMonths": "All months"
+    },
+    "actions": {
+      "create": "Add",
+      "edit": "Edit",
+      "delete": "Remove"
+    },
+    "messages": {
+      "created": "Birthday created.",
+      "updated": "Birthday updated.",
+      "deleted": "Birthday removed."
+    }
+  },
+  "common": {
+    "actions": "Actions",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "dismiss": "Dismiss",
+    "refresh": "Refresh",
+    "save": "Save"
+  },
+  "months": {
+    "1": "January",
+    "2": "February",
+    "3": "March",
+    "4": "April",
+    "5": "May",
+    "6": "June",
+    "7": "July",
+    "8": "August",
+    "9": "September",
+    "10": "October",
+    "11": "November",
+    "12": "December"
+  },
+  "navigation": {
+    "modules": "Modules"
+  }
+}

@@ -1,0 +1,143 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 1160px;
+}
+
+.toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.search {
+  align-items: center;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  color: var(--text-muted);
+  display: flex;
+  flex: 1 1 300px;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.search input,
+.toolbar select {
+  background: transparent;
+  border: 0;
+  color: var(--text-main);
+  font: inherit;
+  outline: 0;
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+}
+
+.toolbar select {
+  background: var(--surface-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.notice {
+  align-items: center;
+  background: rgba(62, 211, 176, 0.1);
+  border: 1px solid rgba(62, 211, 176, 0.28);
+  border-radius: 8px;
+  color: var(--text-main);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 10px 12px;
+}
+
+.notice button {
+  background: transparent;
+  border: 0;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.tableShell {
+  background: var(--surface-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  overflow: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  min-width: 760px;
+  width: 100%;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--border-soft);
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.table th {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.table tr:last-child td {
+  border-bottom: 0;
+}
+
+.monospace {
+  color: var(--text-muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace;
+  font-size: 13px;
+}
+
+.rowActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.rowActions button {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.rowActions button:hover {
+  background: var(--surface-raised);
+  border-color: var(--border-soft);
+  color: var(--text-main);
+}
+
+.state {
+  color: var(--text-muted);
+  padding: 42px 18px;
+  text-align: center;
+}
+
+.confirmText {
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}

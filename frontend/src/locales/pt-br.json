@@ -1,0 +1,71 @@
+{
+  "app": {
+    "dashboard": "Dashboard"
+  },
+  "auth": {
+    "title": "Oficina Dashboard",
+    "subtitle": "Entre com Discord para gerenciar módulos internos da Oficina.",
+    "loginWithDiscord": "Entrar com Discord",
+    "logout": "Sair",
+    "loading": "Validando sessão...",
+    "manageServer": "Manage Server",
+    "errors": {
+      "forbidden": "Sua conta não tem Manage Server na Oficina.",
+      "oauth": "Não foi possível concluir o login com Discord.",
+      "state": "A sessão de login expirou. Tente novamente.",
+      "generic": "Não foi possível entrar."
+    }
+  },
+  "birthdays": {
+    "title": "Aniversários",
+    "searchPlaceholder": "Buscar por nome ou ID",
+    "loading": "Carregando aniversários...",
+    "empty": "Nenhum aniversário encontrado.",
+    "deleteConfirmation": "Remover o aniversário de {{name}}?",
+    "fields": {
+      "userId": "ID do Discord",
+      "name": "Nome",
+      "birthday": "Aniversário",
+      "zoneHours": "Fuso"
+    },
+    "filters": {
+      "month": "Mês",
+      "allMonths": "Todos os meses"
+    },
+    "actions": {
+      "create": "Adicionar",
+      "edit": "Editar",
+      "delete": "Remover"
+    },
+    "messages": {
+      "created": "Aniversário criado.",
+      "updated": "Aniversário atualizado.",
+      "deleted": "Aniversário removido."
+    }
+  },
+  "common": {
+    "actions": "Ações",
+    "cancel": "Cancelar",
+    "delete": "Remover",
+    "dismiss": "Fechar",
+    "refresh": "Atualizar",
+    "save": "Salvar"
+  },
+  "months": {
+    "1": "Janeiro",
+    "2": "Fevereiro",
+    "3": "Março",
+    "4": "Abril",
+    "5": "Maio",
+    "6": "Junho",
+    "7": "Julho",
+    "8": "Agosto",
+    "9": "Setembro",
+    "10": "Outubro",
+    "11": "Novembro",
+    "12": "Dezembro"
+  },
+  "navigation": {
+    "modules": "Módulos"
+  }
+}

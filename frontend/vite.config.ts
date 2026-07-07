@@ -1,14 +1,21 @@
-import { defineConfig } from 'vite'
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
+import { defineConfig } from 'vitest/config'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  base: '/dashboard/',
+  plugins: [
+    tanstackRouter({
+      target: 'react',
+      autoCodeSplitting: true,
+    }),
+    react(),
+  ],
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
@@ -17,13 +24,20 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': {
+      '/dashboard/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/dashboard/auth': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
     },
   },
-  // @ts-expect-error - Vitest custom configuration options in Vite defineConfig
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+  },
   test: {
     globals: true,
     environment: 'jsdom',

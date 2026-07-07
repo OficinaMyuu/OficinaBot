@@ -1,0 +1,62 @@
+.backdrop {
+  align-items: center;
+  background: rgba(8, 12, 14, 0.66);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 18px;
+  position: fixed;
+  z-index: 30;
+}
+
+.modal {
+  background: var(--surface-panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+  max-width: 560px;
+  width: min(100%, 560px);
+}
+
+.header {
+  align-items: center;
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  justify-content: space-between;
+  padding: 18px 20px;
+}
+
+.header h2 {
+  font-size: 17px;
+  margin: 0;
+}
+
+.header button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+
+.header button:hover {
+  background: var(--surface-raised);
+  color: var(--text-main);
+}
+
+.body {
+  padding: 20px;
+}
+
+.footer {
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 16px 20px;
+}

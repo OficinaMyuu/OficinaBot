@@ -1,0 +1,24 @@
+import { Navigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
+import { useSession } from '@/contexts/SessionContext'
+import styles from './ProtectedRoute.module.css'
+
+export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation()
+  const { isLoading, user } = useSession()
+
+  if (isLoading) {
+    return (
+      <main className={styles.centered}>
+        <div className={styles.loader} />
+        <span>{t('auth.loading')}</span>
+      </main>
+    )
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  return children
+}
