@@ -12,6 +12,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - `ansible.cfg` configures Ansible role and collection paths for repo-root commands.
 - `ansible/` contains the Docker runtime provisioning and deployment playbooks for the OCI VMs.
 - `registrar/` contains the registration Discord service, formerly `OficinaMyuu/RegistroOficina`.
+- `.agents/skills/` contains project-local agent skills, currently `impeccable` and `vercel-react-best-practices`.
 - `.github/workflows/` contains repo-level CI/deploy workflows. Keep workflows at the repository root so GitHub Actions can discover them.
 
 ## Hard Rules For Exploration
