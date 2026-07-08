@@ -14,8 +14,8 @@ import java.util.Locale;
 final class LevelCardBackendClient {
     static final String BACKEND_BASE_URL_KEY = "backend.api.base-url";
     private static final Logger LOGGER = LoggerFactory.getLogger(LevelCardBackendClient.class);
-    private static final String RANK_CARD_PATH = "/api/levels/cards";
-    private static final String ROLES_CARD_PATH = "/api/levels/roles";
+    private static final String RANK_CARD_PATH = "/levels/cards";
+    private static final String ROLES_CARD_PATH = "/levels/roles";
     private static final String IMAGE_CONTENT_TYPE = "image/png";
 
     private LevelCardBackendClient() {}

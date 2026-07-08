@@ -11,23 +11,23 @@ import static org.junit.jupiter.api.Assertions.*;
 class LevelCardBackendClientTest {
     @Test
     void buildEndpointAppendsBackendPath() {
-        String endpoint = LevelCardBackendClient.buildEndpoint("http://10.0.1.10:8080", "/api/levels/cards");
+        String endpoint = LevelCardBackendClient.buildEndpoint("http://10.0.1.10:8080", "/levels/cards");
 
-        assertEquals("http://10.0.1.10:8080/api/levels/cards", endpoint);
+        assertEquals("http://10.0.1.10:8080/levels/cards", endpoint);
     }
 
     @Test
     void buildEndpointIgnoresTrailingBaseSlash() {
-        String endpoint = LevelCardBackendClient.buildEndpoint("http://10.0.1.10:8080/", "/api/levels/roles");
+        String endpoint = LevelCardBackendClient.buildEndpoint("http://10.0.1.10:8080/", "/levels/roles");
 
-        assertEquals("http://10.0.1.10:8080/api/levels/roles", endpoint);
+        assertEquals("http://10.0.1.10:8080/levels/roles", endpoint);
     }
 
     @Test
     void buildEndpointRejectsBlankBaseUrl() {
         IllegalArgumentException err = assertThrows(
                 IllegalArgumentException.class,
-                () -> LevelCardBackendClient.buildEndpoint(" ", "/api/levels/cards")
+                () -> LevelCardBackendClient.buildEndpoint(" ", "/levels/cards")
         );
 
         assertTrue(err.getMessage().contains("blank"));
@@ -37,7 +37,7 @@ class LevelCardBackendClientTest {
     void buildEndpointRejectsBaseWithoutHttpScheme() {
         IllegalArgumentException err = assertThrows(
                 IllegalArgumentException.class,
-                () -> LevelCardBackendClient.buildEndpoint("10.0.1.10:8080", "/api/levels/cards")
+                () -> LevelCardBackendClient.buildEndpoint("10.0.1.10:8080", "/levels/cards")
         );
 
         assertTrue(err.getMessage().contains("HTTP"));
@@ -49,7 +49,7 @@ class LevelCardBackendClientTest {
         byte[] expected = new byte[]{1, 2, 3};
 
         byte[] actual = LevelCardBackendClient.sendCardRequest(
-                "http://10.0.1.10:8080/api/levels/cards",
+                "http://10.0.1.10:8080/levels/cards",
                 new TestPayload("Myuu"),
                 requestSupplier -> {
                     Request request = requestSupplier.get();
@@ -62,7 +62,7 @@ class LevelCardBackendClientTest {
         assertArrayEquals(expected, actual);
         assertNotNull(request);
         assertEquals("POST", request.method());
-        assertEquals("http://10.0.1.10:8080/api/levels/cards", request.url().toString());
+        assertEquals("http://10.0.1.10:8080/levels/cards", request.url().toString());
         assertEquals("image/png", request.header("Accept"));
         assertNull(request.header("x-api-key"));
         assertNotNull(request.body());
