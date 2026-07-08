@@ -1,6 +1,6 @@
 .form {
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
 .form label {
@@ -11,24 +11,33 @@
 .form span {
   color: var(--text-muted);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
+  font-family: Montserrat, sans-serif;
+  letter-spacing: 0.3px;
 }
 
 .form input {
   background: var(--surface-input);
-  border: 1px solid var(--border-soft);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   color: var(--text-main);
   font: inherit;
-  min-height: 42px;
-  padding: 0 12px;
+  font-size: 14px;
+  min-height: 40px;
+  padding: 0 14px;
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+  outline: none;
 }
 
 .form input:focus {
   border-color: var(--accent);
-  outline: 2px solid rgba(62, 211, 176, 0.18);
+  box-shadow: 0 0 0 3px rgba(107, 64, 156, 0.25);
 }
 
 .form input:disabled {
   color: var(--text-faint);
+  background: rgba(0, 0, 0, 0.2);
+  border-color: var(--border-soft);
 }
