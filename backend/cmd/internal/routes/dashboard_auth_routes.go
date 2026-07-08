@@ -45,12 +45,13 @@ type DashboardAuthConfig struct {
 }
 
 type DashboardUser struct {
-	ID          string  `json:"id"`
-	Username    string  `json:"username"`
-	GlobalName  *string `json:"globalName"`
-	AvatarURL   *string `json:"avatarUrl"`
-	GuildName   string  `json:"guildName"`
-	Permissions string  `json:"permissions"`
+	ID           string  `json:"id"`
+	Username     string  `json:"username"`
+	GlobalName   *string `json:"globalName"`
+	AvatarURL    *string `json:"avatarUrl"`
+	GuildName    string  `json:"guildName"`
+	GuildIconURL *string `json:"guildIconUrl"`
+	Permissions  string  `json:"permissions"`
 }
 
 type DashboardSession struct {
@@ -201,12 +202,13 @@ func (h *DashboardAuthHandler) Callback(c echo.Context) error {
 	}
 
 	session, err := h.sessions.Create(DashboardUser{
-		ID:          user.ID,
-		Username:    user.Username,
-		GlobalName:  user.GlobalName,
-		AvatarURL:   avatarURL(user),
-		GuildName:   guild.Name,
-		Permissions: guild.Permissions,
+		ID:           user.ID,
+		Username:     user.Username,
+		GlobalName:   user.GlobalName,
+		AvatarURL:    avatarURL(user),
+		GuildName:    guild.Name,
+		GuildIconURL: guildIconURL(guild),
+		Permissions:  guild.Permissions,
 	})
 	if err != nil {
 		return jsonError(c, http.StatusInternalServerError, "Could not create dashboard session")
@@ -383,6 +385,14 @@ func avatarURL(user discord.User) *string {
 		return nil
 	}
 	value := fmt.Sprintf("https://cdn.discordapp.com/avatars/%s/%s.png", user.ID, *user.Avatar)
+	return &value
+}
+
+func guildIconURL(guild discord.Guild) *string {
+	if guild.Icon == nil || *guild.Icon == "" {
+		return nil
+	}
+	value := fmt.Sprintf("https://cdn.discordapp.com/icons/%s/%s.png", guild.ID, *guild.Icon)
 	return &value
 }
 
