@@ -25,10 +25,11 @@ type User struct {
 }
 
 type Guild struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Owner       bool   `json:"owner"`
-	Permissions string `json:"permissions"`
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Icon        *string `json:"icon"`
+	Owner       bool    `json:"owner"`
+	Permissions string  `json:"permissions"`
 }
 
 func NewOAuthClient(apiBaseURL, clientID, clientSecret string) *OAuthClient {
