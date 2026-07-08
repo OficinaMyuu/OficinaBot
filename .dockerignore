@@ -7,18 +7,6 @@
 !backend/static/
 !backend/static/**
 
-!frontend/
-!frontend/package.json
-!frontend/package-lock.json
-!frontend/index.html
-!frontend/tsconfig.json
-!frontend/tsconfig.app.json
-!frontend/tsconfig.node.json
-!frontend/vite.config.ts
-!frontend/eslint.config.js
-!frontend/src/
-!frontend/src/**
-
 !database/
 !database/go.mod
 !database/go.sum
