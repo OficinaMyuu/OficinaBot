@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { BirthdaysPage } from '@/pages/birthdays/BirthdaysPage'
 
-export const Route = createFileRoute('/birthdays')({
+export const Route = createFileRoute('/dashboard/birthdays')({
   component: BirthdaysRoute,
 })
 

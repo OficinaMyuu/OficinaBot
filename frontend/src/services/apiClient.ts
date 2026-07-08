@@ -4,6 +4,7 @@ export type ApiError = {
 }
 
 let csrfToken: string | null = null
+const apiBaseUrl = normalizeBaseUrl(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080')
 
 export function setCsrfToken(token: string | null): void {
   csrfToken = token
@@ -20,7 +21,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers.set('X-CSRF-Token', csrfToken)
   }
 
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     ...init,
     credentials: 'include',
     headers,
@@ -35,6 +36,21 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
 
   return response.json() as Promise<T>
+}
+
+export function apiUrl(path: string): string {
+  return resolveApiUrl(apiBaseUrl, path)
+}
+
+export function resolveApiUrl(baseUrl: string, path: string): string {
+  if (/^https?:\/\//i.test(path)) {
+    return path
+  }
+  return `${normalizeBaseUrl(baseUrl)}${path.startsWith('/') ? path : `/${path}`}`
+}
+
+function normalizeBaseUrl(value: string): string {
+  return value.replace(/\/+$/, '')
 }
 
 function isMutating(method?: string): boolean {

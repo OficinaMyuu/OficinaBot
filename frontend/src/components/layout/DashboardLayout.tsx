@@ -28,7 +28,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
         <nav className={styles.modules}>
           <span className={styles.sectionLabel}>{t('navigation.modules')}</span>
           <Link
-            to="/birthdays"
+            to="/dashboard/birthdays"
             className={styles.moduleLink}
             activeProps={{ className: `${styles.moduleLink} ${styles.active}` }}
           >

@@ -1,7 +1,7 @@
 import { apiClient } from './apiClient'
 import type { Birthday, BirthdayPayload, BirthdayQuery } from '@/types/birthday'
 
-const BIRTHDAYS_PATH = '/dashboard/api/birthdays'
+const BIRTHDAYS_PATH = '/birthdays'
 
 type BirthdayListResponse = {
   birthdays: Birthday[]

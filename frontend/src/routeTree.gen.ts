@@ -9,18 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as BirthdaysRouteImport } from './routes/birthdays'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardLoginRouteImport } from './routes/dashboard.login'
+import { Route as DashboardBirthdaysRouteImport } from './routes/dashboard.birthdays'
 
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BirthdaysRoute = BirthdaysRouteImport.update({
-  id: '/birthdays',
-  path: '/birthdays',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -28,51 +25,74 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardLoginRoute = DashboardLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardBirthdaysRoute = DashboardBirthdaysRouteImport.update({
+  id: '/birthdays',
+  path: '/birthdays',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/birthdays': typeof BirthdaysRoute
-  '/login': typeof LoginRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/dashboard/birthdays': typeof DashboardBirthdaysRoute
+  '/dashboard/login': typeof DashboardLoginRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/birthdays': typeof BirthdaysRoute
-  '/login': typeof LoginRoute
+  '/dashboard/birthdays': typeof DashboardBirthdaysRoute
+  '/dashboard/login': typeof DashboardLoginRoute
+  '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/birthdays': typeof BirthdaysRoute
-  '/login': typeof LoginRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/dashboard/birthdays': typeof DashboardBirthdaysRoute
+  '/dashboard/login': typeof DashboardLoginRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/birthdays' | '/login'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/dashboard/birthdays'
+    | '/dashboard/login'
+    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/birthdays' | '/login'
-  id: '__root__' | '/' | '/birthdays' | '/login'
+  to: '/' | '/dashboard/birthdays' | '/dashboard/login' | '/dashboard'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/dashboard/birthdays'
+    | '/dashboard/login'
+    | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  BirthdaysRoute: typeof BirthdaysRoute
-  LoginRoute: typeof LoginRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/birthdays': {
-      id: '/birthdays'
-      path: '/birthdays'
-      fullPath: '/birthdays'
-      preLoaderRoute: typeof BirthdaysRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -82,13 +102,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/login': {
+      id: '/dashboard/login'
+      path: '/login'
+      fullPath: '/dashboard/login'
+      preLoaderRoute: typeof DashboardLoginRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/birthdays': {
+      id: '/dashboard/birthdays'
+      path: '/birthdays'
+      fullPath: '/dashboard/birthdays'
+      preLoaderRoute: typeof DashboardBirthdaysRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
+interface DashboardRouteChildren {
+  DashboardBirthdaysRoute: typeof DashboardBirthdaysRoute
+  DashboardLoginRoute: typeof DashboardLoginRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardBirthdaysRoute: DashboardBirthdaysRoute,
+  DashboardLoginRoute: DashboardLoginRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  BirthdaysRoute: BirthdaysRoute,
-  LoginRoute: LoginRoute,
+  DashboardRoute: DashboardRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
