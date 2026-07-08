@@ -2,7 +2,8 @@
   background: var(--surface-page);
   color: var(--text-main);
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -12,6 +13,7 @@
   flex-direction: column;
   min-width: 282px;
   width: 282px;
+  overflow-y: auto;
 }
 
 .brand {
@@ -184,6 +186,7 @@
   flex: 1;
   flex-direction: column;
   min-width: 0;
+  overflow: hidden;
   background: var(--surface-page);
 }
 
@@ -237,6 +240,8 @@
 @media (max-width: 760px) {
   .shell {
     flex-direction: column;
+    height: auto;
+    overflow: visible;
   }
 
   .sidebar {
