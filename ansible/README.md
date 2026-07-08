@@ -64,12 +64,12 @@ Edit private group vars:
   Keep this raw format when secrets contain `$`, because Compose interpolation would
   otherwise treat password fragments such as `$TOKEN` as variables and alter the
   value before the container starts.
-- Backend dashboard runtime uses `DASHBOARD_BASE_URL`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_GUILD_ID`, and `DATABASE_*` in `backend_env`. The dashboard is served from `/dashboard`; set `DASHBOARD_BASE_URL` to the exact public callback base, for example `https://oficinamyuu.com.br/dashboard`.
+- Backend dashboard runtime uses `PUBLIC_API_BASE_URL`, `FRONTEND_BASE_URL`, optional `CORS_ALLOWED_ORIGINS`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_GUILD_ID`, and `DATABASE_*` in `backend_env`. For production, set `PUBLIC_API_BASE_URL` to `https://api.oficinamyuu.com.br`, `FRONTEND_BASE_URL` to `https://oficinamyuu.com.br`, and register `${PUBLIC_API_BASE_URL}/auth/discord/callback` in Discord.
 - Bot and registrar runtime config use the shared MySQL-backed `config` table. The bots inventory passes MySQL `DATABASE_*` values to `bot` and `registrar` using a separate `oficina_bots` application user; create that schema/user manually before deploying the services.
 - Add more bot containers as separate `oficina_services` entries only when they need separate processes, state directories, or images. Reuse the `bots_database_*` vars for any future bot container that should share the bots database user.
-- CORS intentionally reflects any browser origin and allows credentials. The backend exposes level card generation endpoints, `GET /health`, and the `/dashboard` OAuth/API surface.
+- CORS allows configured frontend origins and credentials. The backend exposes level card generation endpoints, `GET /health`, `/auth/*`, and `/birthdays`; it does not serve the dashboard UI.
 
-For production browser access, keep `oficinamyuu.com.br` and `www.oficinamyuu.com.br` on Cloudflare Pages, but configure Pages or a Cloudflare Worker to proxy `/dashboard*` to `https://api.oficinamyuu.com.br/dashboard*`. Without that path proxy, Pages will serve its fallback HTML for built dashboard assets and browsers will reject the CSS/JS MIME types.
+For production browser access, keep `oficinamyuu.com.br` and `www.oficinamyuu.com.br` on Cloudflare Pages. Pages should build the frontend and serve `/dashboard` directly; do not proxy dashboard UI paths to the backend.
 
 Validate before applying:
 

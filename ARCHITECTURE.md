@@ -6,7 +6,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 ## Services
 - `bot/`: Java 21 Discord bot using JDA 6, Maven, MySQL, jOOQ, HikariCP, Quartz, and OkHttp.
 - `backend/`: Go HTTP backend for Playwright-backed level card image generation and the Discord OAuth dashboard API. Its current entrypoint is `backend/cmd/api/main.go`, with server bootstrapping under `backend/cmd/internal/app/`.
-- `frontend/`: React/Vite dashboard served by the backend at `/dashboard`. It uses TanStack Router file routes, React Query, i18n locale files, and feature modules under `frontend/src/pages/`.
+- `frontend/`: React/Vite web app deployed by Cloudflare Pages. It uses TanStack Router file routes, React Query, i18n locale files, and feature modules under `frontend/src/pages/`; the current authenticated dashboard lives at `/dashboard`.
 - `registrar/`: Go Discord registration service using `discordgo` and MySQL. Its entrypoint is `registrar/cmd/registrar/main.go`.
 
 ## Repository Structure
@@ -20,7 +20,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 ## Deployment Model
 - The bot workflow builds and pushes `ghcr.io/<owner>/oficina-bot:latest` and a SHA-tagged image from `bot/Dockerfile`.
 - The registrar workflow builds and pushes `ghcr.io/<owner>/oficina-registrar:latest` and a SHA-tagged image from `registrar/Dockerfile`.
-- The backend workflow builds and pushes `ghcr.io/<owner>/oficina-backend:latest` and a SHA-tagged image from `backend/Dockerfile`. The image builds the Go backend with Go 1.25 and builds `frontend/` with Node before copying the dashboard assets into `/app/dashboard`.
+- The backend workflow builds and pushes `ghcr.io/<owner>/oficina-backend:latest` and a SHA-tagged image from `backend/Dockerfile`. The image builds the Go backend with Go 1.25; frontend assets are deployed separately by Cloudflare Pages.
 - The bot container image is built from `bot/Dockerfile`. It uses a Maven/Java 21 builder stage, an Eclipse Temurin Java 21 Alpine JRE runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/bot`.
 - The registrar container image is built from `registrar/Dockerfile`. It uses a Go builder stage, copies a stripped static binary into an Alpine runtime, and runs as UID/GID `10001` with writable state under `/var/lib/oficina/registrar`.
 - Bot and registrar containers keep immutable application artifacts under `/opt/oficina` and connect to the shared OCI MySQL database through `DATABASE_*` environment variables. Writable state remains available for logs and other runtime files, but database state is no longer a container-local SQLite file.
@@ -133,7 +133,7 @@ Automod warnings are persisted before the current threshold is resolved through 
 ## Bot Levels
 `LevelManager` grants XP, persists level progress, announces level-ups in the configured level-up channel, and applies matching level roles. `VoiceXPHandler` uses `voice_channel_income_rules` rows with `payout_type = LEVEL_EXPERIENCE` to customize voice XP payout multipliers and event-channel eligibility. Users can run `.toggle-rankup-pings` to control whether their level-up announcement mentions them. The command is a guild legacy listener available to every user, stores the deterministic boolean value in `users_preferences.rankup_pings_enabled`, and preserves `users_preferences.locale`, which can remain null until Discord exposes it through an interaction.
 
-`/rank` and `/levels-roles` render image cards through the backend card API. The bot reads `backend.api.base-url` from the shared `config` table and appends `/api/levels/cards` or `/api/levels/roles`; production should point this key at the backend private subnet address, such as `http://10.0.1.10:8080`. Successful card responses are raw `image/png` bytes, while API errors remain JSON. These backend endpoints are unauthenticated and do not use the legacy AWS API Gateway `x-api-key` header.
+`/rank` and `/levels-roles` render image cards through the backend card API. The bot reads `backend.api.base-url` from the shared `config` table and appends `/levels/cards` or `/levels/roles`; production should point this key at the backend private subnet address, such as `http://10.0.1.10:8080`. Successful card responses are raw `image/png` bytes, while API errors remain JSON. These backend endpoints are unauthenticated and do not use the legacy AWS API Gateway `x-api-key` header.
 
 ## Bot Channel Permission Optimization
 `/chanoptz` is a review-first flow. It requires a target channel parameter, loads every guild member, snapshots the channel overrides, validates a local permission simulation against JDA's explicit channel permissions/access for the current state, and only proposes removals that keep every member's access and explicit channel permission set unchanged. The heavy analysis runs on virtual threads, and the review summary reports both the total number of redundant permission entries found and the optimization percentage. The approval step is guarded by an in-memory review plan plus an override signature check so stale reviews are rejected instead of applying against a changed channel.
@@ -195,24 +195,24 @@ The backend entrypoint loads configuration, creates a signal-aware root context,
 
 The backend container runs as non-root `appuser` with a real writable home directory. The image pre-bakes the Playwright Go driver into `/var/lib/oficina/backend/playwright-driver` and the matching Playwright-managed Chromium bundle into `/var/lib/oficina/backend/ms-playwright`; runtime sets `PLAYWRIGHT_DRIVER_PATH`, `PLAYWRIGHT_BROWSERS_PATH`, `HOME`, and `XDG_CACHE_HOME` so startup does not try to write under an unmanaged `/home/appuser` path or download browser bundles. Application code verifies the baked driver files before calling `playwright.Run`, does not call `playwright.Install` at runtime, uses `SkipInstallBrowsers`, and lets Playwright choose its managed Chromium unless `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` is deliberately set as an override.
 
-Backend Compose mounts a host-side `static/` directory next to the compose file into `/app/static:ro`, because the Playwright templates and image assets are runtime inputs. Ansible keeps that directory populated from `backend/static/` through the runtime role's `oficina_compose_assets` list before deploying the stack. Dashboard assets are built into the image under `/app/dashboard`. The API service runs with `ipc: host` so Chromium has the shared-memory behavior expected by Playwright and does not crash during browser startup.
+Backend Compose mounts a host-side `static/` directory next to the compose file into `/app/static:ro`, because the Playwright templates and image assets are runtime inputs. Ansible keeps that directory populated from `backend/static/` through the runtime role's `oficina_compose_assets` list before deploying the stack. Frontend assets are not copied into the backend image. The API service runs with `ipc: host` so Chromium has the shared-memory behavior expected by Playwright and does not crash during browser startup.
 
 HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, and dashboard birthday routes use an injected repository, which keeps route behavior testable without launching Playwright or requiring MySQL in unit tests.
 
 ## Backend API Surface
 The backend intentionally exposes:
 - `GET /health` for unauthenticated liveness checks.
-- `POST /api/levels/cards` for level profile card screenshots, returning raw `image/png` bytes on success.
-- `POST /api/levels/roles` for level-role list screenshots, returning raw `image/png` bytes on success.
+- `POST /levels/cards` for level profile card screenshots, returning raw `image/png` bytes on success.
+- `POST /levels/roles` for level-role list screenshots, returning raw `image/png` bytes on success.
+- Compatibility aliases `POST /api/levels/cards` and `POST /api/levels/roles` for staggered bot/backend deployments.
 - `/static/*` for the HTML templates and image assets consumed by Playwright.
-- `/dashboard` and `/dashboard/*` for the React dashboard shell.
-- `/dashboard/auth/discord/login` and `/dashboard/auth/discord/callback` for Discord OAuth2 Authorization Code login.
-- `/dashboard/api/auth/me` and `/dashboard/api/auth/logout` for cookie-backed dashboard sessions.
-- `/dashboard/api/birthdays` for authenticated birthday CRUD over the existing `birthdays` table.
+- `/auth/discord/login` and `/auth/discord/callback` for Discord OAuth2 Authorization Code login.
+- `/auth/me` and `/auth/logout` for cookie-backed dashboard sessions.
+- `/birthdays` for authenticated birthday CRUD over the existing `birthdays` table.
 
-Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, origin-reflecting CORS with credentials, and a basic in-memory rate limiter. Dashboard sessions use HttpOnly SameSite cookies, in-memory session IDs, and an `X-CSRF-Token` header for mutating dashboard API requests.
+Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, configured-origin CORS with credentials, and a basic in-memory rate limiter. Dashboard sessions use HttpOnly SameSite cookies scoped to the API host, in-memory session IDs, and an `X-CSRF-Token` header for mutating dashboard API requests.
 
-Production browser access uses `https://oficinamyuu.com.br/dashboard`. Because the root and `www` hostnames are served by Cloudflare Pages, Pages or a Cloudflare Worker must proxy `/dashboard*` to the API origin at `https://api.oficinamyuu.com.br/dashboard*`; otherwise the Pages fallback can return HTML for built CSS/JS assets.
+Production browser access uses `https://oficinamyuu.com.br/dashboard` from Cloudflare Pages. The React app calls `https://api.oficinamyuu.com.br` through `VITE_API_BASE_URL`; the backend does not serve dashboard HTML, JavaScript, CSS, or SVG assets.
 
 Unauthenticated `GET /health` returns a small `{"status":"ok"}` response for backend liveness checks. The backend Docker image and compose definition both probe this route with `curl`.
 

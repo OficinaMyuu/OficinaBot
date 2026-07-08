@@ -6,7 +6,9 @@ backend_host_port: 8080
 backend_container_port: 8080
 
 backend_env:
-  DASHBOARD_BASE_URL: "https://oficinamyuu.com.br/dashboard"
+  PUBLIC_API_BASE_URL: "https://api.oficinamyuu.com.br"
+  FRONTEND_BASE_URL: "https://oficinamyuu.com.br"
+  CORS_ALLOWED_ORIGINS: "https://oficinamyuu.com.br,https://www.oficinamyuu.com.br"
   DISCORD_CLIENT_ID: ""
   DISCORD_CLIENT_SECRET: ""
   DISCORD_GUILD_ID: ""
