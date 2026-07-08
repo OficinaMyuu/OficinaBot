@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 	"math/rand/v2"
 	"os"
 	"sort"
