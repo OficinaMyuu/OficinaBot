@@ -4,6 +4,7 @@ export type SessionUser = {
   globalName: string | null
   avatarUrl: string | null
   guildName: string
+  guildIconUrl: string | null
   permissions: string
 }
 
