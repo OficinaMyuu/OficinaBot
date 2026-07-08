@@ -58,7 +58,7 @@ func (f *fakeBirthdayRepository) Delete(_ context.Context, _ int64) error {
 func TestBirthdayHandlerListAppliesMonthFilter(t *testing.T) {
 	e := echo.New()
 	repo := &fakeBirthdayRepository{}
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/api/birthdays?month=5&search=myuu", nil)
+	req := httptest.NewRequest(http.MethodGet, "/birthdays?month=5&search=myuu", nil)
 	rec := httptest.NewRecorder()
 
 	err := NewBirthdayHandler(repo).List(e.NewContext(req, rec))
@@ -79,7 +79,7 @@ func TestBirthdayHandlerListAppliesMonthFilter(t *testing.T) {
 
 func TestBirthdayHandlerRejectsInvalidCreatePayload(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/dashboard/api/birthdays", strings.NewReader(`{"userId":"abc"}`))
+	req := httptest.NewRequest(http.MethodPost, "/birthdays", strings.NewReader(`{"userId":"abc"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 
@@ -101,7 +101,7 @@ func TestBirthdayHandlerMapsDuplicateCreateToConflict(t *testing.T) {
 		Birthday:  "2020-05-10",
 		ZoneHours: -3,
 	})
-	req := httptest.NewRequest(http.MethodPost, "/dashboard/api/birthdays", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, "/birthdays", bytes.NewReader(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 
@@ -123,7 +123,7 @@ func TestBirthdayHandlerRejectsRoutePayloadMismatch(t *testing.T) {
 		Birthday:  "2020-05-10",
 		ZoneHours: -3,
 	})
-	req := httptest.NewRequest(http.MethodPut, "/dashboard/api/birthdays/42", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPut, "/birthdays/42", bytes.NewReader(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)
@@ -142,7 +142,7 @@ func TestBirthdayHandlerRejectsRoutePayloadMismatch(t *testing.T) {
 
 func TestBirthdayHandlerMapsMissingDeleteToNotFound(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodDelete, "/dashboard/api/birthdays/42", nil)
+	req := httptest.NewRequest(http.MethodDelete, "/birthdays/42", nil)
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)
 	ctx.SetParamNames("userID")
@@ -160,7 +160,7 @@ func TestBirthdayHandlerMapsMissingDeleteToNotFound(t *testing.T) {
 
 func TestBirthdayHandlerMapsUnexpectedDeleteError(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodDelete, "/dashboard/api/birthdays/42", nil)
+	req := httptest.NewRequest(http.MethodDelete, "/birthdays/42", nil)
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)
 	ctx.SetParamNames("userID")

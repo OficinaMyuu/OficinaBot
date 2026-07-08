@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"net"
+	"net/url"
 	"os"
 	"strings"
 
@@ -12,8 +13,8 @@ import (
 
 const DefaultAddress = ":8080"
 const DefaultBodyLimit = "8M"
-const DefaultDashboardAssetsPath = "./dashboard"
-const DefaultDashboardBaseURL = "http://localhost:8080/dashboard"
+const DefaultPublicAPIBaseURL = "http://localhost:8080"
+const DefaultFrontendBaseURL = "http://localhost:5173"
 const DefaultDiscordAPIBaseURL = "https://discord.com/api/v10"
 const DefaultDiscordAuthorizeURL = "https://discord.com/oauth2/authorize"
 
@@ -34,8 +35,9 @@ type DatabaseConfig struct {
 }
 
 type DashboardConfig struct {
-	AssetsPath          string
-	BaseURL             string
+	PublicAPIBaseURL    string
+	FrontendBaseURL     string
+	CORSAllowedOrigins  []string
 	DiscordAPIBaseURL   string
 	DiscordAuthorizeURL string
 	DiscordClientID     string
@@ -59,8 +61,9 @@ func LoadConfig() (Config, error) {
 			Password: os.Getenv("DATABASE_PASSWORD"),
 		},
 		Dashboard: DashboardConfig{
-			AssetsPath:          getEnv("DASHBOARD_ASSETS_PATH", DefaultDashboardAssetsPath),
-			BaseURL:             strings.TrimRight(getEnv("DASHBOARD_BASE_URL", DefaultDashboardBaseURL), "/"),
+			PublicAPIBaseURL:    trimTrailingSlash(getEnv("PUBLIC_API_BASE_URL", DefaultPublicAPIBaseURL)),
+			FrontendBaseURL:     trimTrailingSlash(getEnv("FRONTEND_BASE_URL", DefaultFrontendBaseURL)),
+			CORSAllowedOrigins:  parseOrigins(os.Getenv("CORS_ALLOWED_ORIGINS")),
 			DiscordAPIBaseURL:   strings.TrimRight(getEnv("DISCORD_API_BASE_URL", DefaultDiscordAPIBaseURL), "/"),
 			DiscordAuthorizeURL: getEnv("DISCORD_AUTHORIZE_URL", DefaultDiscordAuthorizeURL),
 			DiscordClientID:     os.Getenv("DISCORD_CLIENT_ID"),
@@ -145,11 +148,11 @@ func (c DatabaseConfig) FormatDSN() (string, error) {
 
 func (c DashboardConfig) MissingConfig() []string {
 	var missing []string
-	if c.AssetsPath == "" {
-		missing = append(missing, "DASHBOARD_ASSETS_PATH")
+	if c.PublicAPIBaseURL == "" {
+		missing = append(missing, "PUBLIC_API_BASE_URL")
 	}
-	if c.BaseURL == "" {
-		missing = append(missing, "DASHBOARD_BASE_URL")
+	if c.FrontendBaseURL == "" {
+		missing = append(missing, "FRONTEND_BASE_URL")
 	}
 	if c.DiscordAPIBaseURL == "" {
 		missing = append(missing, "DISCORD_API_BASE_URL")
@@ -170,7 +173,18 @@ func (c DashboardConfig) MissingConfig() []string {
 }
 
 func (c DashboardConfig) CookieSecure() bool {
-	return strings.HasPrefix(strings.ToLower(c.BaseURL), "https://")
+	return strings.HasPrefix(strings.ToLower(c.PublicAPIBaseURL), "https://")
+}
+
+func (c DashboardConfig) AllowedCORSOrigins() []string {
+	if len(c.CORSAllowedOrigins) > 0 {
+		return c.CORSAllowedOrigins
+	}
+	origin, ok := originFromURL(c.FrontendBaseURL)
+	if !ok {
+		return nil
+	}
+	return []string{origin}
 }
 
 func getEnv(key, fallback string) string {
@@ -179,4 +193,48 @@ func getEnv(key, fallback string) string {
 		return fallback
 	}
 	return value
+}
+
+func trimTrailingSlash(value string) string {
+	return strings.TrimRight(value, "/")
+}
+
+func parseOrigins(raw string) []string {
+	if raw == "" {
+		return nil
+	}
+
+	fields := strings.FieldsFunc(raw, func(r rune) bool {
+		return r == ',' || r == ';' || r == '\n' || r == '\r' || r == '\t' || r == ' '
+	})
+	origins := make([]string, 0, len(fields))
+	seen := make(map[string]struct{}, len(fields))
+	for _, field := range fields {
+		origin, ok := originFromURL(field)
+		if !ok {
+			continue
+		}
+		if _, exists := seen[origin]; exists {
+			continue
+		}
+		seen[origin] = struct{}{}
+		origins = append(origins, origin)
+	}
+	return origins
+}
+
+func originFromURL(raw string) (string, bool) {
+	value := strings.TrimSpace(raw)
+	if value == "" {
+		return "", false
+	}
+	parsed, err := url.Parse(value)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return "", false
+	}
+	scheme := strings.ToLower(parsed.Scheme)
+	if scheme != "http" && scheme != "https" {
+		return "", false
+	}
+	return scheme + "://" + parsed.Host, true
 }

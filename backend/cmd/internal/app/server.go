@@ -75,13 +75,23 @@ func registerMiddleware(e *echo.Echo, cfg Config) {
 		Format: `{"time":"${time_rfc3339}","id":"${id}","remote_ip":"${remote_ip}","host":"${host}","method":"${method}","uri":"${uri}","status":${status},"latency":"${latency_human}","bytes_in":${bytes_in},"bytes_out":${bytes_out}}` + "\n",
 	}))
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOriginFunc: func(origin string) (bool, error) {
-			return origin != "", nil
-		},
+		AllowOriginFunc:  allowedOriginFunc(cfg.Dashboard.AllowedCORSOrigins()),
 		AllowMethods:     []string{http.MethodDelete, http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodPatch, http.MethodPost, http.MethodPut},
 		AllowCredentials: true,
 	}))
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(20)))
+}
+
+func allowedOriginFunc(allowedOrigins []string) func(string) (bool, error) {
+	allowed := make(map[string]struct{}, len(allowedOrigins))
+	for _, origin := range allowedOrigins {
+		allowed[origin] = struct{}{}
+	}
+
+	return func(origin string) (bool, error) {
+		_, ok := allowed[origin]
+		return ok, nil
+	}
 }
 
 func (s *Server) Start(ctx context.Context, address string) error {
@@ -177,16 +187,18 @@ func registerRoutes(
 
 	e.POST("/api/levels/cards", cardHandler.GetLevelCard)
 	e.POST("/api/levels/roles", cardHandler.GetLevelsRoles)
+	e.POST("/levels/cards", cardHandler.GetLevelCard)
+	e.POST("/levels/roles", cardHandler.GetLevelsRoles)
 
 	routes.RegisterDashboardRoutes(e, routes.DashboardRoutesConfig{
-		AssetsPath: cfg.Dashboard.AssetsPath,
 		AuthConfig: routes.DashboardAuthConfig{
-			BaseURL:       cfg.Dashboard.BaseURL,
-			AuthorizeURL:  cfg.Dashboard.DiscordAuthorizeURL,
-			ClientID:      cfg.Dashboard.DiscordClientID,
-			GuildID:       cfg.Dashboard.DiscordGuildID,
-			CookieSecure:  cfg.Dashboard.CookieSecure(),
-			MissingConfig: missingConfig,
+			PublicAPIBaseURL: cfg.Dashboard.PublicAPIBaseURL,
+			FrontendBaseURL:  cfg.Dashboard.FrontendBaseURL,
+			AuthorizeURL:     cfg.Dashboard.DiscordAuthorizeURL,
+			ClientID:         cfg.Dashboard.DiscordClientID,
+			GuildID:          cfg.Dashboard.DiscordGuildID,
+			CookieSecure:     cfg.Dashboard.CookieSecure(),
+			MissingConfig:    missingConfig,
 		},
 		OAuthClient: oauthClient,
 		Sessions:    routes.NewSessionStore(),

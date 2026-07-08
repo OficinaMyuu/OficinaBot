@@ -47,6 +47,9 @@ func TestLoadConfigReadsHttpSafeguardSettings(t *testing.T) {
 	}
 	t.Setenv("ADDRESS", ":9090")
 	t.Setenv("BODY_LIMIT", "2M")
+	t.Setenv("PUBLIC_API_BASE_URL", "https://api.oficinamyuu.com.br/")
+	t.Setenv("FRONTEND_BASE_URL", "https://oficinamyuu.com.br/")
+	t.Setenv("CORS_ALLOWED_ORIGINS", "https://oficinamyuu.com.br, https://www.oficinamyuu.com.br")
 
 	cfg, err := LoadConfig()
 	if err != nil {
@@ -58,6 +61,28 @@ func TestLoadConfigReadsHttpSafeguardSettings(t *testing.T) {
 	}
 	if cfg.Address != ":9090" {
 		t.Fatalf("expected address from env, got %q", cfg.Address)
+	}
+	if cfg.Dashboard.PublicAPIBaseURL != "https://api.oficinamyuu.com.br" {
+		t.Fatalf("expected trimmed public API base URL, got %q", cfg.Dashboard.PublicAPIBaseURL)
+	}
+	if cfg.Dashboard.FrontendBaseURL != "https://oficinamyuu.com.br" {
+		t.Fatalf("expected trimmed frontend base URL, got %q", cfg.Dashboard.FrontendBaseURL)
+	}
+	expectedOrigins := []string{"https://oficinamyuu.com.br", "https://www.oficinamyuu.com.br"}
+	for i, expected := range expectedOrigins {
+		if cfg.Dashboard.CORSAllowedOrigins[i] != expected {
+			t.Fatalf("expected CORS origin %q at %d, got %q", expected, i, cfg.Dashboard.CORSAllowedOrigins[i])
+		}
+	}
+}
+
+func TestDashboardConfigDefaultsCORSOriginsFromFrontendBaseURL(t *testing.T) {
+	cfg := DashboardConfig{FrontendBaseURL: "https://oficinamyuu.com.br/dashboard"}
+
+	origins := cfg.AllowedCORSOrigins()
+
+	if len(origins) != 1 || origins[0] != "https://oficinamyuu.com.br" {
+		t.Fatalf("expected frontend origin, got %#v", origins)
 	}
 }
 

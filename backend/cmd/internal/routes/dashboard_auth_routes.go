@@ -19,7 +19,9 @@ import (
 const (
 	dashboardSessionCookie  = "oficina_dashboard_session"
 	dashboardStateCookie    = "oficina_dashboard_oauth_state"
-	dashboardCookiePath     = "/dashboard"
+	dashboardReturnToCookie = "oficina_dashboard_return_to"
+	apiCookiePath           = "/"
+	defaultDashboardPath    = "/dashboard"
 	sessionTTL              = 12 * time.Hour
 	stateTTL                = 10 * time.Minute
 	permissionAdministrator = uint64(1 << 3)
@@ -33,12 +35,13 @@ type DiscordOAuthClient interface {
 }
 
 type DashboardAuthConfig struct {
-	BaseURL       string
-	AuthorizeURL  string
-	ClientID      string
-	GuildID       string
-	CookieSecure  bool
-	MissingConfig []string
+	PublicAPIBaseURL string
+	FrontendBaseURL  string
+	AuthorizeURL     string
+	ClientID         string
+	GuildID          string
+	CookieSecure     bool
+	MissingConfig    []string
 }
 
 type DashboardUser struct {
@@ -138,7 +141,9 @@ func (h *DashboardAuthHandler) Login(c echo.Context) error {
 		return jsonError(c, http.StatusInternalServerError, "Could not start OAuth login")
 	}
 
+	returnTo := h.safeReturnTo(c.QueryParam("return_to"))
 	setCookie(c, dashboardStateCookie, state, h.cfg.CookieSecure, int(stateTTL.Seconds()))
+	setCookie(c, dashboardReturnToCookie, returnTo, h.cfg.CookieSecure, int(stateTTL.Seconds()))
 
 	authorizeURL, err := url.Parse(h.cfg.AuthorizeURL)
 	if err != nil {
@@ -163,33 +168,36 @@ func (h *DashboardAuthHandler) Callback(c echo.Context) error {
 	stateCookie, err := c.Cookie(dashboardStateCookie)
 	if err != nil || stateCookie.Value == "" || stateCookie.Value != c.QueryParam("state") {
 		clearCookie(c, dashboardStateCookie, h.cfg.CookieSecure)
-		return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/login?error=state")
+		clearCookie(c, dashboardReturnToCookie, h.cfg.CookieSecure)
+		return c.Redirect(http.StatusTemporaryRedirect, h.errorRedirect("state"))
 	}
 	clearCookie(c, dashboardStateCookie, h.cfg.CookieSecure)
+	returnTo := h.returnToFromCookie(c)
+	clearCookie(c, dashboardReturnToCookie, h.cfg.CookieSecure)
 
 	code := c.QueryParam("code")
 	if code == "" {
-		return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/login?error=oauth")
+		return c.Redirect(http.StatusTemporaryRedirect, h.errorRedirect("oauth"))
 	}
 
 	accessToken, err := h.discord.Exchange(c.Request().Context(), code, h.redirectURI())
 	if err != nil {
-		return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/login?error=oauth")
+		return c.Redirect(http.StatusTemporaryRedirect, h.errorRedirect("oauth"))
 	}
 
 	user, err := h.discord.CurrentUser(c.Request().Context(), accessToken)
 	if err != nil {
-		return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/login?error=oauth")
+		return c.Redirect(http.StatusTemporaryRedirect, h.errorRedirect("oauth"))
 	}
 
 	guilds, err := h.discord.CurrentGuilds(c.Request().Context(), accessToken)
 	if err != nil {
-		return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/login?error=oauth")
+		return c.Redirect(http.StatusTemporaryRedirect, h.errorRedirect("oauth"))
 	}
 
 	guild, ok := h.authorizedGuild(guilds)
 	if !ok {
-		return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/login?error=forbidden")
+		return c.Redirect(http.StatusTemporaryRedirect, h.errorRedirect("forbidden"))
 	}
 
 	session, err := h.sessions.Create(DashboardUser{
@@ -205,7 +213,7 @@ func (h *DashboardAuthHandler) Callback(c echo.Context) error {
 	}
 
 	setCookie(c, dashboardSessionCookie, session.ID, h.cfg.CookieSecure, int(sessionTTL.Seconds()))
-	return c.Redirect(http.StatusTemporaryRedirect, "/dashboard/birthdays")
+	return c.Redirect(http.StatusTemporaryRedirect, returnTo)
 }
 
 func (h *DashboardAuthHandler) Me(c echo.Context) error {
@@ -259,13 +267,58 @@ func (h *DashboardAuthHandler) ensureConfigured() error {
 		if len(missing) == 0 {
 			missing = []string{"dashboard runtime"}
 		}
-		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("Dashboard is missing configuration: %s", strings.Join(missing, ", ")))
+		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("Dashboard API is missing configuration: %s", strings.Join(missing, ", ")))
 	}
 	return nil
 }
 
 func (h *DashboardAuthHandler) redirectURI() string {
-	return h.cfg.BaseURL + "/auth/discord/callback"
+	return h.cfg.PublicAPIBaseURL + "/auth/discord/callback"
+}
+
+func (h *DashboardAuthHandler) errorRedirect(code string) string {
+	loginURL, err := url.Parse(h.cfg.FrontendBaseURL + defaultDashboardPath + "/login")
+	if err != nil {
+		return defaultDashboardPath + "/login?error=" + url.QueryEscape(code)
+	}
+	query := loginURL.Query()
+	query.Set("error", code)
+	loginURL.RawQuery = query.Encode()
+	return loginURL.String()
+}
+
+func (h *DashboardAuthHandler) returnToFromCookie(c echo.Context) string {
+	cookie, err := c.Cookie(dashboardReturnToCookie)
+	if err != nil {
+		return h.defaultReturnTo()
+	}
+	return h.safeReturnTo(cookie.Value)
+}
+
+func (h *DashboardAuthHandler) safeReturnTo(raw string) string {
+	if raw == "" {
+		return h.defaultReturnTo()
+	}
+	value, err := url.Parse(raw)
+	if err != nil || !value.IsAbs() {
+		return h.defaultReturnTo()
+	}
+	frontend, err := url.Parse(h.cfg.FrontendBaseURL)
+	if err != nil || frontend.Scheme == "" || frontend.Host == "" {
+		return h.defaultReturnTo()
+	}
+	if value.Scheme != frontend.Scheme || value.Host != frontend.Host {
+		return h.defaultReturnTo()
+	}
+	if value.Path != defaultDashboardPath && !strings.HasPrefix(value.Path, defaultDashboardPath+"/") {
+		return h.defaultReturnTo()
+	}
+	value.Fragment = ""
+	return value.String()
+}
+
+func (h *DashboardAuthHandler) defaultReturnTo() string {
+	return h.cfg.FrontendBaseURL + defaultDashboardPath
 }
 
 func (h *DashboardAuthHandler) authorizedGuild(guilds []discord.Guild) (discord.Guild, bool) {
@@ -305,7 +358,7 @@ func setCookie(c echo.Context, name, value string, secure bool, maxAge int) {
 	c.SetCookie(&http.Cookie{
 		Name:     name,
 		Value:    value,
-		Path:     dashboardCookiePath,
+		Path:     apiCookiePath,
 		MaxAge:   maxAge,
 		HttpOnly: true,
 		Secure:   secure,

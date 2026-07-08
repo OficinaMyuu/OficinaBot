@@ -41,7 +41,7 @@ func (e assertErr) Error() string {
 
 func TestDashboardLoginRedirectsToDiscordWithStateCookie(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/auth/discord/login", nil)
+	req := httptest.NewRequest(http.MethodGet, "/auth/discord/login?return_to=https://oficinamyuu.com.br/dashboard/birthdays", nil)
 	rec := httptest.NewRecorder()
 	handler := NewDashboardAuthHandler(testAuthConfig(nil), stubDiscordOAuthClient{}, NewSessionStore())
 
@@ -53,8 +53,15 @@ func TestDashboardLoginRedirectsToDiscordWithStateCookie(t *testing.T) {
 		t.Fatalf("expected redirect status, got %d", rec.Code)
 	}
 	cookies := rec.Result().Cookies()
-	if len(cookies) != 1 || cookies[0].Name != dashboardStateCookie || cookies[0].Value == "" {
+	if len(cookies) != 2 {
+		t.Fatalf("expected oauth state and return cookies, got %#v", cookies)
+	}
+	state := cookieValue(cookies, dashboardStateCookie)
+	if state == "" {
 		t.Fatalf("expected oauth state cookie, got %#v", cookies)
+	}
+	if got := cookieValue(cookies, dashboardReturnToCookie); got != "https://oficinamyuu.com.br/dashboard/birthdays" {
+		t.Fatalf("expected return cookie, got %q", got)
 	}
 
 	location, err := url.Parse(rec.Header().Get("Location"))
@@ -68,15 +75,19 @@ func TestDashboardLoginRedirectsToDiscordWithStateCookie(t *testing.T) {
 	if query.Get("scope") != "identify guilds" {
 		t.Fatalf("expected identify guilds scope, got %q", query.Get("scope"))
 	}
-	if query.Get("state") != cookies[0].Value {
+	if query.Get("redirect_uri") != "http://localhost:8080/auth/discord/callback" {
+		t.Fatalf("expected API callback redirect URI, got %q", query.Get("redirect_uri"))
+	}
+	if query.Get("state") != state {
 		t.Fatal("expected redirect state to match state cookie")
 	}
 }
 
 func TestDashboardCallbackCreatesSessionForManageGuildMember(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/auth/discord/callback?code=abc&state=state", nil)
+	req := httptest.NewRequest(http.MethodGet, "/auth/discord/callback?code=abc&state=state", nil)
 	req.AddCookie(&http.Cookie{Name: dashboardStateCookie, Value: "state"})
+	req.AddCookie(&http.Cookie{Name: dashboardReturnToCookie, Value: "https://oficinamyuu.com.br/dashboard/birthdays"})
 	rec := httptest.NewRecorder()
 	handler := NewDashboardAuthHandler(
 		testAuthConfig(nil),
@@ -99,7 +110,7 @@ func TestDashboardCallbackCreatesSessionForManageGuildMember(t *testing.T) {
 	if rec.Code != http.StatusTemporaryRedirect {
 		t.Fatalf("expected redirect status, got %d", rec.Code)
 	}
-	if rec.Header().Get("Location") != "/dashboard/birthdays" {
+	if rec.Header().Get("Location") != "https://oficinamyuu.com.br/dashboard/birthdays" {
 		t.Fatalf("expected birthdays redirect, got %q", rec.Header().Get("Location"))
 	}
 	foundSessionCookie := false
@@ -115,7 +126,7 @@ func TestDashboardCallbackCreatesSessionForManageGuildMember(t *testing.T) {
 
 func TestDashboardCallbackRejectsMissingManageGuildPermission(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/auth/discord/callback?code=abc&state=state", nil)
+	req := httptest.NewRequest(http.MethodGet, "/auth/discord/callback?code=abc&state=state", nil)
 	req.AddCookie(&http.Cookie{Name: dashboardStateCookie, Value: "state"})
 	rec := httptest.NewRecorder()
 	handler := NewDashboardAuthHandler(
@@ -136,8 +147,18 @@ func TestDashboardCallbackRejectsMissingManageGuildPermission(t *testing.T) {
 		t.Fatalf("callback returned error: %v", err)
 	}
 
-	if rec.Header().Get("Location") != "/dashboard/login?error=forbidden" {
+	if rec.Header().Get("Location") != "https://oficinamyuu.com.br/dashboard/login?error=forbidden" {
 		t.Fatalf("expected forbidden redirect, got %q", rec.Header().Get("Location"))
+	}
+}
+
+func TestDashboardReturnToRejectsExternalOrigins(t *testing.T) {
+	handler := NewDashboardAuthHandler(testAuthConfig(nil), stubDiscordOAuthClient{}, NewSessionStore())
+
+	got := handler.safeReturnTo("https://evil.example/dashboard")
+
+	if got != "https://oficinamyuu.com.br/dashboard" {
+		t.Fatalf("expected default dashboard return URL, got %q", got)
 	}
 }
 
@@ -150,7 +171,7 @@ func TestDashboardSessionMiddlewareRequiresCSRFForMutations(t *testing.T) {
 	}
 	handler := NewDashboardAuthHandler(testAuthConfig(nil), stubDiscordOAuthClient{}, sessions)
 
-	req := httptest.NewRequest(http.MethodPost, "/dashboard/api/auth/logout", nil)
+	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
 	req.AddCookie(&http.Cookie{Name: dashboardSessionCookie, Value: session.ID})
 	rec := httptest.NewRecorder()
 	next := handler.RequireSession(func(c echo.Context) error {
@@ -167,10 +188,20 @@ func TestDashboardSessionMiddlewareRequiresCSRFForMutations(t *testing.T) {
 
 func testAuthConfig(missing []string) DashboardAuthConfig {
 	return DashboardAuthConfig{
-		BaseURL:       "http://localhost:5173/dashboard",
-		AuthorizeURL:  "https://discord.com/oauth2/authorize",
-		ClientID:      "client-id",
-		GuildID:       "guild-id",
-		MissingConfig: missing,
+		PublicAPIBaseURL: "http://localhost:8080",
+		FrontendBaseURL:  "https://oficinamyuu.com.br",
+		AuthorizeURL:     "https://discord.com/oauth2/authorize",
+		ClientID:         "client-id",
+		GuildID:          "guild-id",
+		MissingConfig:    missing,
 	}
+}
+
+func cookieValue(cookies []*http.Cookie, name string) string {
+	for _, cookie := range cookies {
+		if cookie.Name == name {
+			return cookie.Value
+		}
+	}
+	return ""
 }

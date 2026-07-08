@@ -29,7 +29,7 @@ func (s *stubCardRenderer) GenerateLevelsRoles(_ *service.LevelsRolesData) ([]by
 
 func TestCardHandlerReturnsMalformedJSON(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/api/levels/cards", strings.NewReader("{"))
+	req := httptest.NewRequest(http.MethodPost, "/levels/cards", strings.NewReader("{"))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 
@@ -46,7 +46,7 @@ func TestCardHandlerReturnsMalformedJSON(t *testing.T) {
 
 func TestCardHandlerReturnsRendererImage(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/api/levels/cards", strings.NewReader(`{"username":"Myuu"}`))
+	req := httptest.NewRequest(http.MethodPost, "/levels/cards", strings.NewReader(`{"username":"Myuu"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 
@@ -69,7 +69,7 @@ func TestCardHandlerReturnsRendererImage(t *testing.T) {
 
 func TestCardHandlerReturnsRolesRendererImage(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/api/levels/roles", strings.NewReader(`{"guild":{"name":"Oficina","icon_url":"https://example.com/icon.png"},"levels":[]}`))
+	req := httptest.NewRequest(http.MethodPost, "/levels/roles", strings.NewReader(`{"guild":{"name":"Oficina","icon_url":"https://example.com/icon.png"},"levels":[]}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 
@@ -93,7 +93,7 @@ func TestCardHandlerReturnsRolesRendererImage(t *testing.T) {
 func TestCardHandlerReturnsRendererError(t *testing.T) {
 	e := echo.New()
 	expected := service.NewError(http.StatusTeapot, "renderer exploded")
-	req := httptest.NewRequest(http.MethodPost, "/api/levels/cards", strings.NewReader(`{"username":"Myuu"}`))
+	req := httptest.NewRequest(http.MethodPost, "/levels/cards", strings.NewReader(`{"username":"Myuu"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 
@@ -111,7 +111,7 @@ func TestCardHandlerReturnsRendererError(t *testing.T) {
 func TestCardHandlerReturnsRolesRendererError(t *testing.T) {
 	e := echo.New()
 	expected := service.NewError(http.StatusTeapot, "roles renderer exploded")
-	req := httptest.NewRequest(http.MethodPost, "/api/levels/roles", strings.NewReader(`{"levels":[]}`))
+	req := httptest.NewRequest(http.MethodPost, "/levels/roles", strings.NewReader(`{"levels":[]}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 

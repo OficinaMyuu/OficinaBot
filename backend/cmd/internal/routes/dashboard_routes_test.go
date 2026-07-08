@@ -3,35 +3,41 @@ package routes
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
-	"strings"
+	"net/url"
 	"testing"
 
 	"github.com/labstack/echo/v4"
 )
 
-func TestDashboardAssetsServeBuiltFiles(t *testing.T) {
-	assetsPath := t.TempDir()
-	assetsDir := filepath.Join(assetsPath, "assets")
-	if err := os.Mkdir(assetsDir, 0755); err != nil {
-		t.Fatalf("create dashboard assets dir: %v", err)
-	}
-
-	indexHTML := "<!doctype html><html><body>dashboard</body></html>"
-	if err := os.WriteFile(filepath.Join(assetsPath, "index.html"), []byte(indexHTML), 0644); err != nil {
-		t.Fatalf("write dashboard index: %v", err)
-	}
-
-	css := "body { color: #111; }\n"
-	if err := os.WriteFile(filepath.Join(assetsDir, "index-test.css"), []byte(css), 0644); err != nil {
-		t.Fatalf("write dashboard css: %v", err)
-	}
-
+func TestDashboardRoutesExposeAPIOnlyPaths(t *testing.T) {
 	e := echo.New()
 	RegisterDashboardRoutes(e, DashboardRoutesConfig{
-		AssetsPath: assetsPath,
-		Sessions:   NewSessionStore(),
+		AuthConfig:  testAuthConfig(nil),
+		OAuthClient: stubDiscordOAuthClient{},
+		Sessions:    NewSessionStore(),
+		Birthdays:   &fakeBirthdayRepository{},
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/auth/discord/login", nil)
+	rec := httptest.NewRecorder()
+
+	e.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusTemporaryRedirect {
+		t.Fatalf("expected auth route redirect, got %d", rec.Code)
+	}
+	if _, err := url.Parse(rec.Header().Get("Location")); err != nil {
+		t.Fatalf("expected valid redirect location: %v", err)
+	}
+}
+
+func TestDashboardRoutesDoNotServeFrontendAssets(t *testing.T) {
+	e := echo.New()
+	RegisterDashboardRoutes(e, DashboardRoutesConfig{
+		AuthConfig:  testAuthConfig(nil),
+		OAuthClient: stubDiscordOAuthClient{},
+		Sessions:    NewSessionStore(),
+		Birthdays:   &fakeBirthdayRepository{},
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/assets/index-test.css", nil)
@@ -39,16 +45,7 @@ func TestDashboardAssetsServeBuiltFiles(t *testing.T) {
 
 	e.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected status %d, got %d with body %q", http.StatusOK, rec.Code, rec.Body.String())
-	}
-	if got := rec.Body.String(); got != css {
-		t.Fatalf("expected CSS asset body %q, got %q", css, got)
-	}
-	if strings.Contains(strings.ToLower(rec.Body.String()), "<html") {
-		t.Fatalf("expected asset response, got HTML fallback %q", rec.Body.String())
-	}
-	if got := rec.Header().Get(echo.HeaderContentType); !strings.HasPrefix(got, "text/css") {
-		t.Fatalf("expected CSS content type, got %q", got)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected frontend asset route to be absent from backend, got %d", rec.Code)
 	}
 }
