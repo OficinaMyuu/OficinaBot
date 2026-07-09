@@ -4,7 +4,7 @@ React/Vite web app deployed by Cloudflare Pages. The current authenticated dashb
 
 ## Local development
 
-Run the backend with dashboard OAuth pointed at Vite:
+By default, the dashboard frontend calls `http://localhost:8080`, so `npm run dev` expects a local API unless `VITE_API_BASE_URL` is set. Run the backend with dashboard OAuth pointed at Vite:
 
 ```powershell
 $env:PUBLIC_API_BASE_URL='http://localhost:8080'
@@ -28,6 +28,15 @@ npm run dev
 ```
 
 Open `http://localhost:5173/dashboard`.
+
+For frontend-only work against a non-local API, set `VITE_API_BASE_URL` before starting Vite:
+
+```powershell
+$env:VITE_API_BASE_URL='https://api.oficinamyuu.com.br'
+npm run dev
+```
+
+That is useful for unauthenticated request debugging, but Discord OAuth is cookie and callback-origin sensitive. A production API configured with `FRONTEND_BASE_URL=https://oficinamyuu.com.br` will redirect successful logins back to production, not localhost. For authenticated local UI work without a local database, prefer running the backend locally against an approved remote/staging database, or use a staging API explicitly configured with `FRONTEND_BASE_URL=http://localhost:5173` and matching CORS.
 
 Production builds are deployed by Cloudflare Pages, not by the Go backend. Configure the Pages project root as `frontend/` and use:
 

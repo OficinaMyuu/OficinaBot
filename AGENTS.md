@@ -28,8 +28,8 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Bot DB connection bootstrap: `bot/src/main/java/ofc/bot/domain/database/DB.java`
 - Bot repository locator: `bot/src/main/java/ofc/bot/domain/database/repository/Repositories.java`
 - Bot DB-backed config lookup: `bot/src/main/java/ofc/bot/internal/data/BotProperties.java`
-- Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; Playwright-backed level card rendering lives under `backend/cmd/internal/service/`; HTTP routes live under `backend/cmd/internal/routes/`; dashboard MySQL repositories live under `backend/cmd/internal/store/`.
-- Frontend dashboard entrypoint: `frontend/src/main.tsx`; TanStack routes live under `frontend/src/routes/`; generated route metadata is `frontend/src/routeTree.gen.ts`; dashboard feature pages live under `frontend/src/pages/`.
+- Backend entrypoint: `backend/cmd/api/main.go`; application setup lives under `backend/cmd/internal/app/`; Playwright-backed level card rendering lives under `backend/cmd/internal/service/`; HTTP handlers live under `backend/cmd/internal/http/handler/`; dashboard contracts live under `backend/cmd/internal/contract/`; dashboard entities live under `backend/cmd/internal/domain/entity/`; dashboard MySQL repositories live under `backend/cmd/internal/domain/mysql/repository/`; Discord API clients live under `backend/cmd/internal/infrastructure/discord/`.
+- Frontend dashboard entrypoint: `frontend/src/main.tsx`; TanStack routes live under `frontend/src/routes/`; generated route metadata is `frontend/src/routeTree.gen.ts`; dashboard feature pages live under `frontend/src/pages/`; shared dashboard stores live under `frontend/src/stores/`.
 - Backend Terraform entrypoint: `backend/terraform/`; the root module wires shared provider/backend/data concerns, while resources are split under `backend/terraform/modules/`.
 - Ansible runtime entrypoint: `ansible/playbooks/site.yml`; example inventory lives under `ansible/inventories/example/`, and host setup/runtime roles live under `ansible/roles/`.
 - Registrar entrypoint: `registrar/cmd/registrar/main.go`.
@@ -42,6 +42,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Secrets/config are fetched through `Bot.getSafe(...)` and `BotProperties`, which query the shared MySQL `config` table.
 - Sad Monday/Sunday image posts are configured with `SAD_MONDAY_URL` and `SAD_SUNDAY_URL` environment variables.
 - The DB schema is migration-first: product DDL lives in `database/migrations/`; Java table classes are query mappings only.
+- The shared `users.avatar_hash` column is nullable and updated by normal bot user upserts plus avatar update events; do not backfill from Discord by bulk-loading guild members.
 - Do not add automatic migration logic or `CREATE TABLE IF NOT EXISTS` startup DDL to application services.
 - Do not add interactive console SQL/query handlers to bot startup; database access should go through typed repositories, migrations, or purpose-built admin tooling.
 - Many features are registered centrally, so missing behavior is often a registration problem, not a logic problem.
@@ -58,12 +59,14 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Registrar schema writes go through `registrar/internal/store/RegisterRepository` and the existing `registers` table. Do not add DDL to Registrar startup.
 
 ## Dashboard Project Snapshot
-- Stack: React 19, Vite, TypeScript, TanStack Router, TanStack Query, react-i18next, and react-icons.
+- Stack: React 19, Vite, TypeScript, TanStack Router, TanStack Query, Zustand, react-i18next, and react-icons.
 - App type: authenticated operational dashboard served by Cloudflare Pages at `/dashboard`.
 - Discord OAuth uses the existing application with `identify guilds` scopes. The callback is handled by the API at `/auth/discord/callback`.
 - Dashboard access is restricted to the configured `DISCORD_GUILD_ID` when Discord reports guild owner, `Administrator`, or `Manage Server`.
 - Dashboard modules include Birthdays, backed by the existing `birthdays` table, and Tickets, backed by existing `support_tickets`, `messages_versions`, and `users` rows. Add schema changes through `database/migrations/`; the dashboard must not create tables at startup.
+- Dashboard sessions are persisted in `dashboard_sessions`, keyed by a hash of the HttpOnly session cookie. Sessions should survive backend process restarts until their expiry.
 - Dashboard API JSON fields use `snake_case`, including existing auth/session and birthday payloads. Discord snowflake IDs are serialized as strings.
+- Ticket API responses carry user ID fields such as `initiator_id`, `closed_by_id`, `author_id`, and `deleted_by_id`; do not reintroduce embedded user objects. Dashboard clients should batch lookup display data through `POST /users/query`.
 - Mutating dashboard API requests use the session CSRF token returned by `/auth/me` in `X-CSRF-Token`.
 
 ## Bot Directory Index
@@ -152,7 +155,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Backend Terraform currently exposes the OCI load balancer as public IPv4 HTTP-only. SSH to both application VMs is allowed from `ssh_source_cidr` for direct admin and Ansible access. Add HTTPS later through Cloudflare DNS/proxying, Cloudflare Origin CA material on the OCI load balancer, and a 443 listener.
 - Backend Terraform allows the bots NSG to reach the API NSG on `api_port` so bot commands can call the backend private address configured in `backend.api.base-url`.
 - Persistence uses the provisioned MySQL DB system. Terraform provisions infrastructure only; schema changes are applied by the separate `database/` migrator. Use a DDL-capable migration user for the migrator and restricted application users for runtime services.
-- Backend app APIs include Playwright-backed `POST /levels/cards`, `POST /levels/roles`, compatibility aliases under `/api/levels/*`, static template assets, unauthenticated `GET /health`, OAuth under `/auth/*`, authenticated birthday CRUD under `/birthdays`, and authenticated ticket reads under `/tickets` and `/tickets/{ticket}/messages`. The backend does not serve frontend routes or assets.
+- Backend app APIs include Playwright-backed `POST /levels/cards`, `POST /levels/roles`, compatibility aliases under `/api/levels/*`, static template assets, unauthenticated `GET /health`, OAuth under `/auth/*`, authenticated birthday CRUD under `/birthdays`, authenticated user lookup under `/users/query`, and authenticated ticket reads under `/tickets` and `/tickets/{ticket}/messages`. The backend does not serve frontend routes or assets.
 - Backend liveness is exposed by unauthenticated `GET /health`; the Docker image and compose file use this endpoint for container health checks. Build the image from the repository root with `docker build -f backend/Dockerfile -t oficina-backend .`.
 - Backend Compose mounts `./static` next to the generated compose file into `/app/static:ro`. The Ansible runtime role copies `backend/static/` through `oficina_compose_assets`; keep this in sync when backend templates or assets move.
 - Backend Compose must run the API service with `ipc: host` because Chromium/Playwright can otherwise crash during startup inside Docker's default small shared-memory namespace.

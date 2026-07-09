@@ -6,7 +6,7 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 ## Services
 - `bot/`: Java 21 Discord bot using JDA 6, Maven, MySQL, jOOQ, HikariCP, Quartz, and OkHttp.
 - `backend/`: Go HTTP backend for Playwright-backed level card image generation and the Discord OAuth dashboard API. Its current entrypoint is `backend/cmd/api/main.go`, with server bootstrapping under `backend/cmd/internal/app/`.
-- `frontend/`: React/Vite web app deployed by Cloudflare Pages. It uses TanStack Router file routes, React Query, i18n locale files, and feature modules under `frontend/src/pages/`; the current authenticated dashboard lives at `/dashboard`.
+- `frontend/`: React/Vite web app deployed by Cloudflare Pages. It uses TanStack Router file routes, React Query, Zustand dashboard stores, i18n locale files, and feature modules under `frontend/src/pages/`; the current authenticated dashboard lives at `/dashboard`.
 - `registrar/`: Go Discord registration service using `discordgo` and MySQL. Its entrypoint is `registrar/cmd/registrar/main.go`.
 
 ## Repository Structure
@@ -49,7 +49,7 @@ Terraform owns the OCI MySQL DB system, networking, and compute plumbing only. T
 go run ./cmd/migrator up
 ```
 
-The main bot connects to this schema after migrations have run. Runtime application users should be restricted to the DML privileges they need; MySQL admin or migration credentials should not be placed on application VMs. The backend dashboard uses the existing `birthdays` table through a restricted `DATABASE_*` runtime user and must not create or migrate schema at startup.
+The main bot connects to this schema after migrations have run. Runtime application users should be restricted to the DML privileges they need; MySQL admin or migration credentials should not be placed on application VMs. The backend dashboard uses existing product tables such as `birthdays`, `support_tickets`, `messages_versions`, and `users`, plus `dashboard_sessions` for persisted dashboard login state, through a restricted `DATABASE_*` runtime user and must not create or migrate schema at startup. `users.avatar_hash` is nullable and is maintained by bot user upserts and avatar update events; do not bulk-load guild members just to backfill avatars.
 
 ## Bot Boot Flow
 1. `DB.init()` creates the MySQL/Hikari datasource and verifies connectivity.
@@ -199,6 +199,8 @@ Backend Compose mounts a host-side `static/` directory next to the compose file 
 
 HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, and dashboard birthday/ticket routes use injected repositories, which keeps route behavior testable without launching Playwright or requiring MySQL in unit tests.
 
+Backend code is split by concern: Echo handlers live in `backend/cmd/internal/http/handler/`, request/response DTOs in `backend/cmd/internal/contract/`, dashboard entities in `backend/cmd/internal/domain/entity/`, MySQL repositories in `backend/cmd/internal/domain/mysql/repository/`, and external Discord HTTP clients in `backend/cmd/internal/infrastructure/discord/`. Keep handler methods thin; persistence and folding logic belong in repositories or focused services.
+
 ## Backend API Surface
 The backend intentionally exposes:
 - `GET /health` for unauthenticated liveness checks.
@@ -209,17 +211,18 @@ The backend intentionally exposes:
 - `/auth/discord/login` and `/auth/discord/callback` for Discord OAuth2 Authorization Code login.
 - `/auth/me` and `/auth/logout` for cookie-backed dashboard sessions.
 - `/birthdays` for authenticated birthday CRUD over the existing `birthdays` table.
+- `POST /users/query` for authenticated batched dashboard user lookup by Discord snowflake ID.
 - `/tickets` for authenticated, cursor-paginated support ticket reads over the existing `support_tickets` table.
 - `/tickets/:ticketID/messages` for authenticated, cursor-paginated folded ticket message history over `messages_versions`.
 
-Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, configured-origin CORS with credentials, and a basic in-memory rate limiter. Dashboard sessions use HttpOnly SameSite cookies scoped to the API host, in-memory session IDs, and an `X-CSRF-Token` header for mutating dashboard API requests. Dashboard JSON contracts use `snake_case` fields; Discord snowflakes are encoded as strings to avoid JavaScript integer precision loss. Ticket user summaries include a computed Discord default `avatar_url` from the user snowflake; the backend does not fetch Discord users or guild members for ticket avatars.
+Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, configured-origin CORS with credentials, and a basic in-memory rate limiter. Dashboard sessions use HttpOnly SameSite cookies scoped to the API host, persist hashed session IDs in `dashboard_sessions`, and require an `X-CSRF-Token` header for mutating dashboard API requests. Dashboard JSON contracts use `snake_case` fields; Discord snowflakes are encoded as strings to avoid JavaScript integer precision loss. Ticket responses intentionally expose user IDs only (`initiator_id`, `closed_by_id`, `author_id`, `deleted_by_id`); dashboard clients resolve display names and avatar URLs through `POST /users/query`.
 
 Production browser access uses `https://oficinamyuu.com.br/dashboard` from Cloudflare Pages. The React app calls `https://api.oficinamyuu.com.br` through `VITE_API_BASE_URL`; the backend does not serve dashboard HTML, JavaScript, CSS, or SVG assets.
 
 Unauthenticated `GET /health` returns a small `{"status":"ok"}` response for backend liveness checks. The backend Docker image and compose definition both probe this route with `curl`.
 
 ## Backend Persistence
-When `DATABASE_*`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and `DISCORD_GUILD_ID` are present, the backend opens MySQL at startup and verifies connectivity with a bounded ping. If dashboard config is incomplete, existing health/card routes still start while dashboard auth/API calls return unavailable errors. Dashboard modules reuse product tables such as `birthdays`, `support_tickets`, `messages_versions`, and `users`; the backend does not add backend-owned DDL or run migrations at startup.
+When `DATABASE_*`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and `DISCORD_GUILD_ID` are present, the backend opens MySQL at startup and verifies connectivity with a bounded ping. If dashboard config is incomplete, existing health/card routes still start while dashboard auth/API calls return unavailable errors. Dashboard modules reuse product tables such as `birthdays`, `support_tickets`, `messages_versions`, and `users`, and persist dashboard sessions in `dashboard_sessions`; the backend does not add backend-owned DDL or run migrations at startup.
 
 The backend includes only the Discord OAuth metadata needed to authorize users against the configured Oficina guild. Access is granted when Discord reports guild owner, `Administrator`, or `Manage Server` permissions. The backend still does not include service-token sync APIs, config synchronization, broad admin tables, or video downloads.
 
