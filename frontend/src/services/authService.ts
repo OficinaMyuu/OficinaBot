@@ -6,7 +6,7 @@ const AUTH_BASE = '/auth'
 export const authService = {
   async getSession(): Promise<SessionResponse> {
     const session = await apiClient.get<SessionResponse>(`${AUTH_BASE}/me`)
-    setCsrfToken(session.csrfToken)
+    setCsrfToken(session.csrf_token)
     return session
   },
 

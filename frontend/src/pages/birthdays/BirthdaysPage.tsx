@@ -42,7 +42,7 @@ export function BirthdaysPage() {
   })
 
   const updateBirthday = useMutation({
-    mutationFn: (payload: BirthdayPayload) => birthdayService.update(payload.userId, payload),
+    mutationFn: (payload: BirthdayPayload) => birthdayService.update(payload.user_id, payload),
     onSuccess: async () => {
       setEditing(null)
       setNotice(t('birthdays.messages.updated'))
@@ -52,7 +52,7 @@ export function BirthdaysPage() {
   })
 
   const deleteBirthday = useMutation({
-    mutationFn: (birthday: Birthday) => birthdayService.delete(birthday.userId),
+    mutationFn: (birthday: Birthday) => birthdayService.delete(birthday.user_id),
     onSuccess: async () => {
       setDeleting(null)
       setNotice(t('birthdays.messages.deleted'))
@@ -123,13 +123,13 @@ export function BirthdaysPage() {
               </thead>
               <tbody>
                 {birthdays.map((birthday) => (
-                  <tr key={birthday.userId}>
+                  <tr key={birthday.user_id}>
                     <td>
                       <strong>{birthday.name}</strong>
                     </td>
-                    <td className={styles.monospace}>{birthday.userId}</td>
+                    <td className={styles.monospace}>{birthday.user_id}</td>
                     <td>{formatBirthday(birthday.birthday)}</td>
-                    <td>{formatZone(birthday.zoneHours)}</td>
+                    <td>{formatZone(birthday.zone_hours)}</td>
                     <td>
                       <div className={styles.rowActions}>
                         <button type="button" onClick={() => setEditing(birthday)} title={t('birthdays.actions.edit')}>

@@ -15,10 +15,10 @@ describe('BirthdayForm', () => {
     fireEvent.submit(document.getElementById('birthday-form')!)
 
     expect(onSubmit).toHaveBeenCalledWith({
-      userId: '12345',
+      user_id: '12345',
       name: 'Myuu',
       birthday: '2020-05-10',
-      zoneHours: -2,
+      zone_hours: -2,
     })
   })
 
@@ -27,12 +27,12 @@ describe('BirthdayForm', () => {
       <BirthdayForm
         formId="birthday-form"
         birthday={{
-          userId: '12345',
+          user_id: '12345',
           name: 'Myuu',
           birthday: '2020-05-10',
-          zoneHours: -3,
-          createdAt: 1,
-          updatedAt: 1,
+          zone_hours: -3,
+          created_at: 1,
+          updated_at: 1,
         }}
         onSubmit={vi.fn()}
       />,

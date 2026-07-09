@@ -1,17 +1,17 @@
 export type Birthday = {
-  userId: string
+  user_id: string
   name: string
   birthday: string
-  zoneHours: number
-  createdAt: number
-  updatedAt: number
+  zone_hours: number
+  created_at: number
+  updated_at: number
 }
 
 export type BirthdayPayload = {
-  userId: string
+  user_id: string
   name: string
   birthday: string
-  zoneHours: number
+  zone_hours: number
 }
 
 export type BirthdayQuery = {

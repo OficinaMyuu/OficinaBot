@@ -13,10 +13,10 @@ export function BirthdayForm({ birthday, formId, onSubmit }: BirthdayFormProps) 
   const { t } = useTranslation()
   const initialValue = useMemo<BirthdayPayload>(
     () => ({
-      userId: birthday?.userId ?? '',
+      user_id: birthday?.user_id ?? '',
       name: birthday?.name ?? '',
       birthday: birthday?.birthday ?? '',
-      zoneHours: birthday?.zoneHours ?? -3,
+      zone_hours: birthday?.zone_hours ?? -3,
     }),
     [birthday],
   )
@@ -30,7 +30,7 @@ export function BirthdayForm({ birthday, formId, onSubmit }: BirthdayFormProps) 
         event.preventDefault()
         onSubmit({
           ...value,
-          userId: value.userId.trim(),
+          user_id: value.user_id.trim(),
           name: value.name.trim(),
         })
       }}
@@ -41,9 +41,9 @@ export function BirthdayForm({ birthday, formId, onSubmit }: BirthdayFormProps) 
           inputMode="numeric"
           pattern="[0-9]+"
           required
-          value={value.userId}
+          value={value.user_id}
           disabled={Boolean(birthday)}
-          onChange={(event) => setValue((current) => ({ ...current, userId: event.target.value }))}
+          onChange={(event) => setValue((current) => ({ ...current, user_id: event.target.value }))}
         />
       </label>
       <label>
@@ -71,8 +71,8 @@ export function BirthdayForm({ birthday, formId, onSubmit }: BirthdayFormProps) 
           min={-12}
           required
           type="number"
-          value={value.zoneHours}
-          onChange={(event) => setValue((current) => ({ ...current, zoneHours: Number(event.target.value) }))}
+          value={value.zone_hours}
+          onChange={(event) => setValue((current) => ({ ...current, zone_hours: Number(event.target.value) }))}
         />
       </label>
     </form>
