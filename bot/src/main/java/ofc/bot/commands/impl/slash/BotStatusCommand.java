@@ -14,17 +14,24 @@ import ofc.bot.handlers.economy.unb.UnbelievaBoatClient;
 import ofc.bot.handlers.interactions.commands.Cooldown;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
+import ofc.bot.handlers.interactions.commands.responses.states.Status;
 import ofc.bot.handlers.interactions.commands.slash.abstractions.SlashCommand;
 import ofc.bot.util.Bot;
 import ofc.bot.util.content.annotations.commands.DiscordCommand;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @DiscordCommand(name = "status")
 public class BotStatusCommand extends SlashCommand {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BotStatusCommand.class);
     private static final long MEGABYTES = 1024 * 1024;
+    private static final String LOADING = Bot.Emojis.LOADING.getFormatted();
+
     private final UnbelievaBoatClient unbelievaBoatClient = PaymentManagerProvider.getUnbelievaBoatClient();
     private final LevelRoleRepository lvlRoleRepo;
 
@@ -40,22 +47,24 @@ public class BotStatusCommand extends SlashCommand {
         List<LevelRole> roles = lvlRoleRepo.findAll();
 
         ctx.ack();
-        String javaVersion = System.getProperty("java.version");
-        Runtime runtime = Runtime.getRuntime();
-        long apiPing = api.getRestPing().complete();
+
         long gatewayPing = api.getGatewayPing();
-        long totalMemory = runtime.totalMemory();
-        long freeMemory = runtime.freeMemory();
-        long usedMemory = totalMemory - freeMemory;
         long initTime = Main.getInitTime();
-        long unbPing = findUnbelievaLatency(self);
-        long imageryPing = findImageryLatency(guild, roles);
+        Runtime runtime = Runtime.getRuntime();
+        long usedMemoryMB = (runtime.totalMemory() - runtime.freeMemory()) / MEGABYTES;
+        String javaVersion = System.getProperty("java.version");
         int activeThreads = Thread.activeCount();
 
-        MessageEmbed embed = embed(guild, javaVersion, usedMemory / MEGABYTES, apiPing,
-                gatewayPing, unbPing, imageryPing, initTime, activeThreads);
+        // Send the initial response immediately with loading spinners for the slow pings
+        MessageEmbed initial = buildEmbed(guild, javaVersion, usedMemoryMB, LOADING,
+                gatewayPing, LOADING, LOADING, initTime, activeThreads);
 
-        return ctx.replyEmbeds(embed);
+        ctx.getSource().getHook()
+                .editOriginalEmbeds(initial)
+                .queue(msg -> resolvePings(ctx, api, self, guild, roles, javaVersion,
+                        usedMemoryMB, gatewayPing, initTime, activeThreads));
+
+        return Status.OK;
     }
 
     @NotNull
@@ -70,34 +79,51 @@ public class BotStatusCommand extends SlashCommand {
         return Cooldown.of(false, true, 30, TimeUnit.SECONDS);
     }
 
-    private long findUnbelievaLatency(Member self) {
-        long init = System.currentTimeMillis();
-        boolean ok = unbelievaBoatClient.get(self.getIdLong(), self.getGuild().getIdLong()) != null;
-        if (!ok) return 0;
+    private void resolvePings(SlashCommandContext ctx, JDA api, Member self, Guild guild,
+                              List<LevelRole> roles, String javaVersion, long usedMemoryMB,
+                              long gatewayPing, long initTime, int activeThreads) {
 
-        long end = System.currentTimeMillis();
-        return end - init;
+        CompletableFuture<String> apiPingFuture = CompletableFuture.supplyAsync(() -> {
+            long ping = api.getRestPing().complete();
+            return formatMs(ping);
+        });
+
+        CompletableFuture<String> unbPingFuture = CompletableFuture.supplyAsync(() ->
+                formatLatency(() -> unbelievaBoatClient.get(self.getIdLong(), self.getGuild().getIdLong()) != null)
+        );
+
+        CompletableFuture<String> imageryPingFuture = CompletableFuture.supplyAsync(() ->
+                formatLatency(() -> LevelsRolesCommand.getRolesImage(guild, roles).length != 0)
+        );
+
+        CompletableFuture.allOf(apiPingFuture, unbPingFuture, imageryPingFuture)
+                .whenComplete((ignored, error) -> {
+                    if (error != null) {
+                        LOGGER.error("Unexpected error while resolving status pings", error);
+                    }
+
+                    String apiPing = resolve(apiPingFuture);
+                    String unbPing = resolve(unbPingFuture);
+                    String imageryPing = resolve(imageryPingFuture);
+
+                    MessageEmbed embed = buildEmbed(guild, javaVersion, usedMemoryMB, apiPing,
+                            gatewayPing, unbPing, imageryPing, initTime, activeThreads);
+
+                    ctx.getSource().getHook()
+                            .editOriginalEmbeds(embed)
+                            .queue(null, err -> LOGGER.error("Failed to edit /status response", err));
+                });
     }
 
-    private long findImageryLatency(Guild guild, List<LevelRole> roles) {
-        long init = System.currentTimeMillis();
-        boolean ok = LevelsRolesCommand.getRolesImage(guild, roles).length != 0;
-        if (!ok) return 0;
-
-        long end = System.currentTimeMillis();
-        return end - init;
-    }
-
-    private MessageEmbed embed(Guild guild, String javaVersion, long usedMemoryMB, long apiPing,
-                               long gatewayPing, long unbPing, long imageryPing, long initTime, int threadCount) {
-        EmbedBuilder builder = new EmbedBuilder();
-
+    private MessageEmbed buildEmbed(Guild guild, String javaVersion, long usedMemoryMB,
+                                    String apiPing, long gatewayPing, String unbPing,
+                                    String imageryPing, long initTime, int threadCount) {
         String formattedPing = formatPing(apiPing, gatewayPing, unbPing, imageryPing);
         String threads = String.format("%02d", threadCount);
         String uptime = String.format("<t:%d>\n<t:%1$d:R>", initTime);
         int guildCount = Main.getApi().getGuilds().size();
 
-        return builder
+        return new EmbedBuilder()
                 .setTitle("Oficina's Status")
                 .addField("📡 Response Time", formattedPing, true)
                 .addField("🕒 Uptime", uptime, true)
@@ -110,16 +136,50 @@ public class BotStatusCommand extends SlashCommand {
                 .build();
     }
 
-    private String formatPing(long apiPing, long gatewayPing, long unbPing, long imageryPing) {
+    private String formatPing(String apiPing, long gatewayPing, String unbPing, String imageryPing) {
         return String.format("""
                 Gateway Ping: `%dms`.
-                API Ping: `%dms`.
+                API Ping: %s.
                 Unbelieva Ping: %s.
                 Imagery Ping: %s.
-                """, apiPing, gatewayPing,
+                """, gatewayPing, apiPing, unbPing, imageryPing);
+    }
 
-                // Non Discord-related
-                unbPing == 0 ? "❌" : String.format("`%dms`", unbPing),
-                imageryPing == 0 ? "❌" : String.format("`%dms`", imageryPing));
+    /**
+     * Measures the latency of a probe action.
+     * Returns a formatted millisecond string on success, or "❌" if the
+     * probe returned {@code false} or threw an exception.
+     */
+    private static String formatLatency(PingProbe probe) {
+        try {
+            long start = System.currentTimeMillis();
+            boolean ok = probe.check();
+            if (!ok) return "❌";
+
+            return formatMs(System.currentTimeMillis() - start);
+        } catch (Exception e) {
+            LOGGER.error("Ping probe failed", e);
+            return "❌";
+        }
+    }
+
+    private static String formatMs(long ms) {
+        return String.format("`%dms`", ms);
+    }
+
+    /**
+     * Safely resolves a completed future, returning "❌" if it failed.
+     */
+    private static String resolve(CompletableFuture<String> future) {
+        try {
+            return future.join();
+        } catch (Exception e) {
+            return "❌";
+        }
+    }
+
+    @FunctionalInterface
+    private interface PingProbe {
+        boolean check();
     }
 }
