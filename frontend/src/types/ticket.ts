@@ -1,12 +1,6 @@
-export type TicketStatus = 'all' | 'open' | 'closed'
+import type { UserSummary } from "./user"
 
-export type TicketUser = {
-  id: string
-  username: string | null
-  global_name: string | null
-  display_name: string
-  avatar_url: string
-}
+export type TicketStatus = "all" | "open" | "closed"
 
 export type Ticket = {
   id: number
@@ -14,10 +8,10 @@ export type Ticket = {
   description: string
   guild_id: string
   channel_id: string
-  initiator: TicketUser
-  status: Exclude<TicketStatus, 'all'>
+  initiator_id: string
+  status: Exclude<TicketStatus, "all">
   close_reason: string | null
-  closed_by: TicketUser | null
+  closed_by_id: string | null
   merged_into: number | null
   created_at: number
   updated_at: number
@@ -25,15 +19,20 @@ export type Ticket = {
 
 export type TicketMessage = {
   message_id: string
-  author: TicketUser
+  author_id: string
   message_reference_id: string | null
   content: string | null
   sticker_id: string | null
   is_edited: boolean
   is_deleted: boolean
-  deleted_by: TicketUser | null
+  deleted_by_id: string | null
   created_at: number
   updated_at: number
+}
+
+export type TicketMessageView = TicketMessage & {
+  author: UserSummary
+  deleted_by: UserSummary | null
 }
 
 export type TicketListQuery = {

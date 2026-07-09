@@ -1,68 +1,100 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { useDeferredValue, useMemo, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { FiChevronDown, FiChevronRight, FiRefreshCw, FiSearch } from 'react-icons/fi'
-import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { MessageRenderer } from '@/components/messages/MessageRenderer'
-import { Button } from '@/components/ui/Button'
-import { ticketService } from '@/services/ticketService'
-import type { ReactNode } from 'react'
-import type { TicketListQuery, TicketMessage, TicketStatus, TicketUser } from '@/types/ticket'
-import { epochToDate } from '@/utils/time'
-import styles from './TicketsPage.module.css'
+import { useInfiniteQuery } from "@tanstack/react-query"
+import { useDeferredValue, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
+import {
+  FiChevronDown,
+  FiChevronRight,
+  FiRefreshCw,
+  FiSearch
+} from "react-icons/fi"
+import { DashboardLayout } from "@/components/layout/DashboardLayout"
+import { MessageRenderer } from "@/components/messages/MessageRenderer"
+import { Button } from "@/components/ui/Button"
+import { ticketService } from "@/services/ticketService"
+import { useTicketsStore } from "@/stores/useTicketsStore"
+import { fallbackUser, useUsersStore } from "@/stores/useUsersStore"
+import type { ReactNode } from "react"
+import type {
+  Ticket,
+  TicketListQuery,
+  TicketMessage,
+  TicketMessageView,
+  TicketStatus
+} from "@/types/ticket"
+import type { UserSummary } from "@/types/user"
+import { epochToDate } from "@/utils/time"
+import styles from "./TicketsPage.module.css"
 
 const ticketLimit = 25
 const messageLimit = 50
 const timeFormatter = new Intl.DateTimeFormat(undefined, {
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  month: "2-digit",
+  year: "numeric"
 })
 
 export function TicketsPage() {
   const { t } = useTranslation()
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
-  const [status, setStatus] = useState<TicketStatus>('all')
+  const [status, setStatus] = useState<TicketStatus>("all")
   const [expandedTicketId, setExpandedTicketId] = useState<number | null>(null)
   const [messagesTicketId, setMessagesTicketId] = useState<number | null>(null)
+  const tickets = useTicketsStore((state) => state.tickets)
+  const nextTicketCursor = useTicketsStore((state) => state.nextCursor)
+  const ticketsLoading = useTicketsStore((state) => state.isLoading)
+  const ticketsLoadingMore = useTicketsStore((state) => state.isLoadingMore)
+  const ticketError = useTicketsStore((state) => state.error)
+  const loadTickets = useTicketsStore((state) => state.load)
+  const loadMoreTickets = useTicketsStore((state) => state.loadMore)
+  const refreshTickets = useTicketsStore((state) => state.refresh)
+  const usersById = useUsersStore((state) => state.usersById)
+  const fetchUsers = useUsersStore((state) => state.fetchUsers)
 
   const ticketQuery = useMemo<TicketListQuery>(
     () => ({ search: deferredSearch, status, limit: ticketLimit }),
-    [deferredSearch, status],
+    [deferredSearch, status]
   )
 
-  const ticketsQuery = useInfiniteQuery({
-    queryKey: ['tickets', ticketQuery],
-    queryFn: ({ pageParam }) =>
-      ticketService.list({
-        ...ticketQuery,
-        cursor: typeof pageParam === 'string' ? pageParam : undefined,
-      }),
-    initialPageParam: null as string | null,
-    getNextPageParam: (lastPage) => lastPage.next_cursor,
-  })
+  useEffect(() => {
+    void loadTickets(ticketQuery)
+  }, [loadTickets, ticketQuery])
 
   const messagesQuery = useInfiniteQuery({
-    queryKey: ['ticket-messages', messagesTicketId],
+    queryKey: ["ticket-messages", messagesTicketId],
     queryFn: ({ pageParam }) => {
       if (messagesTicketId === null) {
-        throw new Error('Ticket not selected')
+        throw new Error("Ticket not selected")
       }
       return ticketService.messages(messagesTicketId, {
         limit: messageLimit,
-        cursor: typeof pageParam === 'string' ? pageParam : undefined,
+        cursor: typeof pageParam === "string" ? pageParam : undefined
       })
     },
     enabled: messagesTicketId !== null,
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.next_cursor,
+    gcTime: 0
   })
 
-  const tickets = useMemo(() => ticketsQuery.data?.pages.flatMap((page) => page.tickets) ?? [], [ticketsQuery.data])
-  const messages = useMemo(() => messagesQuery.data?.pages.flatMap((page) => page.messages) ?? [], [messagesQuery.data])
+  const rawMessages = useMemo(
+    () => messagesQuery.data?.pages.flatMap((page) => page.messages) ?? [],
+    [messagesQuery.data]
+  )
+  const messages = useMemo(
+    () => rawMessages.map((message) => toMessageView(message, usersById)),
+    [rawMessages, usersById]
+  )
+
+  useEffect(() => {
+    void fetchUsers(ticketUserIds(tickets))
+  }, [fetchUsers, tickets])
+
+  useEffect(() => {
+    void fetchUsers(messageUserIds(rawMessages))
+  }, [fetchUsers, rawMessages])
 
   const toggleTicket = (ticketId: number) => {
     setExpandedTicketId((current) => (current === ticketId ? null : ticketId))
@@ -70,65 +102,142 @@ export function TicketsPage() {
   }
 
   return (
-    <DashboardLayout title={t('tickets.title')}>
+    <DashboardLayout title={t("tickets.title")}>
       <section className={styles.page}>
         <div className={styles.toolbar}>
           <label className={styles.search}>
             <FiSearch aria-hidden="true" />
-            <input value={search} placeholder={t('tickets.searchPlaceholder')} onChange={(event) => setSearch(event.target.value)} />
+            <input
+              value={search}
+              placeholder={t("tickets.searchPlaceholder")}
+              onChange={(event) => setSearch(event.target.value)}
+            />
           </label>
 
-          <select value={status} onChange={(event) => setStatus(event.target.value as TicketStatus)} aria-label={t('tickets.filters.status')}>
-            <option value="all">{t('tickets.filters.all')}</option>
-            <option value="open">{t('tickets.filters.open')}</option>
-            <option value="closed">{t('tickets.filters.closed')}</option>
+          <select
+            value={status}
+            onChange={(event) => setStatus(event.target.value as TicketStatus)}
+            aria-label={t("tickets.filters.status")}
+          >
+            <option value="all">{t("tickets.filters.all")}</option>
+            <option value="open">{t("tickets.filters.open")}</option>
+            <option value="closed">{t("tickets.filters.closed")}</option>
           </select>
 
-          <Button type="button" variant="secondary" onClick={() => void ticketsQuery.refetch()}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => void refreshTickets()}
+          >
             <FiRefreshCw aria-hidden="true" />
-            {t('common.refresh')}
+            {t("common.refresh")}
           </Button>
         </div>
 
-        {ticketsQuery.isLoading ? (
-          <div className={styles.state}>{t('tickets.loading')}</div>
-        ) : ticketsQuery.isError ? (
-          <div className={styles.state}>{toMessage(ticketsQuery.error)}</div>
+        {ticketsLoading ? (
+          <div className={styles.state}>{t("tickets.loading")}</div>
+        ) : ticketError && tickets.length === 0 ? (
+          <div className={styles.state}>{ticketError}</div>
         ) : tickets.length === 0 ? (
-          <div className={styles.state}>{t('tickets.empty')}</div>
+          <div className={styles.state}>{t("tickets.empty")}</div>
         ) : (
-          <ol className={styles.entries} aria-label={t('tickets.listLabel')}>
+          <ol className={styles.entries} aria-label={t("tickets.listLabel")}>
             {tickets.map((ticket) => {
               const expanded = expandedTicketId === ticket.id
               const messagesRequested = messagesTicketId === ticket.id
+              const initiator =
+                usersById[ticket.initiator_id] ??
+                fallbackUser(ticket.initiator_id)
+              const closedBy = ticket.closed_by_id
+                ? (usersById[ticket.closed_by_id] ??
+                  fallbackUser(ticket.closed_by_id))
+                : null
 
               return (
                 <li className={styles.entry} key={ticket.id}>
-                  <button className={styles.summary} type="button" aria-expanded={expanded} onClick={() => toggleTicket(ticket.id)}>
-                    <FiChevronRight className={expanded ? styles.expandedIcon : undefined} aria-hidden="true" />
-                    <img className={styles.avatar} src={ticket.initiator.avatar_url} alt="" />
+                  <button
+                    className={styles.summary}
+                    type="button"
+                    aria-expanded={expanded}
+                    onClick={() => toggleTicket(ticket.id)}
+                  >
+                    <FiChevronRight
+                      className={expanded ? styles.expandedIcon : undefined}
+                      aria-hidden="true"
+                    />
+                    <img
+                      className={styles.avatar}
+                      src={initiator.avatar_url}
+                      alt=""
+                    />
                     <span className={styles.ticketTitle}>
                       <strong>{formatTicketNumber(ticket.id)}</strong>
                       <span>{ticket.title}</span>
                     </span>
-                    <span className={styles.user}>{ticket.initiator.display_name}</span>
-                    <span className={[styles.status, styles[ticket.status]].join(' ')}>{t(`tickets.status.${ticket.status}`)}</span>
-                    <time dateTime={epochToDate(ticket.updated_at).toISOString()}>{formatTime(ticket.updated_at)}</time>
+                    <span className={styles.user}>
+                      {initiator.display_name}
+                    </span>
+                    <span
+                      className={[styles.status, styles[ticket.status]].join(
+                        " "
+                      )}
+                    >
+                      {t(`tickets.status.${ticket.status}`)}
+                    </span>
+                    <time
+                      dateTime={epochToDate(ticket.updated_at).toISOString()}
+                    >
+                      {formatTime(ticket.updated_at)}
+                    </time>
                   </button>
 
                   {expanded ? (
                     <div className={styles.expanded}>
                       <div className={styles.details}>
-                        <p className={styles.description}>{ticket.description}</p>
-                        {ticket.status === 'open' ? <p className={styles.warning}>{t('tickets.openWarning')}</p> : null}
+                        <p className={styles.description}>
+                          {ticket.description}
+                        </p>
+                        {ticket.status === "open" ? (
+                          <p className={styles.warning}>
+                            {t("tickets.openWarning")}
+                          </p>
+                        ) : null}
                         <dl className={styles.metaGrid}>
-                          <Meta label={t('tickets.fields.initiator')} value={<User user={ticket.initiator} />} />
-                          <Meta label={t('tickets.fields.channel')} value={ticket.channel_id} mono />
-                          <Meta label={t('tickets.fields.createdAt')} value={formatTime(ticket.created_at)} />
-                          <Meta label={t('tickets.fields.updatedAt')} value={formatTime(ticket.updated_at)} />
-                          {ticket.closed_by ? <Meta label={t('tickets.fields.closedBy')} value={<User user={ticket.closed_by} />} /> : null}
-                          {ticket.close_reason ? <Meta label={t('tickets.fields.closeReason')} value={ticket.close_reason} /> : null}
-                          {ticket.merged_into ? <Meta label={t('tickets.fields.mergedInto')} value={formatTicketNumber(ticket.merged_into)} /> : null}
+                          <Meta
+                            label={t("tickets.fields.initiator")}
+                            value={<User user={initiator} />}
+                          />
+                          <Meta
+                            label={t("tickets.fields.channel")}
+                            value={ticket.channel_id}
+                            mono
+                          />
+                          <Meta
+                            label={t("tickets.fields.createdAt")}
+                            value={formatTime(ticket.created_at)}
+                          />
+                          <Meta
+                            label={t("tickets.fields.updatedAt")}
+                            value={formatTime(ticket.updated_at)}
+                          />
+                          {closedBy ? (
+                            <Meta
+                              label={t("tickets.fields.closedBy")}
+                              value={<User user={closedBy} />}
+                            />
+                          ) : null}
+                          {ticket.close_reason ? (
+                            <Meta
+                              label={t("tickets.fields.closeReason")}
+                              value={ticket.close_reason}
+                            />
+                          ) : null}
+                          {ticket.merged_into ? (
+                            <Meta
+                              label={t("tickets.fields.mergedInto")}
+                              value={formatTicketNumber(ticket.merged_into)}
+                            />
+                          ) : null}
                         </dl>
                       </div>
 
@@ -136,7 +245,11 @@ export function TicketsPage() {
                         <TicketMessages
                           expanded={messagesRequested}
                           loading={messagesQuery.isLoading}
-                          error={messagesQuery.isError ? toMessage(messagesQuery.error) : null}
+                          error={
+                            messagesQuery.isError
+                              ? toMessage(messagesQuery.error)
+                              : null
+                          }
                           hasMore={Boolean(messagesQuery.hasNextPage)}
                           loadingMore={messagesQuery.isFetchingNextPage}
                           messages={messagesRequested ? messages : []}
@@ -153,16 +266,20 @@ export function TicketsPage() {
           </ol>
         )}
 
-        {ticketsQuery.hasNextPage ? (
+        {ticketError && tickets.length > 0 ? (
+          <div className={styles.state}>{ticketError}</div>
+        ) : null}
+
+        {nextTicketCursor ? (
           <Button
             className={styles.loadMore}
             type="button"
             variant="secondary"
-            disabled={ticketsQuery.isFetchingNextPage}
-            onClick={() => void ticketsQuery.fetchNextPage()}
+            disabled={ticketsLoadingMore}
+            onClick={() => void loadMoreTickets()}
           >
             <FiChevronDown aria-hidden="true" />
-            {t('tickets.actions.loadMore')}
+            {t("tickets.actions.loadMore")}
           </Button>
         ) : null}
       </section>
@@ -185,7 +302,7 @@ function Meta({ label, value, mono = false }: MetaProps) {
   )
 }
 
-function User({ user }: { user: TicketUser }) {
+function User({ user }: { user: UserSummary }) {
   return (
     <span className={styles.userValue}>
       <img src={user.avatar_url} alt="" />
@@ -200,13 +317,23 @@ type TicketMessagesProps = {
   error: string | null
   hasMore: boolean
   loadingMore: boolean
-  messages: TicketMessage[]
+  messages: TicketMessageView[]
   onLoad: () => void
   onLoadMore: () => void
   onRetry: () => void
 }
 
-function TicketMessages({ expanded, loading, error, hasMore, loadingMore, messages, onLoad, onLoadMore, onRetry }: TicketMessagesProps) {
+function TicketMessages({
+  expanded,
+  loading,
+  error,
+  hasMore,
+  loadingMore,
+  messages,
+  onLoad,
+  onLoadMore,
+  onRetry
+}: TicketMessagesProps) {
   const { t } = useTranslation()
 
   if (!expanded) {
@@ -218,14 +345,14 @@ function TicketMessages({ expanded, loading, error, hasMore, loadingMore, messag
           <span />
         </div>
         <Button type="button" onClick={onLoad}>
-          {t('tickets.actions.readMessages')}
+          {t("tickets.actions.readMessages")}
         </Button>
       </div>
     )
   }
 
   if (loading) {
-    return <MessageSkeleton label={t('tickets.loadingMessages')} />
+    return <MessageSkeleton label={t("tickets.loadingMessages")} />
   }
 
   if (error) {
@@ -234,7 +361,7 @@ function TicketMessages({ expanded, loading, error, hasMore, loadingMore, messag
         <p>{error}</p>
         <Button type="button" variant="secondary" onClick={onRetry}>
           <FiRefreshCw aria-hidden="true" />
-          {t('common.refresh')}
+          {t("common.refresh")}
         </Button>
       </div>
     )
@@ -244,9 +371,15 @@ function TicketMessages({ expanded, loading, error, hasMore, loadingMore, messag
     <>
       <MessageRenderer messages={messages} />
       {hasMore ? (
-        <Button className={styles.loadMoreMessages} type="button" variant="secondary" disabled={loadingMore} onClick={onLoadMore}>
+        <Button
+          className={styles.loadMoreMessages}
+          type="button"
+          variant="secondary"
+          disabled={loadingMore}
+          onClick={onLoadMore}
+        >
           <FiChevronDown aria-hidden="true" />
-          {t('tickets.actions.loadMoreMessages')}
+          {t("tickets.actions.loadMoreMessages")}
         </Button>
       ) : null}
     </>
@@ -269,8 +402,36 @@ function MessageSkeleton({ label }: { label: string }) {
   )
 }
 
+function toMessageView(
+  message: TicketMessage,
+  usersById: Record<string, UserSummary>
+): TicketMessageView {
+  return {
+    ...message,
+    author: usersById[message.author_id] ?? fallbackUser(message.author_id),
+    deleted_by: message.deleted_by_id
+      ? (usersById[message.deleted_by_id] ??
+        fallbackUser(message.deleted_by_id))
+      : null
+  }
+}
+
+function ticketUserIds(tickets: Ticket[]): string[] {
+  return tickets.flatMap(
+    (ticket) =>
+      [ticket.initiator_id, ticket.closed_by_id].filter(Boolean) as string[]
+  )
+}
+
+function messageUserIds(messages: TicketMessage[]): string[] {
+  return messages.flatMap(
+    (message) =>
+      [message.author_id, message.deleted_by_id].filter(Boolean) as string[]
+  )
+}
+
 function formatTicketNumber(id: number): string {
-  return `#${String(id).padStart(2, '0')}`
+  return `#${String(id).padStart(2, "0")}`
 }
 
 function formatTime(value: number): string {
@@ -278,11 +439,11 @@ function formatTime(value: number): string {
 }
 
 function toMessage(error: unknown): string {
-  if (typeof error === 'object' && error !== null && 'message' in error) {
+  if (typeof error === "object" && error !== null && "message" in error) {
     return String(error.message)
   }
   if (error instanceof Error) {
     return error.message
   }
-  return 'Unexpected error'
+  return "Unexpected error"
 }
