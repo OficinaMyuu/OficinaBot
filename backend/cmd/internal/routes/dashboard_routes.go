@@ -9,6 +9,7 @@ type DashboardRoutesConfig struct {
 	OAuthClient   DiscordOAuthClient
 	Sessions      *SessionStore
 	Birthdays     BirthdayRepository
+	Tickets       TicketRepository
 	MissingConfig []string
 }
 
@@ -27,5 +28,12 @@ func RegisterDashboardRoutes(e *echo.Echo, cfg DashboardRoutesConfig) {
 		birthdays.POST("", birthdayHandler.Create)
 		birthdays.PUT("/:userID", birthdayHandler.Update)
 		birthdays.DELETE("/:userID", birthdayHandler.Delete)
+	}
+
+	if cfg.Tickets != nil {
+		ticketHandler := NewTicketHandler(cfg.Tickets)
+		tickets := e.Group("/tickets", authHandler.RequireSession)
+		tickets.GET("", ticketHandler.List)
+		tickets.GET("/:ticketID/messages", ticketHandler.Messages)
 	}
 }

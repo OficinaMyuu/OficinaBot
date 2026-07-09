@@ -52,13 +52,13 @@ func NewServer(cfg Config) (*Server, error) {
 
 	e := echo.New()
 	registerMiddleware(e, cfg)
-	db, birthdayRepository, oauthClient, missingConfig, err := dashboardRuntime(cfg)
+	db, birthdayRepository, ticketRepository, oauthClient, missingConfig, err := dashboardRuntime(cfg)
 	if err != nil {
 		cardRenderer.Close()
 		pw.Stop()
 		return nil, err
 	}
-	registerRoutes(e, cfg, cardRenderer, birthdayRepository, oauthClient, missingConfig)
+	registerRoutes(e, cfg, cardRenderer, birthdayRepository, ticketRepository, oauthClient, missingConfig)
 	return &Server{
 		Echo:         e,
 		playwright:   pw,
@@ -175,6 +175,7 @@ func registerRoutes(
 	cfg Config,
 	cardRenderer routes.CardRenderer,
 	birthdayRepository routes.BirthdayRepository,
+	ticketRepository routes.TicketRepository,
 	oauthClient routes.DiscordOAuthClient,
 	missingConfig []string,
 ) {
@@ -203,23 +204,24 @@ func registerRoutes(
 		OAuthClient: oauthClient,
 		Sessions:    routes.NewSessionStore(),
 		Birthdays:   birthdayRepository,
+		Tickets:     ticketRepository,
 	})
 }
 
-func dashboardRuntime(cfg Config) (*sql.DB, routes.BirthdayRepository, routes.DiscordOAuthClient, []string, error) {
+func dashboardRuntime(cfg Config) (*sql.DB, routes.BirthdayRepository, routes.TicketRepository, routes.DiscordOAuthClient, []string, error) {
 	missingConfig := cfg.MissingDashboardConfig()
 	if len(missingConfig) > 0 {
-		return nil, nil, nil, missingConfig, nil
+		return nil, nil, nil, nil, missingConfig, nil
 	}
 
 	dsn, err := cfg.Database.FormatDSN()
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("dashboard database config is invalid: %w", err)
+		return nil, nil, nil, nil, nil, fmt.Errorf("dashboard database config is invalid: %w", err)
 	}
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("open dashboard database: %w", err)
+		return nil, nil, nil, nil, nil, fmt.Errorf("open dashboard database: %w", err)
 	}
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
@@ -229,11 +231,12 @@ func dashboardRuntime(cfg Config) (*sql.DB, routes.BirthdayRepository, routes.Di
 	defer cancel()
 	if err := db.PingContext(pingCtx); err != nil {
 		db.Close()
-		return nil, nil, nil, nil, fmt.Errorf("ping dashboard database: %w", err)
+		return nil, nil, nil, nil, nil, fmt.Errorf("ping dashboard database: %w", err)
 	}
 
 	return db,
 		store.NewBirthdayRepository(db),
+		store.NewTicketRepository(db),
 		discord.NewOAuthClient(cfg.Dashboard.DiscordAPIBaseURL, cfg.Dashboard.DiscordClientID, cfg.Dashboard.DiscordClientSecret),
 		nil,
 		nil
