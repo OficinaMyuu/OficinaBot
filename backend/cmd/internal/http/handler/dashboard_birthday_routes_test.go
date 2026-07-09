@@ -1,4 +1,4 @@
-package routes
+package handler
 
 import (
 	"bytes"
@@ -12,19 +12,21 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"oficina-img/internal/store"
+	"oficina-img/internal/contract"
+	"oficina-img/internal/domain/entity"
+	"oficina-img/internal/domain/mysql/repository"
 )
 
 type fakeBirthdayRepository struct {
-	listFilter store.BirthdayFilter
+	listFilter repository.BirthdayFilter
 	createErr  error
 	updateErr  error
 	deleteErr  error
 }
 
-func (f *fakeBirthdayRepository) List(_ context.Context, filter store.BirthdayFilter) ([]store.Birthday, error) {
+func (f *fakeBirthdayRepository) List(_ context.Context, filter repository.BirthdayFilter) ([]entity.Birthday, error) {
 	f.listFilter = filter
-	return []store.Birthday{{
+	return []entity.Birthday{{
 		UserID:    42,
 		Name:      "Myuu",
 		Birthday:  time.Date(2020, time.May, 10, 0, 0, 0, 0, time.UTC),
@@ -34,18 +36,18 @@ func (f *fakeBirthdayRepository) List(_ context.Context, filter store.BirthdayFi
 	}}, nil
 }
 
-func (f *fakeBirthdayRepository) Create(_ context.Context, birthday store.Birthday) (store.Birthday, error) {
+func (f *fakeBirthdayRepository) Create(_ context.Context, birthday entity.Birthday) (entity.Birthday, error) {
 	if f.createErr != nil {
-		return store.Birthday{}, f.createErr
+		return entity.Birthday{}, f.createErr
 	}
 	birthday.CreatedAt = 1
 	birthday.UpdatedAt = 1
 	return birthday, nil
 }
 
-func (f *fakeBirthdayRepository) Update(_ context.Context, birthday store.Birthday) (store.Birthday, error) {
+func (f *fakeBirthdayRepository) Update(_ context.Context, birthday entity.Birthday) (entity.Birthday, error) {
 	if f.updateErr != nil {
-		return store.Birthday{}, f.updateErr
+		return entity.Birthday{}, f.updateErr
 	}
 	birthday.UpdatedAt = 2
 	return birthday, nil
@@ -95,7 +97,7 @@ func TestBirthdayHandlerRejectsInvalidCreatePayload(t *testing.T) {
 
 func TestBirthdayHandlerMapsDuplicateCreateToConflict(t *testing.T) {
 	e := echo.New()
-	body := birthdayJSON(t, birthdayRequest{
+	body := birthdayJSON(t, contract.BirthdayRequest{
 		UserID:    "42",
 		Name:      "Myuu",
 		Birthday:  "2020-05-10",
@@ -105,7 +107,7 @@ func TestBirthdayHandlerMapsDuplicateCreateToConflict(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 
-	err := NewBirthdayHandler(&fakeBirthdayRepository{createErr: store.ErrDuplicateBirthday}).Create(e.NewContext(req, rec))
+	err := NewBirthdayHandler(&fakeBirthdayRepository{createErr: repository.ErrDuplicateBirthday}).Create(e.NewContext(req, rec))
 
 	if err != nil {
 		t.Fatalf("create returned error: %v", err)
@@ -117,7 +119,7 @@ func TestBirthdayHandlerMapsDuplicateCreateToConflict(t *testing.T) {
 
 func TestBirthdayHandlerRejectsRoutePayloadMismatch(t *testing.T) {
 	e := echo.New()
-	body := birthdayJSON(t, birthdayRequest{
+	body := birthdayJSON(t, contract.BirthdayRequest{
 		UserID:    "43",
 		Name:      "Myuu",
 		Birthday:  "2020-05-10",
@@ -148,7 +150,7 @@ func TestBirthdayHandlerMapsMissingDeleteToNotFound(t *testing.T) {
 	ctx.SetParamNames("userID")
 	ctx.SetParamValues("42")
 
-	err := NewBirthdayHandler(&fakeBirthdayRepository{deleteErr: store.ErrBirthdayNotFound}).Delete(ctx)
+	err := NewBirthdayHandler(&fakeBirthdayRepository{deleteErr: repository.ErrBirthdayNotFound}).Delete(ctx)
 
 	if err != nil {
 		t.Fatalf("delete returned error: %v", err)
@@ -176,7 +178,7 @@ func TestBirthdayHandlerMapsUnexpectedDeleteError(t *testing.T) {
 	}
 }
 
-func birthdayJSON(t *testing.T, req birthdayRequest) []byte {
+func birthdayJSON(t *testing.T, req contract.BirthdayRequest) []byte {
 	t.Helper()
 	body, err := json.Marshal(req)
 	if err != nil {

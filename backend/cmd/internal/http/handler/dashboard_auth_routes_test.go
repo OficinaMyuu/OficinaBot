@@ -1,4 +1,4 @@
-package routes
+package handler
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"oficina-img/internal/discord"
+	"oficina-img/internal/infrastructure/discord"
 )
 
 type stubDiscordOAuthClient struct {
@@ -186,6 +186,23 @@ func TestDashboardSessionMiddlewareRequiresCSRFForMutations(t *testing.T) {
 	}
 }
 
+func TestSessionStoreCanReloadRepositoryBackedSession(t *testing.T) {
+	repository := newFakeSessionRepository()
+	created, err := NewSessionStore(repository).Create(DashboardUser{ID: "42", Username: "myuu"})
+	if err != nil {
+		t.Fatalf("create session: %v", err)
+	}
+
+	found, ok := NewSessionStore(repository).Find(created.ID)
+
+	if !ok {
+		t.Fatal("expected session to survive store recreation")
+	}
+	if found.User.ID != "42" || found.CSRFToken == "" || found.ID != created.ID {
+		t.Fatalf("unexpected reloaded session: %+v", found)
+	}
+}
+
 func TestDashboardMeReturnsSnakeCaseSessionFields(t *testing.T) {
 	e := echo.New()
 	sessions := NewSessionStore()
@@ -244,4 +261,34 @@ func cookieValue(cookies []*http.Cookie, name string) string {
 		}
 	}
 	return ""
+}
+
+type fakeSessionRepository struct {
+	sessions map[string]DashboardSession
+}
+
+func newFakeSessionRepository() *fakeSessionRepository {
+	return &fakeSessionRepository{sessions: make(map[string]DashboardSession)}
+}
+
+func (f *fakeSessionRepository) Save(_ context.Context, sessionIDHash string, session DashboardSession) error {
+	f.sessions[sessionIDHash] = session
+	return nil
+}
+
+func (f *fakeSessionRepository) Find(_ context.Context, sessionIDHash string) (DashboardSession, error) {
+	session, ok := f.sessions[sessionIDHash]
+	if !ok {
+		return DashboardSession{}, assertErr("missing session")
+	}
+	return session, nil
+}
+
+func (f *fakeSessionRepository) Delete(_ context.Context, sessionIDHash string) error {
+	delete(f.sessions, sessionIDHash)
+	return nil
+}
+
+func (f *fakeSessionRepository) DeleteExpired(_ context.Context, _ int64) error {
+	return nil
 }

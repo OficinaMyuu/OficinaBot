@@ -1,4 +1,4 @@
-package routes
+package handler
 
 import (
 	"context"
@@ -8,34 +8,20 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"oficina-img/internal/store"
+	"oficina-img/internal/contract"
+	"oficina-img/internal/domain/entity"
+	"oficina-img/internal/domain/mysql/repository"
 )
 
 type BirthdayRepository interface {
-	List(ctx context.Context, filter store.BirthdayFilter) ([]store.Birthday, error)
-	Create(ctx context.Context, birthday store.Birthday) (store.Birthday, error)
-	Update(ctx context.Context, birthday store.Birthday) (store.Birthday, error)
+	List(ctx context.Context, filter repository.BirthdayFilter) ([]entity.Birthday, error)
+	Create(ctx context.Context, birthday entity.Birthday) (entity.Birthday, error)
+	Update(ctx context.Context, birthday entity.Birthday) (entity.Birthday, error)
 	Delete(ctx context.Context, userID int64) error
 }
 
 type BirthdayHandler struct {
 	repository BirthdayRepository
-}
-
-type birthdayRequest struct {
-	UserID    string `json:"user_id"`
-	Name      string `json:"name"`
-	Birthday  string `json:"birthday"`
-	ZoneHours int    `json:"zone_hours"`
-}
-
-type birthdayResponse struct {
-	UserID    string `json:"user_id"`
-	Name      string `json:"name"`
-	Birthday  string `json:"birthday"`
-	ZoneHours int    `json:"zone_hours"`
-	CreatedAt int64  `json:"created_at"`
-	UpdatedAt int64  `json:"updated_at"`
 }
 
 func NewBirthdayHandler(repository BirthdayRepository) *BirthdayHandler {
@@ -48,7 +34,7 @@ func (h *BirthdayHandler) List(c echo.Context) error {
 		return jsonError(c, http.StatusBadRequest, err.Error())
 	}
 
-	birthdays, err := h.repository.List(c.Request().Context(), store.BirthdayFilter{
+	birthdays, err := h.repository.List(c.Request().Context(), repository.BirthdayFilter{
 		Search: c.QueryParam("search"),
 		Month:  month,
 	})
@@ -56,11 +42,11 @@ func (h *BirthdayHandler) List(c echo.Context) error {
 		return jsonError(c, http.StatusInternalServerError, "Could not list birthdays")
 	}
 
-	response := make([]birthdayResponse, 0, len(birthdays))
+	response := make([]contract.BirthdayResponse, 0, len(birthdays))
 	for _, birthday := range birthdays {
 		response = append(response, toBirthdayResponse(birthday))
 	}
-	return c.JSON(http.StatusOK, map[string]any{"birthdays": response})
+	return c.JSON(http.StatusOK, contract.BirthdayListResponse{Birthdays: response})
 }
 
 func (h *BirthdayHandler) Create(c echo.Context) error {
@@ -71,7 +57,7 @@ func (h *BirthdayHandler) Create(c echo.Context) error {
 
 	created, err := h.repository.Create(c.Request().Context(), birthday)
 	if err != nil {
-		if errors.Is(err, store.ErrDuplicateBirthday) {
+		if errors.Is(err, repository.ErrDuplicateBirthday) {
 			return jsonError(c, http.StatusConflict, "Birthday already exists for this Discord user")
 		}
 		return jsonError(c, http.StatusInternalServerError, "Could not create birthday")
@@ -87,7 +73,7 @@ func (h *BirthdayHandler) Update(c echo.Context) error {
 
 	updated, err := h.repository.Update(c.Request().Context(), birthday)
 	if err != nil {
-		if errors.Is(err, store.ErrBirthdayNotFound) {
+		if errors.Is(err, repository.ErrBirthdayNotFound) {
 			return jsonError(c, http.StatusNotFound, "Birthday not found")
 		}
 		return jsonError(c, http.StatusInternalServerError, "Could not update birthday")
@@ -102,7 +88,7 @@ func (h *BirthdayHandler) Delete(c echo.Context) error {
 	}
 
 	if err := h.repository.Delete(c.Request().Context(), userID); err != nil {
-		if errors.Is(err, store.ErrBirthdayNotFound) {
+		if errors.Is(err, repository.ErrBirthdayNotFound) {
 			return jsonError(c, http.StatusNotFound, "Birthday not found")
 		}
 		return jsonError(c, http.StatusInternalServerError, "Could not delete birthday")
@@ -110,39 +96,39 @@ func (h *BirthdayHandler) Delete(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func bindBirthday(c echo.Context, routeUserID string) (store.Birthday, error) {
-	var req birthdayRequest
+func bindBirthday(c echo.Context, routeUserID string) (entity.Birthday, error) {
+	var req contract.BirthdayRequest
 	if err := c.Bind(&req); err != nil {
-		return store.Birthday{}, errors.New("Malformed JSON body")
+		return entity.Birthday{}, errors.New("Malformed JSON body")
 	}
 
 	req.Name = strings.TrimSpace(req.Name)
 	req.UserID = strings.TrimSpace(req.UserID)
 	if req.UserID == "" {
-		return store.Birthday{}, errors.New("Discord user id is required")
+		return entity.Birthday{}, errors.New("Discord user id is required")
 	}
 	if routeUserID != "" && routeUserID != req.UserID {
-		return store.Birthday{}, errors.New("Payload user id must match route user id")
+		return entity.Birthday{}, errors.New("Payload user id must match route user id")
 	}
 	userID, err := parseUserID(req.UserID)
 	if err != nil {
-		return store.Birthday{}, err
+		return entity.Birthday{}, err
 	}
 	if req.Name == "" {
-		return store.Birthday{}, errors.New("Name is required")
+		return entity.Birthday{}, errors.New("Name is required")
 	}
 	if len(req.Name) > 255 {
-		return store.Birthday{}, errors.New("Name must be at most 255 characters")
+		return entity.Birthday{}, errors.New("Name must be at most 255 characters")
 	}
-	birthdayDate, err := store.ParseBirthdayDate(req.Birthday)
+	birthdayDate, err := repository.ParseBirthdayDate(req.Birthday)
 	if err != nil {
-		return store.Birthday{}, err
+		return entity.Birthday{}, err
 	}
 	if req.ZoneHours < -12 || req.ZoneHours > 14 {
-		return store.Birthday{}, errors.New("Timezone offset must be between -12 and 14")
+		return entity.Birthday{}, errors.New("Timezone offset must be between -12 and 14")
 	}
 
-	return store.Birthday{
+	return entity.Birthday{
 		UserID:    userID,
 		Name:      req.Name,
 		Birthday:  birthdayDate,
@@ -169,22 +155,17 @@ func parseOptionalMonth(value string) (int, error) {
 	return month, nil
 }
 
-func toBirthdayResponse(birthday store.Birthday) birthdayResponse {
-	return birthdayResponse{
+func toBirthdayResponse(birthday entity.Birthday) contract.BirthdayResponse {
+	return contract.BirthdayResponse{
 		UserID:    strconv.FormatInt(birthday.UserID, 10),
 		Name:      birthday.Name,
-		Birthday:  birthday.Birthday.Format(store.DateOnlyLayout),
+		Birthday:  birthday.Birthday.Format(repository.DateOnlyLayout),
 		ZoneHours: birthday.ZoneHours,
 		CreatedAt: birthday.CreatedAt,
 		UpdatedAt: birthday.UpdatedAt,
 	}
 }
 
-type dashboardErrorResponse struct {
-	Status  int    `json:"status"`
-	Message string `json:"message"`
-}
-
 func jsonError(c echo.Context, status int, message string) error {
-	return c.JSON(status, dashboardErrorResponse{Status: status, Message: message})
+	return c.JSON(status, contract.ErrorResponse{Status: status, Message: message})
 }

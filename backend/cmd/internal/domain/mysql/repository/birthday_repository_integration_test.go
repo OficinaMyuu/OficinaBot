@@ -1,4 +1,4 @@
-package store
+package repository
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
+	"oficina-img/internal/domain/entity"
 )
 
 func TestBirthdayRepositoryIntegrationCRUD(t *testing.T) {
@@ -23,7 +24,7 @@ func TestBirthdayRepositoryIntegrationCRUD(t *testing.T) {
 	repository := NewBirthdayRepository(db)
 	ctx := context.Background()
 
-	created, err := repository.Create(ctx, Birthday{
+	created, err := repository.Create(ctx, entity.Birthday{
 		UserID:    42,
 		Name:      "Myuu",
 		Birthday:  mustDate(t, "2020-05-10"),
@@ -48,7 +49,7 @@ func TestBirthdayRepositoryIntegrationCRUD(t *testing.T) {
 		t.Fatalf("expected created birthday in list, got %+v", list)
 	}
 
-	updated, err := repository.Update(ctx, Birthday{
+	updated, err := repository.Update(ctx, entity.Birthday{
 		UserID:    42,
 		Name:      "Oficina Myuu",
 		Birthday:  mustDate(t, "2020-06-11"),

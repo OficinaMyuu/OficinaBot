@@ -1,9 +1,11 @@
-package routes
+package handler
 
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -13,7 +15,9 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"oficina-img/internal/discord"
+	"oficina-img/internal/contract"
+	"oficina-img/internal/domain/entity"
+	"oficina-img/internal/infrastructure/discord"
 )
 
 const (
@@ -44,33 +48,32 @@ type DashboardAuthConfig struct {
 	MissingConfig    []string
 }
 
-type DashboardUser struct {
-	ID           string  `json:"id"`
-	Username     string  `json:"username"`
-	GlobalName   *string `json:"global_name"`
-	AvatarURL    *string `json:"avatar_url"`
-	GuildName    string  `json:"guild_name"`
-	GuildIconURL *string `json:"guild_icon_url"`
-	Permissions  string  `json:"permissions"`
-}
+type DashboardUser = entity.DashboardUser
+type DashboardSession = entity.DashboardSession
 
-type DashboardSession struct {
-	ID        string
-	User      DashboardUser
-	CSRFToken string
-	ExpiresAt time.Time
+type SessionRepository interface {
+	Save(ctx context.Context, sessionIDHash string, session entity.DashboardSession) error
+	Find(ctx context.Context, sessionIDHash string) (entity.DashboardSession, error)
+	Delete(ctx context.Context, sessionIDHash string) error
+	DeleteExpired(ctx context.Context, now int64) error
 }
 
 type SessionStore struct {
-	mu       sync.Mutex
-	sessions map[string]DashboardSession
-	now      func() time.Time
+	mu         sync.Mutex
+	sessions   map[string]DashboardSession
+	repository SessionRepository
+	now        func() time.Time
 }
 
-func NewSessionStore() *SessionStore {
+func NewSessionStore(repositories ...SessionRepository) *SessionStore {
+	var repository SessionRepository
+	if len(repositories) > 0 {
+		repository = repositories[0]
+	}
 	return &SessionStore{
-		sessions: make(map[string]DashboardSession),
-		now:      time.Now,
+		sessions:   make(map[string]DashboardSession),
+		repository: repository,
+		now:        time.Now,
 	}
 }
 
@@ -88,7 +91,14 @@ func (s *SessionStore) Create(user DashboardUser) (DashboardSession, error) {
 		ID:        sessionID,
 		User:      user,
 		CSRFToken: csrfToken,
-		ExpiresAt: s.now().Add(sessionTTL),
+		ExpiresAt: s.now().Add(sessionTTL).Unix(),
+	}
+
+	if s.repository != nil {
+		if err := s.repository.Save(context.Background(), sessionIDHash(sessionID), session); err != nil {
+			return DashboardSession{}, err
+		}
+		return session, nil
 	}
 
 	s.mu.Lock()
@@ -98,6 +108,20 @@ func (s *SessionStore) Create(user DashboardUser) (DashboardSession, error) {
 }
 
 func (s *SessionStore) Find(sessionID string) (DashboardSession, bool) {
+	if s.repository != nil {
+		session, err := s.repository.Find(context.Background(), sessionIDHash(sessionID))
+		if err != nil {
+			return DashboardSession{}, false
+		}
+		if session.ExpiresAt <= s.now().Unix() {
+			_ = s.repository.Delete(context.Background(), sessionIDHash(sessionID))
+			return DashboardSession{}, false
+		}
+		session.ID = sessionID
+		_ = s.repository.DeleteExpired(context.Background(), s.now().Unix())
+		return session, true
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -105,7 +129,7 @@ func (s *SessionStore) Find(sessionID string) (DashboardSession, bool) {
 	if !ok {
 		return DashboardSession{}, false
 	}
-	if !session.ExpiresAt.After(s.now()) {
+	if session.ExpiresAt <= s.now().Unix() {
 		delete(s.sessions, sessionID)
 		return DashboardSession{}, false
 	}
@@ -113,6 +137,11 @@ func (s *SessionStore) Find(sessionID string) (DashboardSession, bool) {
 }
 
 func (s *SessionStore) Delete(sessionID string) {
+	if s.repository != nil {
+		_ = s.repository.Delete(context.Background(), sessionIDHash(sessionID))
+		return
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	delete(s.sessions, sessionID)
@@ -228,9 +257,9 @@ func (h *DashboardAuthHandler) Me(c echo.Context) error {
 		return jsonError(c, http.StatusUnauthorized, "Not authenticated")
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"user":       session.User,
-		"csrf_token": session.CSRFToken,
+	return c.JSON(http.StatusOK, contract.DashboardSessionResponse{
+		User:      toDashboardUserResponse(session.User),
+		CSRFToken: session.CSRFToken,
 	})
 }
 
@@ -378,6 +407,23 @@ func secureToken() (string, error) {
 		return "", err
 	}
 	return base64.RawURLEncoding.EncodeToString(bytes), nil
+}
+
+func sessionIDHash(sessionID string) string {
+	hash := sha256.Sum256([]byte(sessionID))
+	return hex.EncodeToString(hash[:])
+}
+
+func toDashboardUserResponse(user DashboardUser) contract.DashboardUserResponse {
+	return contract.DashboardUserResponse{
+		ID:           user.ID,
+		Username:     user.Username,
+		GlobalName:   user.GlobalName,
+		AvatarURL:    user.AvatarURL,
+		GuildName:    user.GuildName,
+		GuildIconURL: user.GuildIconURL,
+		Permissions:  user.Permissions,
+	}
 }
 
 func avatarURL(user discord.User) *string {

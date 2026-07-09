@@ -1,4 +1,4 @@
-package routes
+package handler
 
 import (
 	"github.com/labstack/echo/v4"
@@ -10,6 +10,7 @@ type DashboardRoutesConfig struct {
 	Sessions      *SessionStore
 	Birthdays     BirthdayRepository
 	Tickets       TicketRepository
+	Users         UserRepository
 	MissingConfig []string
 }
 
@@ -35,5 +36,11 @@ func RegisterDashboardRoutes(e *echo.Echo, cfg DashboardRoutesConfig) {
 		tickets := e.Group("/tickets", authHandler.RequireSession)
 		tickets.GET("", ticketHandler.List)
 		tickets.GET("/:ticketID/messages", ticketHandler.Messages)
+	}
+
+	if cfg.Users != nil {
+		userHandler := NewUserHandler(cfg.Users)
+		users := e.Group("/users", authHandler.RequireSession)
+		users.POST("/query", userHandler.Query)
 	}
 }

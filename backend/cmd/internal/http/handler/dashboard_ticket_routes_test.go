@@ -1,4 +1,4 @@
-package routes
+package handler
 
 import (
 	"context"
@@ -8,68 +8,69 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"oficina-img/internal/store"
+	"oficina-img/internal/domain/entity"
+	"oficina-img/internal/domain/mysql/repository"
 )
 
 type fakeTicketRepository struct {
-	listFilter      store.TicketListFilter
-	messageFilter   store.TicketMessageFilter
+	listFilter      repository.TicketListFilter
+	messageFilter   repository.TicketMessageFilter
 	findErr         error
 	listErr         error
 	listMessagesErr error
 }
 
-func (f *fakeTicketRepository) List(_ context.Context, filter store.TicketListFilter) (store.TicketPage, error) {
+func (f *fakeTicketRepository) List(_ context.Context, filter repository.TicketListFilter) (repository.TicketPage, error) {
 	f.listFilter = filter
 	if f.listErr != nil {
-		return store.TicketPage{}, f.listErr
+		return repository.TicketPage{}, f.listErr
 	}
-	closedBy := store.TicketUser{ID: 99, Username: stringPtr("staff"), GlobalName: stringPtr("Staff")}
-	return store.TicketPage{
-		Tickets: []store.Ticket{{
+	closedBy := int64(99)
+	return repository.TicketPage{
+		Tickets: []entity.Ticket{{
 			ID:          7,
 			Title:       "Need help",
 			Description: "The thing exploded",
 			GuildID:     123,
 			ChannelID:   456,
-			Initiator:   store.TicketUser{ID: 42, Username: stringPtr("myuu"), GlobalName: stringPtr("Myuu")},
+			InitiatorID: 42,
 			CloseReason: stringPtr("Solved"),
-			ClosedBy:    &closedBy,
+			ClosedByID:  &closedBy,
 			MergedInto:  intPtr(9),
 			CreatedAt:   10,
 			UpdatedAt:   11,
 		}},
-		NextCursor: &store.TicketCursor{CreatedAt: 10, ID: 7},
+		NextCursor: &repository.TicketCursor{CreatedAt: 10, ID: 7},
 	}, nil
 }
 
-func (f *fakeTicketRepository) Find(_ context.Context, _ int) (store.Ticket, error) {
+func (f *fakeTicketRepository) Find(_ context.Context, _ int) (entity.Ticket, error) {
 	if f.findErr != nil {
-		return store.Ticket{}, f.findErr
+		return entity.Ticket{}, f.findErr
 	}
-	return store.Ticket{
+	return entity.Ticket{
 		ID:          7,
 		Title:       "Need help",
 		Description: "The thing exploded",
 		GuildID:     123,
 		ChannelID:   456,
-		Initiator:   store.TicketUser{ID: 42, Username: stringPtr("myuu")},
+		InitiatorID: 42,
 		CreatedAt:   10,
 		UpdatedAt:   11,
 	}, nil
 }
 
-func (f *fakeTicketRepository) ListMessages(_ context.Context, _ int64, filter store.TicketMessageFilter) (store.TicketMessagePage, error) {
+func (f *fakeTicketRepository) ListMessages(_ context.Context, _ int64, filter repository.TicketMessageFilter) (repository.TicketMessagePage, error) {
 	f.messageFilter = filter
 	if f.listMessagesErr != nil {
-		return store.TicketMessagePage{}, f.listMessagesErr
+		return repository.TicketMessagePage{}, f.listMessagesErr
 	}
 	ref := int64(100)
 	sticker := int64(200)
-	return store.TicketMessagePage{
-		Messages: []store.TicketMessage{{
+	return repository.TicketMessagePage{
+		Messages: []entity.TicketMessage{{
 			MessageID:          101,
-			Author:             store.TicketUser{ID: 42, Username: stringPtr("myuu"), GlobalName: stringPtr("Myuu")},
+			AuthorID:           42,
 			MessageReferenceID: &ref,
 			Content:            stringPtr("hello"),
 			StickerID:          &sticker,
@@ -77,7 +78,7 @@ func (f *fakeTicketRepository) ListMessages(_ context.Context, _ int64, filter s
 			CreatedAt:          1000,
 			UpdatedAt:          1001,
 		}},
-		NextCursor: &store.TicketCursor{CreatedAt: 1000, ID: 101},
+		NextCursor: &repository.TicketCursor{CreatedAt: 1000, ID: 101},
 	}, nil
 }
 
@@ -102,13 +103,15 @@ func TestTicketHandlerListUsesSnakeCaseAndFilters(t *testing.T) {
 		t.Fatalf("unexpected cursor: %+v", repo.listFilter.Cursor)
 	}
 	body := rec.Body.String()
-	for _, expected := range []string{`"channel_id":"456"`, `"avatar_url":"https://cdn.discordapp.com/embed/avatars/`, `"close_reason":"Solved"`, `"closed_by":`, `"merged_into":9`, `"next_cursor":"10:7"`} {
+	for _, expected := range []string{`"channel_id":"456"`, `"initiator_id":"42"`, `"close_reason":"Solved"`, `"closed_by_id":"99"`, `"merged_into":9`, `"next_cursor":"10:7"`} {
 		if !strings.Contains(body, expected) {
 			t.Fatalf("expected %s in response, got %s", expected, body)
 		}
 	}
-	if strings.Contains(body, "channelId") || strings.Contains(body, "closeReason") {
-		t.Fatalf("expected snake_case ticket response, got %s", body)
+	for _, unexpected := range []string{`"initiator":`, `"closed_by":`, `"author":`, `"avatar_url":`, "channelId", "closeReason"} {
+		if strings.Contains(body, unexpected) {
+			t.Fatalf("did not expect %s in ticket response, got %s", unexpected, body)
+		}
 	}
 }
 
@@ -130,13 +133,15 @@ func TestTicketHandlerMessagesReturnsSnakeCaseMessageFields(t *testing.T) {
 		t.Fatalf("expected limit filter, got %+v", repo.messageFilter)
 	}
 	body := rec.Body.String()
-	for _, expected := range []string{`"message_id":"101"`, `"avatar_url":"https://cdn.discordapp.com/embed/avatars/`, `"message_reference_id":"100"`, `"sticker_id":"200"`, `"is_edited":true`, `"is_deleted":false`} {
+	for _, expected := range []string{`"message_id":"101"`, `"author_id":"42"`, `"message_reference_id":"100"`, `"sticker_id":"200"`, `"is_edited":true`, `"is_deleted":false`} {
 		if !strings.Contains(body, expected) {
 			t.Fatalf("expected %s in response, got %s", expected, body)
 		}
 	}
-	if strings.Contains(body, "messageReferenceId") || strings.Contains(body, "isEdited") {
-		t.Fatalf("expected snake_case message response, got %s", body)
+	for _, unexpected := range []string{`"author":`, `"deleted_by":`, `"avatar_url":`, "messageReferenceId", "isEdited"} {
+		if strings.Contains(body, unexpected) {
+			t.Fatalf("did not expect %s in message response, got %s", unexpected, body)
+		}
 	}
 }
 
@@ -148,7 +153,7 @@ func TestTicketHandlerMessagesMapsMissingTicketToNotFound(t *testing.T) {
 	ctx.SetParamNames("ticketID")
 	ctx.SetParamValues("7")
 
-	err := NewTicketHandler(&fakeTicketRepository{findErr: store.ErrTicketNotFound}).Messages(ctx)
+	err := NewTicketHandler(&fakeTicketRepository{findErr: repository.ErrTicketNotFound}).Messages(ctx)
 
 	if err != nil {
 		t.Fatalf("messages returned error: %v", err)

@@ -1,4 +1,4 @@
-package store
+package repository
 
 import (
 	"context"
@@ -31,7 +31,7 @@ func TestTicketRepositoryIntegrationListAndMessages(t *testing.T) {
 	if err != nil {
 		t.Fatalf("find ticket: %v", err)
 	}
-	if ticket.ClosedBy == nil || ticket.Status() != "closed" {
+	if ticket.ClosedByID == nil || ticket.Status() != "closed" {
 		t.Fatalf("expected closed ticket metadata, got %+v", ticket)
 	}
 
@@ -47,7 +47,7 @@ func TestTicketRepositoryIntegrationListAndMessages(t *testing.T) {
 		t.Fatalf("expected edited first message, got %+v", first)
 	}
 	second := messages.Messages[1]
-	if second.MessageID != 101 || !second.IsDeleted || second.DeletedBy == nil || second.Content == nil || *second.Content != "remove me" {
+	if second.MessageID != 101 || !second.IsDeleted || second.DeletedByID == nil || second.Content == nil || *second.Content != "remove me" {
 		t.Fatalf("expected deleted second message with original content, got %+v", second)
 	}
 }
@@ -68,6 +68,7 @@ func createTicketTables(t *testing.T, db *sql.DB) {
 			id BIGINT PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
 			global_name VARCHAR(255),
+			avatar_hash VARCHAR(128),
 			created_at BIGINT NOT NULL,
 			updated_at BIGINT NOT NULL
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,

@@ -13,10 +13,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/mxschmitt/playwright-go"
-	"oficina-img/internal/discord"
-	"oficina-img/internal/routes"
+	"oficina-img/internal/domain/mysql/repository"
+	"oficina-img/internal/http/handler"
+	"oficina-img/internal/infrastructure/discord"
 	"oficina-img/internal/service"
-	"oficina-img/internal/store"
 )
 
 type Server struct {
@@ -52,13 +52,13 @@ func NewServer(cfg Config) (*Server, error) {
 
 	e := echo.New()
 	registerMiddleware(e, cfg)
-	db, birthdayRepository, ticketRepository, oauthClient, missingConfig, err := dashboardRuntime(cfg)
+	db, birthdayRepository, ticketRepository, userRepository, sessionRepository, oauthClient, missingConfig, err := dashboardRuntime(cfg)
 	if err != nil {
 		cardRenderer.Close()
 		pw.Stop()
 		return nil, err
 	}
-	registerRoutes(e, cfg, cardRenderer, birthdayRepository, ticketRepository, oauthClient, missingConfig)
+	registerRoutes(e, cfg, cardRenderer, birthdayRepository, ticketRepository, userRepository, sessionRepository, oauthClient, missingConfig)
 	return &Server{
 		Echo:         e,
 		playwright:   pw,
@@ -173,16 +173,18 @@ func ignoreServerClosed(err error) error {
 func registerRoutes(
 	e *echo.Echo,
 	cfg Config,
-	cardRenderer routes.CardRenderer,
-	birthdayRepository routes.BirthdayRepository,
-	ticketRepository routes.TicketRepository,
-	oauthClient routes.DiscordOAuthClient,
+	cardRenderer handler.CardRenderer,
+	birthdayRepository handler.BirthdayRepository,
+	ticketRepository handler.TicketRepository,
+	userRepository handler.UserRepository,
+	sessionRepository handler.SessionRepository,
+	oauthClient handler.DiscordOAuthClient,
 	missingConfig []string,
 ) {
 	e.Static("/static", "./static")
 
-	cardHandler := routes.NewCardHandler(cardRenderer)
-	healthHandler := routes.NewHealthHandler()
+	cardHandler := handler.NewCardHandler(cardRenderer)
+	healthHandler := handler.NewHealthHandler()
 
 	e.GET("/health", healthHandler.Check)
 
@@ -191,8 +193,8 @@ func registerRoutes(
 	e.POST("/levels/cards", cardHandler.GetLevelCard)
 	e.POST("/levels/roles", cardHandler.GetLevelsRoles)
 
-	routes.RegisterDashboardRoutes(e, routes.DashboardRoutesConfig{
-		AuthConfig: routes.DashboardAuthConfig{
+	handler.RegisterDashboardRoutes(e, handler.DashboardRoutesConfig{
+		AuthConfig: handler.DashboardAuthConfig{
 			PublicAPIBaseURL: cfg.Dashboard.PublicAPIBaseURL,
 			FrontendBaseURL:  cfg.Dashboard.FrontendBaseURL,
 			AuthorizeURL:     cfg.Dashboard.DiscordAuthorizeURL,
@@ -202,26 +204,27 @@ func registerRoutes(
 			MissingConfig:    missingConfig,
 		},
 		OAuthClient: oauthClient,
-		Sessions:    routes.NewSessionStore(),
+		Sessions:    handler.NewSessionStore(sessionRepository),
 		Birthdays:   birthdayRepository,
 		Tickets:     ticketRepository,
+		Users:       userRepository,
 	})
 }
 
-func dashboardRuntime(cfg Config) (*sql.DB, routes.BirthdayRepository, routes.TicketRepository, routes.DiscordOAuthClient, []string, error) {
+func dashboardRuntime(cfg Config) (*sql.DB, handler.BirthdayRepository, handler.TicketRepository, handler.UserRepository, handler.SessionRepository, handler.DiscordOAuthClient, []string, error) {
 	missingConfig := cfg.MissingDashboardConfig()
 	if len(missingConfig) > 0 {
-		return nil, nil, nil, nil, missingConfig, nil
+		return nil, nil, nil, nil, nil, nil, missingConfig, nil
 	}
 
 	dsn, err := cfg.Database.FormatDSN()
 	if err != nil {
-		return nil, nil, nil, nil, nil, fmt.Errorf("dashboard database config is invalid: %w", err)
+		return nil, nil, nil, nil, nil, nil, nil, fmt.Errorf("dashboard database config is invalid: %w", err)
 	}
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return nil, nil, nil, nil, nil, fmt.Errorf("open dashboard database: %w", err)
+		return nil, nil, nil, nil, nil, nil, nil, fmt.Errorf("open dashboard database: %w", err)
 	}
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
@@ -231,12 +234,14 @@ func dashboardRuntime(cfg Config) (*sql.DB, routes.BirthdayRepository, routes.Ti
 	defer cancel()
 	if err := db.PingContext(pingCtx); err != nil {
 		db.Close()
-		return nil, nil, nil, nil, nil, fmt.Errorf("ping dashboard database: %w", err)
+		return nil, nil, nil, nil, nil, nil, nil, fmt.Errorf("ping dashboard database: %w", err)
 	}
 
 	return db,
-		store.NewBirthdayRepository(db),
-		store.NewTicketRepository(db),
+		repository.NewBirthdayRepository(db),
+		repository.NewTicketRepository(db),
+		repository.NewUserRepository(db),
+		repository.NewDashboardSessionRepository(db),
 		discord.NewOAuthClient(cfg.Dashboard.DiscordAPIBaseURL, cfg.Dashboard.DiscordClientID, cfg.Dashboard.DiscordClientSecret),
 		nil,
 		nil

@@ -1,4 +1,4 @@
-package store
+package repository
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
+	"oficina-img/internal/domain/entity"
 )
 
 const DateOnlyLayout = "2006-01-02"
@@ -17,15 +18,6 @@ var (
 	ErrDuplicateBirthday = errors.New("birthday already exists")
 	ErrBirthdayNotFound  = errors.New("birthday not found")
 )
-
-type Birthday struct {
-	UserID    int64
-	Name      string
-	Birthday  time.Time
-	ZoneHours int
-	CreatedAt int64
-	UpdatedAt int64
-}
 
 type BirthdayFilter struct {
 	Search string
@@ -40,7 +32,7 @@ func NewBirthdayRepository(db *sql.DB) *BirthdayRepository {
 	return &BirthdayRepository{db: db}
 }
 
-func (r *BirthdayRepository) List(ctx context.Context, filter BirthdayFilter) ([]Birthday, error) {
+func (r *BirthdayRepository) List(ctx context.Context, filter BirthdayFilter) ([]entity.Birthday, error) {
 	query := strings.Builder{}
 	query.WriteString("SELECT user_id, name, birthday, zone_hours, created_at, updated_at FROM birthdays WHERE 1 = 1")
 	args := make([]any, 0, 4)
@@ -64,7 +56,7 @@ func (r *BirthdayRepository) List(ctx context.Context, filter BirthdayFilter) ([
 	}
 	defer rows.Close()
 
-	var birthdays []Birthday
+	var birthdays []entity.Birthday
 	for rows.Next() {
 		birthday, err := scanBirthday(rows)
 		if err != nil {
@@ -78,7 +70,7 @@ func (r *BirthdayRepository) List(ctx context.Context, filter BirthdayFilter) ([
 	return birthdays, nil
 }
 
-func (r *BirthdayRepository) Create(ctx context.Context, birthday Birthday) (Birthday, error) {
+func (r *BirthdayRepository) Create(ctx context.Context, birthday entity.Birthday) (entity.Birthday, error) {
 	now := time.Now().Unix()
 	birthday.CreatedAt = now
 	birthday.UpdatedAt = now
@@ -95,14 +87,14 @@ func (r *BirthdayRepository) Create(ctx context.Context, birthday Birthday) (Bir
 	)
 	if err != nil {
 		if isDuplicateKey(err) {
-			return Birthday{}, ErrDuplicateBirthday
+			return entity.Birthday{}, ErrDuplicateBirthday
 		}
-		return Birthday{}, err
+		return entity.Birthday{}, err
 	}
 	return birthday, nil
 }
 
-func (r *BirthdayRepository) Update(ctx context.Context, birthday Birthday) (Birthday, error) {
+func (r *BirthdayRepository) Update(ctx context.Context, birthday entity.Birthday) (entity.Birthday, error) {
 	birthday.UpdatedAt = time.Now().Unix()
 
 	result, err := r.db.ExecContext(
@@ -115,15 +107,15 @@ func (r *BirthdayRepository) Update(ctx context.Context, birthday Birthday) (Bir
 		birthday.UserID,
 	)
 	if err != nil {
-		return Birthday{}, err
+		return entity.Birthday{}, err
 	}
 
 	affected, err := result.RowsAffected()
 	if err != nil {
-		return Birthday{}, err
+		return entity.Birthday{}, err
 	}
 	if affected == 0 {
-		return Birthday{}, ErrBirthdayNotFound
+		return entity.Birthday{}, ErrBirthdayNotFound
 	}
 	return birthday, nil
 }
@@ -148,8 +140,8 @@ type birthdayScanner interface {
 	Scan(dest ...any) error
 }
 
-func scanBirthday(scanner birthdayScanner) (Birthday, error) {
-	var birthday Birthday
+func scanBirthday(scanner birthdayScanner) (entity.Birthday, error) {
+	var birthday entity.Birthday
 	var birthdayDate time.Time
 	if err := scanner.Scan(
 		&birthday.UserID,
@@ -159,7 +151,7 @@ func scanBirthday(scanner birthdayScanner) (Birthday, error) {
 		&birthday.CreatedAt,
 		&birthday.UpdatedAt,
 	); err != nil {
-		return Birthday{}, err
+		return entity.Birthday{}, err
 	}
 	birthday.Birthday = normalizeDate(birthdayDate)
 	return birthday, nil

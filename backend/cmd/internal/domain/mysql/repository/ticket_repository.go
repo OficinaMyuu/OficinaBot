@@ -1,4 +1,4 @@
-package store
+package repository
 
 import (
 	"context"
@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"oficina-img/internal/domain/entity"
 )
 
 var ErrTicketNotFound = errors.New("ticket not found")
@@ -29,53 +31,13 @@ type TicketMessageFilter struct {
 }
 
 type TicketPage struct {
-	Tickets    []Ticket
+	Tickets    []entity.Ticket
 	NextCursor *TicketCursor
 }
 
 type TicketMessagePage struct {
-	Messages   []TicketMessage
+	Messages   []entity.TicketMessage
 	NextCursor *TicketCursor
-}
-
-type TicketUser struct {
-	ID         int64
-	Username   *string
-	GlobalName *string
-}
-
-type Ticket struct {
-	ID          int
-	Title       string
-	Description string
-	GuildID     int64
-	ChannelID   int64
-	Initiator   TicketUser
-	CloseReason *string
-	ClosedBy    *TicketUser
-	MergedInto  *int
-	CreatedAt   int64
-	UpdatedAt   int64
-}
-
-func (t Ticket) Status() string {
-	if t.ClosedBy == nil {
-		return "open"
-	}
-	return "closed"
-}
-
-type TicketMessage struct {
-	MessageID          int64
-	Author             TicketUser
-	MessageReferenceID *int64
-	Content            *string
-	StickerID          *int64
-	IsEdited           bool
-	IsDeleted          bool
-	DeletedBy          *TicketUser
-	CreatedAt          int64
-	UpdatedAt          int64
 }
 
 type TicketRepository struct {
@@ -91,12 +53,9 @@ func (r *TicketRepository) List(ctx context.Context, filter TicketListFilter) (T
 	query := strings.Builder{}
 	query.WriteString(`
 SELECT st.id, st.title, st.description, st.guild_id, st.channel_id, st.initiator_id,
-       initiator.name, initiator.global_name,
-       st.close_reason, st.closed_by_id, closed_by.name, closed_by.global_name,
-       st.merged_into, st.created_at, st.updated_at
+       st.close_reason, st.closed_by_id, st.merged_into, st.created_at, st.updated_at
 FROM support_tickets st
 LEFT JOIN users initiator ON initiator.id = st.initiator_id
-LEFT JOIN users closed_by ON closed_by.id = st.closed_by_id
 WHERE 1 = 1`)
 	args := make([]any, 0, 8)
 
@@ -149,28 +108,24 @@ OR LOWER(initiator.global_name) LIKE ?
 	return page, nil
 }
 
-func (r *TicketRepository) Find(ctx context.Context, ticketID int) (Ticket, error) {
+func (r *TicketRepository) Find(ctx context.Context, ticketID int) (entity.Ticket, error) {
 	rows, err := r.db.QueryContext(ctx, `
 SELECT st.id, st.title, st.description, st.guild_id, st.channel_id, st.initiator_id,
-       initiator.name, initiator.global_name,
-       st.close_reason, st.closed_by_id, closed_by.name, closed_by.global_name,
-       st.merged_into, st.created_at, st.updated_at
+       st.close_reason, st.closed_by_id, st.merged_into, st.created_at, st.updated_at
 FROM support_tickets st
-LEFT JOIN users initiator ON initiator.id = st.initiator_id
-LEFT JOIN users closed_by ON closed_by.id = st.closed_by_id
 WHERE st.id = ?
 LIMIT 1`, ticketID)
 	if err != nil {
-		return Ticket{}, err
+		return entity.Ticket{}, err
 	}
 	defer rows.Close()
 
 	tickets, err := scanTickets(rows)
 	if err != nil {
-		return Ticket{}, err
+		return entity.Ticket{}, err
 	}
 	if len(tickets) == 0 {
-		return Ticket{}, ErrTicketNotFound
+		return entity.Ticket{}, ErrTicketNotFound
 	}
 	return tickets[0], nil
 }
@@ -182,7 +137,7 @@ func (r *TicketRepository) ListMessages(ctx context.Context, channelID int64, fi
 		return TicketMessagePage{}, err
 	}
 	if len(keys) == 0 {
-		return TicketMessagePage{Messages: []TicketMessage{}}, nil
+		return TicketMessagePage{Messages: []entity.TicketMessage{}}, nil
 	}
 
 	versions, err := r.messageVersions(ctx, channelID, keys)
@@ -251,13 +206,9 @@ func (r *TicketRepository) messageVersions(ctx context.Context, channelID int64,
 
 	args := append([]any{channelID}, ids...)
 	query := fmt.Sprintf(`
-SELECT mv.message_id, mv.author_id, author.name, author.global_name,
-       mv.message_ref_id, mv.content, mv.sticker_id, mv.is_deleted,
-       mv.is_original, mv.deleted_by_id, deleted_by.name, deleted_by.global_name,
-       mv.created_at
+SELECT mv.message_id, mv.author_id, mv.message_ref_id, mv.content, mv.sticker_id,
+       mv.is_deleted, mv.is_original, mv.deleted_by_id, mv.created_at
 FROM messages_versions mv
-LEFT JOIN users author ON author.id = mv.author_id
-LEFT JOIN users deleted_by ON deleted_by.id = mv.deleted_by_id
 WHERE mv.channel_id = ? AND mv.message_id IN (%s)
 ORDER BY mv.created_at ASC, mv.id ASC`, strings.Join(placeholders, ", "))
 
@@ -273,16 +224,12 @@ ORDER BY mv.created_at ASC, mv.id ASC`, strings.Join(placeholders, ", "))
 		if err := rows.Scan(
 			&row.MessageID,
 			&row.AuthorID,
-			&row.AuthorUsername,
-			&row.AuthorGlobalName,
 			&row.MessageReferenceID,
 			&row.Content,
 			&row.StickerID,
 			&row.IsDeleted,
 			&row.IsOriginal,
 			&row.DeletedByID,
-			&row.DeletedByUsername,
-			&row.DeletedByGlobalName,
 			&row.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -340,14 +287,12 @@ func scanTickets(rows interface {
 	Next() bool
 	ticketScanner
 	Err() error
-}) ([]Ticket, error) {
-	tickets := make([]Ticket, 0)
+}) ([]entity.Ticket, error) {
+	tickets := make([]entity.Ticket, 0)
 	for rows.Next() {
-		var ticket Ticket
-		var initiatorName, initiatorGlobalName sql.NullString
+		var ticket entity.Ticket
 		var closeReason sql.NullString
 		var closedByID sql.NullInt64
-		var closedByName, closedByGlobalName sql.NullString
 		var mergedInto sql.NullInt64
 
 		if err := rows.Scan(
@@ -356,13 +301,9 @@ func scanTickets(rows interface {
 			&ticket.Description,
 			&ticket.GuildID,
 			&ticket.ChannelID,
-			&ticket.Initiator.ID,
-			&initiatorName,
-			&initiatorGlobalName,
+			&ticket.InitiatorID,
 			&closeReason,
 			&closedByID,
-			&closedByName,
-			&closedByGlobalName,
 			&mergedInto,
 			&ticket.CreatedAt,
 			&ticket.UpdatedAt,
@@ -370,10 +311,8 @@ func scanTickets(rows interface {
 			return nil, err
 		}
 
-		ticket.Initiator.Username = nullableString(initiatorName)
-		ticket.Initiator.GlobalName = nullableString(initiatorGlobalName)
 		ticket.CloseReason = nullableString(closeReason)
-		ticket.ClosedBy = nullableUser(closedByID, closedByName, closedByGlobalName)
+		ticket.ClosedByID = nullableInt64(closedByID)
 		if mergedInto.Valid {
 			value := int(mergedInto.Int64)
 			ticket.MergedInto = &value
@@ -386,14 +325,14 @@ func scanTickets(rows interface {
 	return tickets, nil
 }
 
-func foldMessages(keys []messageKey, versions []messageVersionRow) []TicketMessage {
-	messagesByID := make(map[int64]*TicketMessage, len(keys))
+func foldMessages(keys []messageKey, versions []messageVersionRow) []entity.TicketMessage {
+	messagesByID := make(map[int64]*entity.TicketMessage, len(keys))
 	for _, version := range versions {
 		message := messagesByID[version.MessageID]
 		if message == nil {
-			message = &TicketMessage{
+			message = &entity.TicketMessage{
 				MessageID:          version.MessageID,
-				Author:             requiredUser(version.AuthorID, version.AuthorUsername, version.AuthorGlobalName),
+				AuthorID:           version.AuthorID,
 				MessageReferenceID: nullableInt64(version.MessageReferenceID),
 				Content:            nullableString(version.Content),
 				StickerID:          nullableInt64(version.StickerID),
@@ -407,7 +346,7 @@ func foldMessages(keys []messageKey, versions []messageVersionRow) []TicketMessa
 		message.UpdatedAt = version.CreatedAt
 		if version.IsDeleted {
 			message.IsDeleted = true
-			message.DeletedBy = nullableUser(version.DeletedByID, version.DeletedByUsername, version.DeletedByGlobalName)
+			message.DeletedByID = nullableInt64(version.DeletedByID)
 			continue
 		}
 
@@ -417,29 +356,13 @@ func foldMessages(keys []messageKey, versions []messageVersionRow) []TicketMessa
 		message.IsEdited = true
 	}
 
-	messages := make([]TicketMessage, 0, len(keys))
+	messages := make([]entity.TicketMessage, 0, len(keys))
 	for _, key := range keys {
 		if message := messagesByID[key.MessageID]; message != nil {
 			messages = append(messages, *message)
 		}
 	}
 	return messages
-}
-
-func requiredUser(id int64, username, globalName sql.NullString) TicketUser {
-	return TicketUser{
-		ID:         id,
-		Username:   nullableString(username),
-		GlobalName: nullableString(globalName),
-	}
-}
-
-func nullableUser(id sql.NullInt64, username, globalName sql.NullString) *TicketUser {
-	if !id.Valid {
-		return nil
-	}
-	user := requiredUser(id.Int64, username, globalName)
-	return &user
 }
 
 func nullableString(value sql.NullString) *string {
@@ -462,17 +385,13 @@ type messageKey struct {
 }
 
 type messageVersionRow struct {
-	MessageID           int64
-	AuthorID            int64
-	AuthorUsername      sql.NullString
-	AuthorGlobalName    sql.NullString
-	MessageReferenceID  sql.NullInt64
-	Content             sql.NullString
-	StickerID           sql.NullInt64
-	IsDeleted           bool
-	IsOriginal          bool
-	DeletedByID         sql.NullInt64
-	DeletedByUsername   sql.NullString
-	DeletedByGlobalName sql.NullString
-	CreatedAt           int64
+	MessageID          int64
+	AuthorID           int64
+	MessageReferenceID sql.NullInt64
+	Content            sql.NullString
+	StickerID          sql.NullInt64
+	IsDeleted          bool
+	IsOriginal         bool
+	DeletedByID        sql.NullInt64
+	CreatedAt          int64
 }
