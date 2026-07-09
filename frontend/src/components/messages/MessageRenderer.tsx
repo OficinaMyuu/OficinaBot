@@ -31,9 +31,7 @@ export const MessageRenderer = memo(function MessageRenderer({ messages }: Messa
 
         return (
           <li className={[styles.message, isDeleted ? styles.deleted : null].filter(Boolean).join(' ')} key={message.message_id}>
-            <div className={styles.avatar} aria-hidden="true">
-              {initial(message.author.display_name)}
-            </div>
+            <img className={styles.avatar} src={message.author.avatar_url} alt="" />
             <div className={styles.body}>
               <div className={styles.meta}>
                 <strong>{message.author.display_name}</strong>
@@ -60,8 +58,3 @@ export const MessageRenderer = memo(function MessageRenderer({ messages }: Messa
     </ol>
   )
 })
-
-function initial(value: string): string {
-  const trimmed = value.trim()
-  return trimmed ? trimmed[0].toUpperCase() : '?'
-}

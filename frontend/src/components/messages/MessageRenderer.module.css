@@ -19,17 +19,11 @@
 }
 
 .avatar {
-  align-items: center;
-  background: var(--surface-raised);
   border: 1px solid var(--border-strong);
   border-radius: 999px;
-  color: var(--accent-strong);
-  display: flex;
   flex: 0 0 auto;
-  font-size: 12px;
-  font-weight: 800;
   height: 34px;
-  justify-content: center;
+  object-fit: cover;
   width: 34px;
 }
 

@@ -21,7 +21,7 @@ describe('MessageRenderer', () => {
         messages={[
           message({
             is_deleted: true,
-            deleted_by: { id: '99', username: 'staff', global_name: null, display_name: 'Staff' },
+            deleted_by: { id: '99', username: 'staff', global_name: null, display_name: 'Staff', avatar_url: '/staff.png' },
           }),
         ]}
       />,
@@ -35,7 +35,7 @@ describe('MessageRenderer', () => {
 function message(overrides: Partial<TicketMessage> = {}): TicketMessage {
   return {
     message_id: '101',
-    author: { id: '42', username: 'myuu', global_name: 'Myuu', display_name: 'Myuu' },
+    author: { id: '42', username: 'myuu', global_name: 'Myuu', display_name: 'Myuu', avatar_url: '/avatar.png' },
     message_reference_id: null,
     content: 'Hello there',
     sticker_id: null,
