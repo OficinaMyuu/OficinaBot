@@ -1,5 +1,6 @@
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import { defineConfig } from 'vitest/config'
@@ -14,6 +15,7 @@ export default defineConfig({
       autoCodeSplitting: true,
     }),
     react(),
+    basicSsl(),
   ],
   resolve: {
     alias: {
