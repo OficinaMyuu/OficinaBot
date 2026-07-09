@@ -43,6 +43,49 @@
       "deleted": "Aniversário removido."
     }
   },
+  "tickets": {
+    "title": "Tickets",
+    "searchPlaceholder": "Buscar tickets, canais ou usuarios",
+    "loading": "Carregando tickets...",
+    "loadingMessages": "Carregando mensagens...",
+    "empty": "Nenhum ticket encontrado.",
+    "noSelection": "Nenhum ticket selecionado.",
+    "listLabel": "Lista de tickets",
+    "messagesLabel": "Mensagens do ticket",
+    "channel": "Canal {{id}}",
+    "openWarning": "Este ticket ainda esta aberto. O historico de mensagens e uma captura e nao atualiza em tempo real.",
+    "fields": {
+      "ticket": "Ticket",
+      "initiator": "Aberto por",
+      "status": "Status",
+      "updatedAt": "Atualizado"
+    },
+    "filters": {
+      "status": "Status",
+      "all": "Todos os tickets",
+      "open": "Abertos",
+      "closed": "Fechados"
+    },
+    "status": {
+      "open": "Aberto",
+      "closed": "Fechado"
+    },
+    "actions": {
+      "readMessages": "Ler mensagens",
+      "loadMore": "Carregar mais tickets",
+      "loadMoreMessages": "Carregar mais mensagens"
+    }
+  },
+  "messages": {
+    "logLabel": "Historico de mensagens",
+    "empty": "Nenhuma mensagem encontrada.",
+    "edited": "editada",
+    "deleted": "Mensagem apagada",
+    "noTextContent": "Sem texto",
+    "replyReference": "Resposta para #{{id}}",
+    "sticker": "Sticker {{id}}",
+    "deletedBy": "Apagada por {{name}}"
+  },
   "common": {
     "actions": "Ações",
     "cancel": "Cancelar",

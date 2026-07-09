@@ -43,6 +43,49 @@
       "deleted": "Birthday removed."
     }
   },
+  "tickets": {
+    "title": "Tickets",
+    "searchPlaceholder": "Search tickets, channels, or users",
+    "loading": "Loading tickets...",
+    "loadingMessages": "Loading messages...",
+    "empty": "No tickets found.",
+    "noSelection": "No ticket selected.",
+    "listLabel": "Ticket list",
+    "messagesLabel": "Ticket messages",
+    "channel": "Channel {{id}}",
+    "openWarning": "This ticket is still open. Message history is a snapshot and will not update in real time.",
+    "fields": {
+      "ticket": "Ticket",
+      "initiator": "Opened by",
+      "status": "Status",
+      "updatedAt": "Updated"
+    },
+    "filters": {
+      "status": "Status",
+      "all": "All tickets",
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "status": {
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "actions": {
+      "readMessages": "Read messages",
+      "loadMore": "Load more tickets",
+      "loadMoreMessages": "Load more messages"
+    }
+  },
+  "messages": {
+    "logLabel": "Message log",
+    "empty": "No messages found.",
+    "edited": "edited",
+    "deleted": "Message deleted",
+    "noTextContent": "No text content",
+    "replyReference": "Reply to #{{id}}",
+    "sticker": "Sticker {{id}}",
+    "deletedBy": "Deleted by {{name}}"
+  },
   "common": {
     "actions": "Actions",
     "cancel": "Cancel",

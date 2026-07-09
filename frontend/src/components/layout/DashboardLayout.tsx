@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { FaBirthdayCake } from "react-icons/fa"
-import { FiLogOut, FiMenu } from "react-icons/fi"
+import { FiLogOut, FiMenu, FiMessageSquare } from "react-icons/fi"
 import { Group, Panel, Separator } from "react-resizable-panels"
 import { useSession } from "@/contexts/SessionContext"
 import styles from "./DashboardLayout.module.css"
@@ -26,19 +26,19 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
         >
           <aside className={styles.sidebar} aria-label={t("navigation.modules")}>
             <div className={styles.brand}>
-              {user?.guildIconUrl ? (
+              {user?.guild_icon_url ? (
                 <img
-                  src={user.guildIconUrl}
-                  alt={user.guildName}
+                  src={user.guild_icon_url}
+                  alt={user.guild_name}
                   className={styles.brandIcon}
                 />
               ) : (
                 <div className={styles.brandMark}>
-                  {user?.guildName?.[0]?.toUpperCase() ?? "O"}
+                  {user?.guild_name?.[0]?.toUpperCase() ?? "O"}
                 </div>
               )}
               <div className={styles.brandText}>
-                <strong>{user?.guildName ?? "Oficina"}</strong>
+                <strong>{user?.guild_name ?? "Oficina"}</strong>
                 <span>{t("app.dashboard")}</span>
               </div>
             </div>
@@ -53,14 +53,22 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
                 <FaBirthdayCake aria-hidden="true" />
                 <span>{t("birthdays.title")}</span>
               </Link>
+              <Link
+                to="/dashboard/tickets"
+                className={styles.moduleLink}
+                activeProps={{ className: `${styles.moduleLink} ${styles.active}` }}
+              >
+                <FiMessageSquare aria-hidden="true" />
+                <span>{t("tickets.title")}</span>
+              </Link>
             </nav>
 
             <div className={styles.profile}>
               <div className={styles.avatar} aria-hidden="true">
-                {user?.globalName?.[0] ?? user?.username?.[0] ?? "O"}
+                {user?.global_name?.[0] ?? user?.username?.[0] ?? "O"}
               </div>
               <div className={styles.profileText}>
-                <strong>{user?.globalName ?? user?.username}</strong>
+                <strong>{user?.global_name ?? user?.username}</strong>
                 <span>{t("auth.manageServer")}</span>
               </div>
               <button
@@ -84,7 +92,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
                 <FiMenu aria-hidden="true" />
                 <h1>{title}</h1>
               </div>
-              <span className={styles.guild}>{user?.guildName ?? "Oficina"}</span>
+              <span className={styles.guild}>{user?.guild_name ?? "Oficina"}</span>
             </header>
             <main className={styles.content}>{children}</main>
           </div>
