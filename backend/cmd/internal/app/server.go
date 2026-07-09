@@ -195,13 +195,14 @@ func registerRoutes(
 
 	handler.RegisterDashboardRoutes(e, handler.DashboardRoutesConfig{
 		AuthConfig: handler.DashboardAuthConfig{
-			PublicAPIBaseURL: cfg.Dashboard.PublicAPIBaseURL,
-			FrontendBaseURL:  cfg.Dashboard.FrontendBaseURL,
-			AuthorizeURL:     cfg.Dashboard.DiscordAuthorizeURL,
-			ClientID:         cfg.Dashboard.DiscordClientID,
-			GuildID:          cfg.Dashboard.DiscordGuildID,
-			CookieSecure:     cfg.Dashboard.CookieSecure(),
-			MissingConfig:    missingConfig,
+			PublicAPIBaseURL:   cfg.Dashboard.PublicAPIBaseURL,
+			FrontendBaseURL:    cfg.Dashboard.FrontendBaseURL,
+			CORSAllowedOrigins: cfg.Dashboard.AllowedCORSOrigins(),
+			AuthorizeURL:       cfg.Dashboard.DiscordAuthorizeURL,
+			ClientID:           cfg.Dashboard.DiscordClientID,
+			GuildID:            cfg.Dashboard.DiscordGuildID,
+			CookieSecure:       cfg.Dashboard.CookieSecure(),
+			MissingConfig:      missingConfig,
 		},
 		OAuthClient: oauthClient,
 		Sessions:    handler.NewSessionStore(sessionRepository),

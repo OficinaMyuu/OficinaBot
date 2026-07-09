@@ -39,13 +39,14 @@ type DiscordOAuthClient interface {
 }
 
 type DashboardAuthConfig struct {
-	PublicAPIBaseURL string
-	FrontendBaseURL  string
-	AuthorizeURL     string
-	ClientID         string
-	GuildID          string
-	CookieSecure     bool
-	MissingConfig    []string
+	PublicAPIBaseURL   string
+	FrontendBaseURL    string
+	CORSAllowedOrigins []string
+	AuthorizeURL       string
+	ClientID           string
+	GuildID            string
+	CookieSecure       bool
+	MissingConfig      []string
 }
 
 type DashboardUser = entity.DashboardUser
@@ -334,11 +335,7 @@ func (h *DashboardAuthHandler) safeReturnTo(raw string) string {
 	if err != nil || !value.IsAbs() {
 		return h.defaultReturnTo()
 	}
-	frontend, err := url.Parse(h.cfg.FrontendBaseURL)
-	if err != nil || frontend.Scheme == "" || frontend.Host == "" {
-		return h.defaultReturnTo()
-	}
-	if value.Scheme != frontend.Scheme || value.Host != frontend.Host {
+	if !h.isAllowedReturnOrigin(value) {
 		return h.defaultReturnTo()
 	}
 	if value.Path != defaultDashboardPath && !strings.HasPrefix(value.Path, defaultDashboardPath+"/") {
@@ -346,6 +343,24 @@ func (h *DashboardAuthHandler) safeReturnTo(raw string) string {
 	}
 	value.Fragment = ""
 	return value.String()
+}
+
+func (h *DashboardAuthHandler) isAllowedReturnOrigin(value *url.URL) bool {
+	if value.Scheme == "" || value.Host == "" {
+		return false
+	}
+	origin := strings.ToLower(value.Scheme) + "://" + strings.ToLower(value.Host)
+	if frontend, err := url.Parse(h.cfg.FrontendBaseURL); err == nil && frontend.Scheme != "" && frontend.Host != "" {
+		if origin == strings.ToLower(frontend.Scheme)+"://"+strings.ToLower(frontend.Host) {
+			return true
+		}
+	}
+	for _, allowed := range h.cfg.CORSAllowedOrigins {
+		if origin == strings.ToLower(strings.TrimRight(allowed, "/")) {
+			return true
+		}
+	}
+	return false
 }
 
 func (h *DashboardAuthHandler) defaultReturnTo() string {

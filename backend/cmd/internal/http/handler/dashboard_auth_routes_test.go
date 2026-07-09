@@ -83,6 +83,49 @@ func TestDashboardLoginRedirectsToDiscordWithStateCookie(t *testing.T) {
 	}
 }
 
+func TestDashboardLoginAllowsCORSAllowedOriginsReturnTo(t *testing.T) {
+	cfg := testAuthConfig(nil)
+	cfg.CORSAllowedOrigins = []string{"https://dev.oficinamyuu.com.br", "http://localhost:5173"}
+
+	tests := []struct {
+		name         string
+		returnTo     string
+		wantCookieTo string
+	}{
+		{
+			name:         "allowed dev origin",
+			returnTo:     "https://dev.oficinamyuu.com.br/dashboard/birthdays",
+			wantCookieTo: "https://dev.oficinamyuu.com.br/dashboard/birthdays",
+		},
+		{
+			name:         "allowed localhost origin",
+			returnTo:     "http://localhost:5173/dashboard",
+			wantCookieTo: "http://localhost:5173/dashboard",
+		},
+		{
+			name:         "disallowed origin falls back to default",
+			returnTo:     "https://evil.com/dashboard",
+			wantCookieTo: "https://oficinamyuu.com.br/dashboard",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			e := echo.New()
+			req := httptest.NewRequest(http.MethodGet, "/auth/discord/login?return_to="+url.QueryEscape(tc.returnTo), nil)
+			rec := httptest.NewRecorder()
+			handler := NewDashboardAuthHandler(cfg, stubDiscordOAuthClient{}, NewSessionStore())
+
+			if err := handler.Login(e.NewContext(req, rec)); err != nil {
+				t.Fatalf("login returned error: %v", err)
+			}
+			if got := cookieValue(rec.Result().Cookies(), dashboardReturnToCookie); got != tc.wantCookieTo {
+				t.Fatalf("expected return cookie %q, got %q", tc.wantCookieTo, got)
+			}
+		})
+	}
+}
+
 func TestDashboardCallbackCreatesSessionForManageGuildMember(t *testing.T) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/auth/discord/callback?code=abc&state=state", nil)
