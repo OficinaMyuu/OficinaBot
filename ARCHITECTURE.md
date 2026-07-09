@@ -212,7 +212,7 @@ The backend intentionally exposes:
 - `/tickets` for authenticated, cursor-paginated support ticket reads over the existing `support_tickets` table.
 - `/tickets/:ticketID/messages` for authenticated, cursor-paginated folded ticket message history over `messages_versions`.
 
-Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, configured-origin CORS with credentials, and a basic in-memory rate limiter. Dashboard sessions use HttpOnly SameSite cookies scoped to the API host, in-memory session IDs, and an `X-CSRF-Token` header for mutating dashboard API requests. Dashboard JSON contracts use `snake_case` fields; Discord snowflakes are encoded as strings to avoid JavaScript integer precision loss.
+Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, configured-origin CORS with credentials, and a basic in-memory rate limiter. Dashboard sessions use HttpOnly SameSite cookies scoped to the API host, in-memory session IDs, and an `X-CSRF-Token` header for mutating dashboard API requests. Dashboard JSON contracts use `snake_case` fields; Discord snowflakes are encoded as strings to avoid JavaScript integer precision loss. Ticket user summaries include a computed Discord default `avatar_url` from the user snowflake; the backend does not fetch Discord users or guild members for ticket avatars.
 
 Production browser access uses `https://oficinamyuu.com.br/dashboard` from Cloudflare Pages. The React app calls `https://api.oficinamyuu.com.br` through `VITE_API_BASE_URL`; the backend does not serve dashboard HTML, JavaScript, CSS, or SVG assets.
 

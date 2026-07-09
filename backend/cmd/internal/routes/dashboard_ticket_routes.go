@@ -3,6 +3,7 @@ package routes
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -65,6 +66,7 @@ type ticketUserResponse struct {
 	Username    *string `json:"username"`
 	GlobalName  *string `json:"global_name"`
 	DisplayName string  `json:"display_name"`
+	AvatarURL   string  `json:"avatar_url"`
 }
 
 func NewTicketHandler(repository TicketRepository) *TicketHandler {
@@ -227,6 +229,7 @@ func toTicketUserResponse(user store.TicketUser) ticketUserResponse {
 		Username:    user.Username,
 		GlobalName:  user.GlobalName,
 		DisplayName: ticketDisplayName(user),
+		AvatarURL:   defaultAvatarURL(user.ID),
 	}
 }
 
@@ -246,4 +249,9 @@ func optionalInt64String(value *int64) *string {
 	}
 	formatted := strconv.FormatInt(*value, 10)
 	return &formatted
+}
+
+func defaultAvatarURL(userID int64) string {
+	index := (uint64(userID) >> 22) % 6
+	return fmt.Sprintf("https://cdn.discordapp.com/embed/avatars/%d.png", index)
 }

@@ -102,7 +102,7 @@ func TestTicketHandlerListUsesSnakeCaseAndFilters(t *testing.T) {
 		t.Fatalf("unexpected cursor: %+v", repo.listFilter.Cursor)
 	}
 	body := rec.Body.String()
-	for _, expected := range []string{`"channel_id":"456"`, `"close_reason":"Solved"`, `"closed_by":`, `"merged_into":9`, `"next_cursor":"10:7"`} {
+	for _, expected := range []string{`"channel_id":"456"`, `"avatar_url":"https://cdn.discordapp.com/embed/avatars/`, `"close_reason":"Solved"`, `"closed_by":`, `"merged_into":9`, `"next_cursor":"10:7"`} {
 		if !strings.Contains(body, expected) {
 			t.Fatalf("expected %s in response, got %s", expected, body)
 		}
@@ -130,7 +130,7 @@ func TestTicketHandlerMessagesReturnsSnakeCaseMessageFields(t *testing.T) {
 		t.Fatalf("expected limit filter, got %+v", repo.messageFilter)
 	}
 	body := rec.Body.String()
-	for _, expected := range []string{`"message_id":"101"`, `"message_reference_id":"100"`, `"sticker_id":"200"`, `"is_edited":true`, `"is_deleted":false`} {
+	for _, expected := range []string{`"message_id":"101"`, `"avatar_url":"https://cdn.discordapp.com/embed/avatars/`, `"message_reference_id":"100"`, `"sticker_id":"200"`, `"is_edited":true`, `"is_deleted":false`} {
 		if !strings.Contains(body, expected) {
 			t.Fatalf("expected %s in response, got %s", expected, body)
 		}
