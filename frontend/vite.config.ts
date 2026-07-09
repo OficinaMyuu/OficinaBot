@@ -22,6 +22,8 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    host: true,
+    allowedHosts: true,
   },
   build: {
     outDir: 'dist',
@@ -31,5 +33,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
+    env: {
+      VITE_API_BASE_URL: 'http://localhost:8080',
+    },
   },
 })
