@@ -62,7 +62,8 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - App type: authenticated operational dashboard served by Cloudflare Pages at `/dashboard`.
 - Discord OAuth uses the existing application with `identify guilds` scopes. The callback is handled by the API at `/auth/discord/callback`.
 - Dashboard access is restricted to the configured `DISCORD_GUILD_ID` when Discord reports guild owner, `Administrator`, or `Manage Server`.
-- The first module is Birthdays, backed by the existing `birthdays` table. Add schema changes through `database/migrations/`; the dashboard must not create tables at startup.
+- Dashboard modules include Birthdays, backed by the existing `birthdays` table, and Tickets, backed by existing `support_tickets`, `messages_versions`, and `users` rows. Add schema changes through `database/migrations/`; the dashboard must not create tables at startup.
+- Dashboard API JSON fields use `snake_case`, including existing auth/session and birthday payloads. Discord snowflake IDs are serialized as strings.
 - Mutating dashboard API requests use the session CSRF token returned by `/auth/me` in `X-CSRF-Token`.
 
 ## Bot Directory Index
@@ -151,7 +152,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Backend Terraform currently exposes the OCI load balancer as public IPv4 HTTP-only. SSH to both application VMs is allowed from `ssh_source_cidr` for direct admin and Ansible access. Add HTTPS later through Cloudflare DNS/proxying, Cloudflare Origin CA material on the OCI load balancer, and a 443 listener.
 - Backend Terraform allows the bots NSG to reach the API NSG on `api_port` so bot commands can call the backend private address configured in `backend.api.base-url`.
 - Persistence uses the provisioned MySQL DB system. Terraform provisions infrastructure only; schema changes are applied by the separate `database/` migrator. Use a DDL-capable migration user for the migrator and restricted application users for runtime services.
-- Backend app APIs include Playwright-backed `POST /levels/cards`, `POST /levels/roles`, compatibility aliases under `/api/levels/*`, static template assets, unauthenticated `GET /health`, OAuth under `/auth/*`, and authenticated birthday CRUD under `/birthdays`. The backend does not serve frontend routes or assets.
+- Backend app APIs include Playwright-backed `POST /levels/cards`, `POST /levels/roles`, compatibility aliases under `/api/levels/*`, static template assets, unauthenticated `GET /health`, OAuth under `/auth/*`, authenticated birthday CRUD under `/birthdays`, and authenticated ticket reads under `/tickets` and `/tickets/{ticket}/messages`. The backend does not serve frontend routes or assets.
 - Backend liveness is exposed by unauthenticated `GET /health`; the Docker image and compose file use this endpoint for container health checks. Build the image from the repository root with `docker build -f backend/Dockerfile -t oficina-backend .`.
 - Backend Compose mounts `./static` next to the generated compose file into `/app/static:ro`. The Ansible runtime role copies `backend/static/` through `oficina_compose_assets`; keep this in sync when backend templates or assets move.
 - Backend Compose must run the API service with `ipc: host` because Chromium/Playwright can otherwise crash during startup inside Docker's default small shared-memory namespace.

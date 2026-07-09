@@ -197,7 +197,7 @@ The backend container runs as non-root `appuser` with a real writable home direc
 
 Backend Compose mounts a host-side `static/` directory next to the compose file into `/app/static:ro`, because the Playwright templates and image assets are runtime inputs. Ansible keeps that directory populated from `backend/static/` through the runtime role's `oficina_compose_assets` list before deploying the stack. Frontend assets are not copied into the backend image. The API service runs with `ipc: host` so Chromium has the shared-memory behavior expected by Playwright and does not crash during browser startup.
 
-HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, and dashboard birthday routes use an injected repository, which keeps route behavior testable without launching Playwright or requiring MySQL in unit tests.
+HTTP handlers receive dependencies through small interfaces instead of calling concrete service functions directly. The level card routes use an injected card renderer, and dashboard birthday/ticket routes use injected repositories, which keeps route behavior testable without launching Playwright or requiring MySQL in unit tests.
 
 ## Backend API Surface
 The backend intentionally exposes:
@@ -209,15 +209,17 @@ The backend intentionally exposes:
 - `/auth/discord/login` and `/auth/discord/callback` for Discord OAuth2 Authorization Code login.
 - `/auth/me` and `/auth/logout` for cookie-backed dashboard sessions.
 - `/birthdays` for authenticated birthday CRUD over the existing `birthdays` table.
+- `/tickets` for authenticated, cursor-paginated support ticket reads over the existing `support_tickets` table.
+- `/tickets/:ticketID/messages` for authenticated, cursor-paginated folded ticket message history over `messages_versions`.
 
-Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, configured-origin CORS with credentials, and a basic in-memory rate limiter. Dashboard sessions use HttpOnly SameSite cookies scoped to the API host, in-memory session IDs, and an `X-CSRF-Token` header for mutating dashboard API requests.
+Shared HTTP middleware adds request IDs, recovery, JSON request logs, body limits, configured-origin CORS with credentials, and a basic in-memory rate limiter. Dashboard sessions use HttpOnly SameSite cookies scoped to the API host, in-memory session IDs, and an `X-CSRF-Token` header for mutating dashboard API requests. Dashboard JSON contracts use `snake_case` fields; Discord snowflakes are encoded as strings to avoid JavaScript integer precision loss.
 
 Production browser access uses `https://oficinamyuu.com.br/dashboard` from Cloudflare Pages. The React app calls `https://api.oficinamyuu.com.br` through `VITE_API_BASE_URL`; the backend does not serve dashboard HTML, JavaScript, CSS, or SVG assets.
 
 Unauthenticated `GET /health` returns a small `{"status":"ok"}` response for backend liveness checks. The backend Docker image and compose definition both probe this route with `curl`.
 
 ## Backend Persistence
-When `DATABASE_*`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and `DISCORD_GUILD_ID` are present, the backend opens MySQL at startup and verifies connectivity with a bounded ping. If dashboard config is incomplete, existing health/card routes still start while dashboard auth/API calls return unavailable errors. The first dashboard module reuses the product `birthdays` table and does not add backend-owned DDL.
+When `DATABASE_*`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and `DISCORD_GUILD_ID` are present, the backend opens MySQL at startup and verifies connectivity with a bounded ping. If dashboard config is incomplete, existing health/card routes still start while dashboard auth/API calls return unavailable errors. Dashboard modules reuse product tables such as `birthdays`, `support_tickets`, `messages_versions`, and `users`; the backend does not add backend-owned DDL or run migrations at startup.
 
 The backend includes only the Discord OAuth metadata needed to authorize users against the configured Oficina guild. Access is granted when Discord reports guild owner, `Administrator`, or `Manage Server` permissions. The backend still does not include service-token sync APIs, config synchronization, broad admin tables, or video downloads.
 

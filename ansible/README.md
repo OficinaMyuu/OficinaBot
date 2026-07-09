@@ -67,7 +67,7 @@ Edit private group vars:
 - Backend dashboard runtime uses `PUBLIC_API_BASE_URL`, `FRONTEND_BASE_URL`, optional `CORS_ALLOWED_ORIGINS`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_GUILD_ID`, and `DATABASE_*` in `backend_env`. For production, set `PUBLIC_API_BASE_URL` to `https://api.oficinamyuu.com.br`, `FRONTEND_BASE_URL` to `https://oficinamyuu.com.br`, and register `${PUBLIC_API_BASE_URL}/auth/discord/callback` in Discord.
 - Bot and registrar runtime config use the shared MySQL-backed `config` table. The bots inventory passes MySQL `DATABASE_*` values to `bot` and `registrar` using a separate `oficina_bots` application user; create that schema/user manually before deploying the services.
 - Add more bot containers as separate `oficina_services` entries only when they need separate processes, state directories, or images. Reuse the `bots_database_*` vars for any future bot container that should share the bots database user.
-- CORS allows configured frontend origins and credentials. The backend exposes level card generation endpoints, `GET /health`, `/auth/*`, and `/birthdays`; it does not serve the dashboard UI.
+- CORS allows configured frontend origins and credentials. The backend exposes level card generation endpoints, `GET /health`, `/auth/*`, `/birthdays`, and read-only `/tickets` dashboard endpoints; it does not serve the dashboard UI.
 
 For production browser access, keep `oficinamyuu.com.br` and `www.oficinamyuu.com.br` on Cloudflare Pages. Pages should build the frontend and serve `/dashboard` directly; do not proxy dashboard UI paths to the backend.
 

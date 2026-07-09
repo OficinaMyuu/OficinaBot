@@ -39,4 +39,4 @@ Environment: VITE_API_BASE_URL=https://api.oficinamyuu.com.br
 
 If the Pages project root is the repository root instead, use `cd frontend && npm ci && npm run build` and `frontend/dist`.
 
-The `public/_redirects` file keeps TanStack Router routes such as `/dashboard` and `/dashboard/birthdays` working on direct browser refresh.
+The `public/_redirects` file keeps TanStack Router routes such as `/dashboard`, `/dashboard/birthdays`, and `/dashboard/tickets` working on direct browser refresh.

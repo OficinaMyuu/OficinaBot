@@ -1,8 +1,9 @@
 # Oficina Database
 
 This module owns the current MySQL migration stream for the main Discord bot.
-Backend/dashboard tables are intentionally not part of this stream until the
-backend persistence model is redesigned.
+Dashboard features reuse bot-owned product tables, including `birthdays`,
+`support_tickets`, `messages_versions`, and `users`; the backend still must not
+run migrations or create tables at startup.
 
 Run migrations with a database user that is allowed to execute DDL:
 
