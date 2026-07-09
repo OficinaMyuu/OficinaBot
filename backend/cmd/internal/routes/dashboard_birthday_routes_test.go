@@ -72,14 +72,14 @@ func TestBirthdayHandlerListAppliesMonthFilter(t *testing.T) {
 	if repo.listFilter.Month != 5 || repo.listFilter.Search != "myuu" {
 		t.Fatalf("unexpected filter: %+v", repo.listFilter)
 	}
-	if !strings.Contains(rec.Body.String(), `"userId":"42"`) {
+	if !strings.Contains(rec.Body.String(), `"user_id":"42"`) {
 		t.Fatalf("expected user id response, got %s", rec.Body.String())
 	}
 }
 
 func TestBirthdayHandlerRejectsInvalidCreatePayload(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/birthdays", strings.NewReader(`{"userId":"abc"}`))
+	req := httptest.NewRequest(http.MethodPost, "/birthdays", strings.NewReader(`{"user_id":"abc"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 

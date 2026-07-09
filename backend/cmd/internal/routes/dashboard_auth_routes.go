@@ -47,10 +47,10 @@ type DashboardAuthConfig struct {
 type DashboardUser struct {
 	ID           string  `json:"id"`
 	Username     string  `json:"username"`
-	GlobalName   *string `json:"globalName"`
-	AvatarURL    *string `json:"avatarUrl"`
-	GuildName    string  `json:"guildName"`
-	GuildIconURL *string `json:"guildIconUrl"`
+	GlobalName   *string `json:"global_name"`
+	AvatarURL    *string `json:"avatar_url"`
+	GuildName    string  `json:"guild_name"`
+	GuildIconURL *string `json:"guild_icon_url"`
 	Permissions  string  `json:"permissions"`
 }
 
@@ -229,8 +229,8 @@ func (h *DashboardAuthHandler) Me(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]any{
-		"user":      session.User,
-		"csrfToken": session.CSRFToken,
+		"user":       session.User,
+		"csrf_token": session.CSRFToken,
 	})
 }
 

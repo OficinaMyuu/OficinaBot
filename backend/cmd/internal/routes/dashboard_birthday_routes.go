@@ -23,19 +23,19 @@ type BirthdayHandler struct {
 }
 
 type birthdayRequest struct {
-	UserID    string `json:"userId"`
+	UserID    string `json:"user_id"`
 	Name      string `json:"name"`
 	Birthday  string `json:"birthday"`
-	ZoneHours int    `json:"zoneHours"`
+	ZoneHours int    `json:"zone_hours"`
 }
 
 type birthdayResponse struct {
-	UserID    string `json:"userId"`
+	UserID    string `json:"user_id"`
 	Name      string `json:"name"`
 	Birthday  string `json:"birthday"`
-	ZoneHours int    `json:"zoneHours"`
-	CreatedAt int64  `json:"createdAt"`
-	UpdatedAt int64  `json:"updatedAt"`
+	ZoneHours int    `json:"zone_hours"`
+	CreatedAt int64  `json:"created_at"`
+	UpdatedAt int64  `json:"updated_at"`
 }
 
 func NewBirthdayHandler(repository BirthdayRepository) *BirthdayHandler {

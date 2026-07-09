@@ -186,6 +186,46 @@ func TestDashboardSessionMiddlewareRequiresCSRFForMutations(t *testing.T) {
 	}
 }
 
+func TestDashboardMeReturnsSnakeCaseSessionFields(t *testing.T) {
+	e := echo.New()
+	sessions := NewSessionStore()
+	globalName := "Oficina Myuu"
+	avatar := "https://cdn.example/avatar.png"
+	guildIcon := "https://cdn.example/icon.png"
+	session, err := sessions.Create(DashboardUser{
+		ID:           "42",
+		Username:     "myuu",
+		GlobalName:   &globalName,
+		AvatarURL:    &avatar,
+		GuildName:    "Oficina",
+		GuildIconURL: &guildIcon,
+		Permissions:  "32",
+	})
+	if err != nil {
+		t.Fatalf("create session: %v", err)
+	}
+	handler := NewDashboardAuthHandler(testAuthConfig(nil), stubDiscordOAuthClient{}, sessions)
+	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	req.AddCookie(&http.Cookie{Name: dashboardSessionCookie, Value: session.ID})
+	rec := httptest.NewRecorder()
+
+	if err := handler.Me(e.NewContext(req, rec)); err != nil {
+		t.Fatalf("me returned error: %v", err)
+	}
+
+	body := rec.Body.String()
+	for _, expected := range []string{`"csrf_token":`, `"global_name":`, `"avatar_url":`, `"guild_name":`, `"guild_icon_url":`} {
+		if !strings.Contains(body, expected) {
+			t.Fatalf("expected %s in response, got %s", expected, body)
+		}
+	}
+	for _, unexpected := range []string{`"csrfToken":`, `"globalName":`, `"avatarUrl":`, `"guildName":`, `"guildIconUrl":`} {
+		if strings.Contains(body, unexpected) {
+			t.Fatalf("did not expect %s in response, got %s", unexpected, body)
+		}
+	}
+}
+
 func testAuthConfig(missing []string) DashboardAuthConfig {
 	return DashboardAuthConfig{
 		PublicAPIBaseURL: "http://localhost:8080",
