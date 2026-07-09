@@ -19,18 +19,19 @@ public class AppUser extends OficinaRecord<AppUser> {
         super(USERS);
     }
 
-    public AppUser(long id, String name, String globalName, long createdAt, long updatedAt) {
+    public AppUser(long id, String name, String globalName, String avatarHash, long createdAt, long updatedAt) {
         this();
         set(USERS.ID, id);
         set(USERS.NAME, name);
         set(USERS.GLOBAL_NAME, globalName);
+        set(USERS.AVATAR_HASH, avatarHash);
         set(USERS.CREATED_AT, createdAt);
         set(USERS.UPDATED_AT, updatedAt);
     }
 
     public static AppUser fromUser(User user) {
         long now = Bot.unixNow();
-        return new AppUser(user.getIdLong(), user.getName(), user.getGlobalName(), now, now);
+        return new AppUser(user.getIdLong(), user.getName(), user.getGlobalName(), user.getAvatarId(), now, now);
     }
 
     public long getId() {
@@ -43,6 +44,10 @@ public class AppUser extends OficinaRecord<AppUser> {
 
     public String getGlobalName() {
         return get(USERS.GLOBAL_NAME);
+    }
+
+    public String getAvatarHash() {
+        return get(USERS.AVATAR_HASH);
     }
 
     public String getDisplayName() {
@@ -70,6 +75,11 @@ public class AppUser extends OficinaRecord<AppUser> {
 
     public AppUser setGlobalName(String globalName) {
         set(USERS.GLOBAL_NAME, globalName);
+        return this;
+    }
+
+    public AppUser setAvatarHash(String avatarHash) {
+        set(USERS.AVATAR_HASH, avatarHash);
         return this;
     }
 

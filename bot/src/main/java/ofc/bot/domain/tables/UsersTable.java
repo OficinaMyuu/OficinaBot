@@ -15,6 +15,7 @@ public class UsersTable extends InitializableTable<AppUser> {
     public final Field<Long> ID            = newField("id",          SQLDataType.BIGINT.notNull());
     public final Field<String> NAME        = newField("name",        SQLDataType.VARCHAR(255).notNull());
     public final Field<String> GLOBAL_NAME = newField("global_name", SQLDataType.VARCHAR(255));
+    public final Field<String> AVATAR_HASH = newField("avatar_hash", SQLDataType.VARCHAR(128));
     public final Field<Long> CREATED_AT    = newField("created_at",  SQLDataType.BIGINT.notNull());
     public final Field<Long> UPDATED_AT    = newField("updated_at",  SQLDataType.BIGINT.notNull());
 

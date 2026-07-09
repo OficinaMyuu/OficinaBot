@@ -74,6 +74,7 @@ import ofc.bot.listeners.discord.logs.messages.*;
 import ofc.bot.listeners.discord.logs.moderation.LogTimeout;
 import ofc.bot.listeners.discord.logs.moderation.automod.AutoModLogger;
 import ofc.bot.listeners.discord.logs.names.MemberNickUpdateLogger;
+import ofc.bot.listeners.discord.logs.names.UserAvatarUpdateLogger;
 import ofc.bot.listeners.discord.logs.names.UserGlobalNameUpdateLogger;
 import ofc.bot.listeners.discord.logs.names.UserNameUpdateLogger;
 import ofc.bot.listeners.discord.moderation.AutoModerator;
@@ -303,6 +304,7 @@ public final class EntityInitializerManager {
                 new StudyRoleHandler(),
                 new TicketMemberManagementHandler(ticketRepo),
                 new UnbanTempBanCleaner(tmpBanRepo),
+                new UserAvatarUpdateLogger(userRepo),
                 new UserGlobalNameUpdateLogger(namesRepo, userRepo),
                 new UserNameUpdateLogger(namesRepo, userRepo),
                 new UsersXPHandler(),

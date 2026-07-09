@@ -22,6 +22,7 @@ public final class MapperFactory {
                 rec.get("req_id", long.class),
                 rec.get("req_name", String.class),
                 rec.get("req_global_name", String.class),
+                rec.get("req_avatar_hash", String.class),
                 rec.get("req_created_at", long.class),
                 rec.get("req_updated_at", long.class)
         );
@@ -29,6 +30,7 @@ public final class MapperFactory {
                 rec.get("tar_id", long.class),
                 rec.get("tar_name", String.class),
                 rec.get("tar_global_name", String.class),
+                rec.get("tar_avatar_hash", String.class),
                 rec.get("tar_created_at", long.class),
                 rec.get("tar_updated_at", long.class)
         );
