@@ -58,6 +58,11 @@
       "ticket": "Ticket",
       "initiator": "Aberto por",
       "status": "Status",
+      "channel": "Canal",
+      "createdAt": "Criado",
+      "closedBy": "Fechado por",
+      "closeReason": "Motivo do fechamento",
+      "mergedInto": "Mesclado em",
       "updatedAt": "Atualizado"
     },
     "filters": {

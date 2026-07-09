@@ -58,6 +58,11 @@
       "ticket": "Ticket",
       "initiator": "Opened by",
       "status": "Status",
+      "channel": "Channel",
+      "createdAt": "Created",
+      "closedBy": "Closed by",
+      "closeReason": "Close reason",
+      "mergedInto": "Merged into",
       "updatedAt": "Updated"
     },
     "filters": {
