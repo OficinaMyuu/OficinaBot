@@ -5,7 +5,8 @@ Dashboard features reuse bot-owned product tables, including `birthdays`,
 `support_tickets`, `messages_versions`, `users`, and `store_item_settings`; the
 backend still must not run migrations or create tables at startup. The
 `store_item_settings` rows are migration-seeded code-owned action prices, not a
-user-facing store catalog.
+user-facing store catalog. They cover group actions, the shared color-role
+price, counting-punishment release, and marriage acceptance.
 
 Run migrations with a database user that is allowed to execute DDL:
 
