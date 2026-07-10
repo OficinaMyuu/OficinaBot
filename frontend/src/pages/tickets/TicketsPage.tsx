@@ -1,5 +1,4 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react"
-import type { ReactNode } from "react"
 import type {
   Ticket,
   TicketListQuery,
@@ -17,14 +16,15 @@ import {
 } from "react-icons/fi"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
-import { MessageRenderer } from "@/components/messages/MessageRenderer"
 import { Button } from "@/components/ui/Button"
 import { ticketService } from "@/services/ticketService"
 import { useTicketsStore } from "@/stores/useTicketsStore"
 import { fallbackUser, useUsersStore } from "@/stores/useUsersStore"
 import { formatLocalTimestamp } from "@/utils/time"
-
-import clsx from "clsx"
+import { toMessage } from "@/utils/errorUtils"
+import { Meta } from "./Meta"
+import { TicketUser } from "./TicketUser"
+import { TicketMessages } from "./TicketMessages"
 
 import styles from "./TicketsPage.module.css"
 
@@ -197,7 +197,7 @@ export function TicketsPage() {
                         <dl className={styles.metaGrid}>
                           <Meta
                             label={t("tickets.fields.initiator")}
-                            value={<User user={initiator} />}
+                            value={<TicketUser user={initiator} />}
                           />
                           <Meta
                             label={t("tickets.fields.channel")}
@@ -215,7 +215,7 @@ export function TicketsPage() {
                           {closedBy ? (
                             <Meta
                               label={t("tickets.fields.closedBy")}
-                              value={<User user={closedBy} />}
+                              value={<TicketUser user={closedBy} />}
                             />
                           ) : null}
                           {ticket.close_reason ? (
@@ -279,121 +279,6 @@ export function TicketsPage() {
   )
 }
 
-type MetaProps = {
-  label: string
-  value: ReactNode
-  mono?: boolean
-}
-
-function Meta({ label, value, mono = false }: MetaProps) {
-  return (
-    <div className={styles.metaRow}>
-      <dt className={styles.metaLabel}>{label}</dt>
-      <dd className={clsx(styles.metaData, mono && styles.mono)}>{value}</dd>
-    </div>
-  )
-}
-
-function User({ user }: { user: UserSummary }) {
-  return (
-    <span className={styles.userValue}>
-      <img src={user.avatar_url} alt="" />
-      {user.display_name}
-    </span>
-  )
-}
-
-type TicketMessagesProps = {
-  expanded: boolean
-  loading: boolean
-  error: string | null
-  hasMore: boolean
-  loadingMore: boolean
-  messages: TicketMessageView[]
-  onLoad: () => void
-  onLoadMore: () => void
-  onRetry: () => void
-}
-
-function TicketMessages({
-  expanded,
-  loading,
-  error,
-  hasMore,
-  loadingMore,
-  messages,
-  onLoad,
-  onLoadMore,
-  onRetry
-}: TicketMessagesProps) {
-  const { t } = useTranslation()
-
-  if (!expanded) {
-    return (
-      <div className={styles.messageGate}>
-        <div className={styles.gatePreview} aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </div>
-        <Button type="button" onClick={onLoad}>
-          {t("tickets.actions.readMessages")}
-        </Button>
-      </div>
-    )
-  }
-
-  if (loading) {
-    return <MessageSkeleton label={t("tickets.loadingMessages")} />
-  }
-
-  if (error) {
-    return (
-      <div className={styles.messageState}>
-        <p>{error}</p>
-        <Button type="button" variant="secondary" onClick={onRetry}>
-          <FiRefreshCw aria-hidden="true" />
-          {t("common.refresh")}
-        </Button>
-      </div>
-    )
-  }
-
-  return (
-    <>
-      <MessageRenderer messages={messages} />
-      {hasMore ? (
-        <Button
-          className={styles.loadMoreMessages}
-          type="button"
-          variant="secondary"
-          disabled={loadingMore}
-          onClick={onLoadMore}
-        >
-          <FiChevronDown aria-hidden="true" />
-          {t("tickets.actions.loadMoreMessages")}
-        </Button>
-      ) : null}
-    </>
-  )
-}
-
-function MessageSkeleton({ label }: { label: string }) {
-  return (
-    <div className={styles.skeleton} role="status" aria-label={label}>
-      {[0, 1, 2].map((item) => (
-        <div className={styles.skeletonRow} key={item}>
-          <span />
-          <div>
-            <strong />
-            <p />
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 function toMessageView(
   message: TicketMessage,
   usersById: Record<string, UserSummary>
@@ -424,14 +309,4 @@ function messageUserIds(messages: TicketMessage[]): string[] {
 
 function formatTicketNumber(id: number): string {
   return `#${String(id).padStart(2, "0")}`
-}
-
-function toMessage(error: unknown): string {
-  if (typeof error === "object" && error !== null && "message" in error) {
-    return String(error.message)
-  }
-  if (error instanceof Error) {
-    return error.message
-  }
-  return "Unexpected error"
 }

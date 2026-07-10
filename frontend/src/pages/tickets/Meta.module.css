@@ -1,0 +1,23 @@
+.metaRow {
+  min-width: 0;
+}
+
+.metaLabel {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.metaData {
+  color: var(--text-main);
+  font-size: 13px;
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font-family: var(--font-code, "JetBrains Mono", monospace);
+}

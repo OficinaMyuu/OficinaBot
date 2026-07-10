@@ -1,0 +1,60 @@
+.messageGate {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  min-height: 196px;
+  overflow: hidden;
+  position: relative;
+}
+
+.messageGate::before {
+  backdrop-filter: blur(6px);
+  background: rgba(19, 17, 24, 0.58);
+  content: "";
+  inset: 0;
+  position: absolute;
+  z-index: 1;
+}
+
+.gatePreview {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  inset: 18px;
+  opacity: 0.48;
+  position: absolute;
+}
+
+.gatePreview span {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.16),
+    rgba(255, 255, 255, 0.08)
+  );
+  border-radius: 8px;
+  height: 34px;
+}
+
+.messageGate button {
+  position: relative;
+  z-index: 2;
+}
+
+.messageState {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  min-height: 196px;
+  text-align: center;
+}
+
+.loadMoreMessages {
+  margin-top: 12px;
+  width: 100%;
+}
