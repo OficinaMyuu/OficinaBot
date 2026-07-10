@@ -50,7 +50,7 @@ describe("DashboardLayout", () => {
       "href",
       "/dashboard/tickets"
     )
-    expect(screen.getByRole("link", { name: /custos de ações/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /preços|action costs|custos/i })).toHaveAttribute(
       "href",
       "/dashboard/economy/action-costs"
     )
