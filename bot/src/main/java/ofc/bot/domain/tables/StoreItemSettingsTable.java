@@ -12,7 +12,7 @@ import org.jooq.impl.SQLDataType;
 import java.util.Arrays;
 
 /**
- * Defines the durable, code-owned pricing configuration for group actions.
+ * Defines the durable, code-owned pricing configuration for purchasable actions.
  */
 public class StoreItemSettingsTable extends InitializableTable<StoreItemSettings> {
     public static final StoreItemSettingsTable STORE_ITEM_SETTINGS = new StoreItemSettingsTable();

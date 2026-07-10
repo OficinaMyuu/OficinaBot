@@ -10,7 +10,7 @@ import org.jooq.DSLContext;
 import java.util.OptionalInt;
 
 /**
- * Reads the mutable prices for code-owned group actions.
+ * Reads the mutable prices for code-owned purchasable actions.
  */
 public class StoreItemSettingsRepository extends Repository<StoreItemSettings> {
     private static final StoreItemSettingsTable STORE_ITEM_SETTINGS =

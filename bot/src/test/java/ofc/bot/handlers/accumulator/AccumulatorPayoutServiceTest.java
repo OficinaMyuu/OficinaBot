@@ -154,7 +154,6 @@ class AccumulatorPayoutServiceTest {
     private ColorRoleItem colorItem(long roleId) {
         ColorRoleItem item = new ColorRoleItem();
         ColorRoleItemsTable table = ColorRoleItemsTable.COLOR_ROLE_ITEMS;
-        item.set(table.PRICE, 0);
         item.set(table.ROLE_ID, roleId);
         item.set(table.CREATED_AT, 100L);
         item.set(table.UPDATED_AT, 100L);

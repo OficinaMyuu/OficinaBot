@@ -13,10 +13,6 @@ public class ColorRoleItem extends OficinaRecord<ColorRoleItem> {
         return get(COLOR_ROLE_ITEMS.ID);
     }
 
-    public int getPrice() {
-        return get(COLOR_ROLE_ITEMS.PRICE);
-    }
-
     public long getRoleId() {
         return get(COLOR_ROLE_ITEMS.ROLE_ID);
     }

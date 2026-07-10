@@ -10,7 +10,10 @@ public enum StoreItemType {
     ADDITIONAL_BOT(     "Bot Adicional",        true),
     GROUP_SLOT(         "Vaga de Grupo",        true),
     GROUP_PERMISSION(   "Permissão de Grupo",   true),
-    PIN_MESSAGE(        "Fixar Mensagem",       true);
+    PIN_MESSAGE(        "Fixar Mensagem",       true),
+    COLOR_ROLE(         "Cargo de Cor",         false),
+    COUNTING_RELEASE(   "Liberar Contagem",     false),
+    MARRIAGE(           "Casamento",            false);
 
     private final String name;
     private final boolean isGroup; // For new items in the future
