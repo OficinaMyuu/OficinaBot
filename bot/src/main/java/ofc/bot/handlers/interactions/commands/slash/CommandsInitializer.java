@@ -93,6 +93,7 @@ public final class CommandsInitializer {
         var remRepo = Repositories.getReminderRepository();
         var xpRepo = Repositories.getUserXPRepository();
         var userRepo = Repositories.getUserRepository();
+        var storeItemSettingsRepo = Repositories.getStoreItemSettingsRepository();
         var giveawayService = GiveawayServices.create();
         var nickPolicy = new NicknameEmojiPolicy(emjRepo, emojiPermRepo);
         var nickDispatcher = new NicknameRequestDispatcher(nickReqRepo);
@@ -152,19 +153,19 @@ public final class CommandsInitializer {
         SlashCommand group = new EmptySlashCommand("group", "Tenha o controle de tudo sobre o seu grupo.")
                 .addGroups(
                         new SubcommandGroup("channel", "Gerencie os canais do seu grupo.")
-                                .addSubcommand(new CreateGroupChannelCommand(grpRepo)),
+                                .addSubcommand(new CreateGroupChannelCommand(grpRepo, storeItemSettingsRepo)),
 
                         new SubcommandGroup("member", "Gerencie os membros do seu grupo.")
-                                .addSubcommand(new AddGroupMemberCommand(grpRepo))
+                                .addSubcommand(new AddGroupMemberCommand(grpRepo, storeItemSettingsRepo))
                                 .addSubcommand(new RemoveGroupMemberCommand(grpRepo))
                 )
-                .addSubcommand(new CreateGroupCommand(grpRepo))
-                .addSubcommand(new GroupBotsCommand(grpBotRepo, grpRepo))
+                .addSubcommand(new CreateGroupCommand(grpRepo, storeItemSettingsRepo))
+                .addSubcommand(new GroupBotsCommand(grpBotRepo, grpRepo, storeItemSettingsRepo))
                 .addSubcommand(new GroupInfoCommand(grpRepo))
-                .addSubcommand(new GroupPermissionCommand(grpRepo, policyRepo))
-                .addSubcommand(new GroupPinsCommand(grpRepo))
+                .addSubcommand(new GroupPermissionCommand(grpRepo, policyRepo, storeItemSettingsRepo))
+                .addSubcommand(new GroupPinsCommand(grpRepo, storeItemSettingsRepo))
                 .addSubcommand(new LeaveGroupCommand(grpRepo))
-                .addSubcommand(new ModifyGroupCommand(grpRepo));
+                .addSubcommand(new ModifyGroupCommand(grpRepo, storeItemSettingsRepo));
 
         // Reminders
         SlashCommand remind = new EmptySlashCommand("remind", "Crie lembretes para organizar sua rotina.")

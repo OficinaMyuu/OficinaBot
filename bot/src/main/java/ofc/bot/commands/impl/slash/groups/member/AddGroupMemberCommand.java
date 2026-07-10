@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.domain.database.repository.OficinaGroupRepository;
+import ofc.bot.domain.database.repository.StoreItemSettingsRepository;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
@@ -23,9 +24,14 @@ import java.util.List;
 @DiscordCommand(name = "group member add")
 public class AddGroupMemberCommand extends SlashSubcommand {
     private final OficinaGroupRepository grpRepo;
+    private final StoreItemSettingsRepository storeItemSettingsRepo;
 
-    public AddGroupMemberCommand(OficinaGroupRepository grpRepo) {
+    public AddGroupMemberCommand(
+            OficinaGroupRepository grpRepo,
+            StoreItemSettingsRepository storeItemSettingsRepo
+    ) {
         this.grpRepo = grpRepo;
+        this.storeItemSettingsRepo = storeItemSettingsRepo;
     }
 
     @Override
@@ -58,7 +64,13 @@ public class AddGroupMemberCommand extends SlashSubcommand {
         boolean hasFreeAccess = group.hasFreeAccess();
         boolean hasFreeSlots = GroupHelper.hasFreeSlots(group);
         boolean targetHasFreeAccess = OficinaGroup.hasFreeAccess(newMember);
-        int price = hasFreeAccess || targetHasFreeAccess || hasFreeSlots ? 0 : StoreItemType.GROUP_SLOT.getPrice();
+        int price = 0;
+        if (!hasFreeAccess && !targetHasFreeAccess && !hasFreeSlots) {
+            var configuredPrice = storeItemSettingsRepo.findPrice(StoreItemType.GROUP_SLOT);
+            if (configuredPrice.isEmpty())
+                return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+            price = configuredPrice.getAsInt();
+        }
         Button confirm = EntityContextFactory.createAddGroupMemberConfirm(group, newMember, price);
         MessageEmbed embed = EmbedFactory.embedGroupMemberAdd(issuer, group, newMember, price);
         return ctx.create()

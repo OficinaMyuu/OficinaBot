@@ -3,23 +3,21 @@ package ofc.bot.domain.entity.enums;
 import java.util.List;
 
 public enum StoreItemType {
-    GROUP(              "Grupo",                true, 600_000),
-    GROUP_TEXT_CHANNEL( "Chat de Texto",        true, 412_500),
-    GROUP_VOICE_CHANNEL("Chat de Voz",          true, 300_000),
-    UPDATE_GROUP(       "Modificação de Grupo", true, 187_500),
-    ADDITIONAL_BOT(     "Bot Adicional",        true, 80_000),
-    GROUP_SLOT(         "Vaga de Grupo",        true, 75_000),
-    GROUP_PERMISSION(   "Permissão de Grupo",   true, 15_000),
-    PIN_MESSAGE(        "Fixar Mensagem",       true, 8_000);
+    GROUP(              "Grupo",                true),
+    GROUP_TEXT_CHANNEL( "Chat de Texto",        true),
+    GROUP_VOICE_CHANNEL("Chat de Voz",          true),
+    UPDATE_GROUP(       "Modificação de Grupo", true),
+    ADDITIONAL_BOT(     "Bot Adicional",        true),
+    GROUP_SLOT(         "Vaga de Grupo",        true),
+    GROUP_PERMISSION(   "Permissão de Grupo",   true),
+    PIN_MESSAGE(        "Fixar Mensagem",       true);
 
     private final String name;
     private final boolean isGroup; // For new items in the future
-    private final int price;
 
-    StoreItemType(String name, boolean isGroup, int price) {
+    StoreItemType(String name, boolean isGroup) {
         this.name = name;
         this.isGroup = isGroup;
-        this.price = price;
     }
 
     public String getName() {
@@ -28,10 +26,6 @@ public enum StoreItemType {
 
     public boolean isGroup() {
         return this.isGroup;
-    }
-
-    public int getPrice() {
-        return this.price;
     }
 
     public static List<StoreItemType> getGroupRefundable() {

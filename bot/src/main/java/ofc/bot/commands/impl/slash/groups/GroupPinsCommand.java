@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.domain.database.repository.OficinaGroupRepository;
+import ofc.bot.domain.database.repository.StoreItemSettingsRepository;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.Cooldown;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
@@ -27,9 +28,14 @@ import java.util.concurrent.TimeUnit;
 @DiscordCommand(name = "group pins")
 public class GroupPinsCommand extends SlashSubcommand {
     private final OficinaGroupRepository grpRepo;
+    private final StoreItemSettingsRepository storeItemSettingsRepo;
 
-    public GroupPinsCommand(OficinaGroupRepository grpRepo) {
+    public GroupPinsCommand(
+            OficinaGroupRepository grpRepo,
+            StoreItemSettingsRepository storeItemSettingsRepo
+    ) {
         this.grpRepo = grpRepo;
+        this.storeItemSettingsRepo = storeItemSettingsRepo;
     }
 
     @Override
@@ -57,7 +63,13 @@ public class GroupPinsCommand extends SlashSubcommand {
         long chanId = chan.getIdLong();
         long guildId = ctx.getGuildId();
         boolean isFree = group.hasFreeAccess();
-        int price = isFree ? 0 : StoreItemType.PIN_MESSAGE.getPrice();
+        int price = 0;
+        if (isPin && !isFree) {
+            var configuredPrice = storeItemSettingsRepo.findPrice(StoreItemType.PIN_MESSAGE);
+            if (configuredPrice.isEmpty())
+                return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+            price = configuredPrice.getAsInt();
+        }
         String msgUrl = String.format(Message.JUMP_URL, guildId, chanId, msgIdLong);
         Button confirm = getButton(isPin, group, msgIdLong, price);
         MessageEmbed embed = getEmbed(isPin, issuer, group, msgUrl, price);

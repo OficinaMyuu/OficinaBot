@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.domain.database.repository.OficinaGroupRepository;
+import ofc.bot.domain.database.repository.StoreItemSettingsRepository;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.Cooldown;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
@@ -26,9 +27,14 @@ import java.util.concurrent.TimeUnit;
 @DiscordCommand(name = "group modify")
 public class ModifyGroupCommand extends SlashSubcommand {
     private final OficinaGroupRepository grpRepo;
+    private final StoreItemSettingsRepository storeItemSettingsRepo;
 
-    public ModifyGroupCommand(OficinaGroupRepository grpRepo) {
+    public ModifyGroupCommand(
+            OficinaGroupRepository grpRepo,
+            StoreItemSettingsRepository storeItemSettingsRepo
+    ) {
         this.grpRepo = grpRepo;
+        this.storeItemSettingsRepo = storeItemSettingsRepo;
     }
 
     @Override
@@ -69,9 +75,20 @@ public class ModifyGroupCommand extends SlashSubcommand {
         }
 
         if (!OficinaGroup.hasFreeAccess(issuer)) {
-            if (newName != null) price += StoreItemType.UPDATE_GROUP.getPrice();
-            if (newColorHex != null) price += StoreItemType.UPDATE_GROUP.getPrice();
-            if (newEmoji != null) price += StoreItemType.UPDATE_GROUP.getPrice();
+            var configuredPrice = storeItemSettingsRepo.findPrice(StoreItemType.UPDATE_GROUP);
+            if (configuredPrice.isEmpty())
+                return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+
+            int updatedAttributes = 0;
+            if (newName != null) updatedAttributes++;
+            if (newColorHex != null) updatedAttributes++;
+            if (newEmoji != null) updatedAttributes++;
+
+            try {
+                price = Math.multiplyExact(configuredPrice.getAsInt(), updatedAttributes);
+            } catch (ArithmeticException ignored) {
+                return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+            }
         }
 
         Button confirmButton = EntityContextFactory.createModifyGroupConfirm(group, newName, newEmoji, newColor, price);

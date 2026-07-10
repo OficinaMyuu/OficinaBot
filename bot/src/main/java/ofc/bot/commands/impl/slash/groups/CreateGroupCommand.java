@@ -11,6 +11,7 @@ import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.RentStatus;
 import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.domain.database.repository.OficinaGroupRepository;
+import ofc.bot.domain.database.repository.StoreItemSettingsRepository;
 import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.Cooldown;
@@ -33,9 +34,14 @@ import java.util.concurrent.TimeUnit;
 @DiscordCommand(name = "group create")
 public class CreateGroupCommand extends SlashSubcommand {
     private final OficinaGroupRepository grpRepo;
+    private final StoreItemSettingsRepository storeItemSettingsRepo;
 
-    public CreateGroupCommand(OficinaGroupRepository grpRepo) {
+    public CreateGroupCommand(
+            OficinaGroupRepository grpRepo,
+            StoreItemSettingsRepository storeItemSettingsRepo
+    ) {
         this.grpRepo = grpRepo;
+        this.storeItemSettingsRepo = storeItemSettingsRepo;
     }
 
     @Override
@@ -73,7 +79,13 @@ public class CreateGroupCommand extends SlashSubcommand {
 
         boolean isRentRecurring = OficinaGroup.isRentRecurring(issuer);
         boolean isFree = OficinaGroup.hasFreeAccess(issuer);
-        int price = isFree ? 0 : StoreItemType.GROUP.getPrice();
+        int price = 0;
+        if (!isFree) {
+            var configuredPrice = storeItemSettingsRepo.findPrice(StoreItemType.GROUP);
+            if (configuredPrice.isEmpty())
+                return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+            price = configuredPrice.getAsInt();
+        }
         float refundPercent = isFree ? 0 : OficinaGroup.REFUND_PERCENT;
         RentStatus rentStatus = isRentRecurring ? RentStatus.TRIAL : RentStatus.FREE;
         // If all checks passed, we create sort of a partial group instance,

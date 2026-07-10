@@ -12,6 +12,7 @@ import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.domain.database.repository.GroupBotRepository;
 import ofc.bot.domain.database.repository.OficinaGroupRepository;
+import ofc.bot.domain.database.repository.StoreItemSettingsRepository;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
@@ -27,10 +28,16 @@ import java.util.List;
 public class GroupBotsCommand extends SlashSubcommand {
     private final GroupBotRepository grpBotRepo;
     private final OficinaGroupRepository grpRepo;
+    private final StoreItemSettingsRepository storeItemSettingsRepo;
 
-    public GroupBotsCommand(GroupBotRepository grpBotRepo, OficinaGroupRepository grpRepo) {
+    public GroupBotsCommand(
+            GroupBotRepository grpBotRepo,
+            OficinaGroupRepository grpRepo,
+            StoreItemSettingsRepository storeItemSettingsRepo
+    ) {
         this.grpBotRepo = grpBotRepo;
         this.grpRepo = grpRepo;
+        this.storeItemSettingsRepo = storeItemSettingsRepo;
     }
 
     @Override
@@ -53,7 +60,13 @@ public class GroupBotsCommand extends SlashSubcommand {
 
         StoreItemType itemType = StoreItemType.ADDITIONAL_BOT;
         boolean isFree = group.hasFreeAccess();
-        int price = isFree ? 0 : itemType.getPrice();
+        int price = 0;
+        if (!isFree) {
+            var configuredPrice = storeItemSettingsRepo.findPrice(itemType);
+            if (configuredPrice.isEmpty())
+                return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+            price = configuredPrice.getAsInt();
+        }
 
         Button confirm = EntityContextFactory.createGroupBotAddConfirm(group, bot, price);
         MessageEmbed embed = EmbedFactory.embedGroupBotAdd(issuer, group, bot, price);

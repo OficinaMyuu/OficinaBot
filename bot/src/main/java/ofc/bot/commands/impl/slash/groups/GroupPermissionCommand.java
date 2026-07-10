@@ -11,6 +11,7 @@ import ofc.bot.domain.entity.enums.GroupPermission;
 import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.domain.database.repository.EntityPolicyRepository;
 import ofc.bot.domain.database.repository.OficinaGroupRepository;
+import ofc.bot.domain.database.repository.StoreItemSettingsRepository;
 import ofc.bot.handlers.groups.permissions.GroupPermissionManager;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.Cooldown;
@@ -29,10 +30,16 @@ import java.util.concurrent.TimeUnit;
 public class GroupPermissionCommand extends SlashSubcommand {
     private final GroupPermissionManager permissionManager;
     private final OficinaGroupRepository grpRepo;
+    private final StoreItemSettingsRepository storeItemSettingsRepo;
 
-    public GroupPermissionCommand(OficinaGroupRepository grpRepo, EntityPolicyRepository policyRepo) {
+    public GroupPermissionCommand(
+            OficinaGroupRepository grpRepo,
+            EntityPolicyRepository policyRepo,
+            StoreItemSettingsRepository storeItemSettingsRepo
+    ) {
         this.permissionManager = new GroupPermissionManager(policyRepo);
         this.grpRepo = grpRepo;
+        this.storeItemSettingsRepo = storeItemSettingsRepo;
     }
 
     @Override
@@ -53,7 +60,13 @@ public class GroupPermissionCommand extends SlashSubcommand {
             return Status.GROUP_PERMISSION_ALREADY_GRANTED;
 
         boolean isFree = group.hasFreeAccess();
-        int price = isFree ? 0 : StoreItemType.GROUP_PERMISSION.getPrice();
+        int price = 0;
+        if (!isFree) {
+            var configuredPrice = storeItemSettingsRepo.findPrice(StoreItemType.GROUP_PERMISSION);
+            if (configuredPrice.isEmpty())
+                return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+            price = configuredPrice.getAsInt();
+        }
         Button confirm = EntityContextFactory.createPermissionConfirm(group, perm, price);
         MessageEmbed embed = EmbedFactory.embedGroupPermissionAdd(issuer, group, perm, price);
 

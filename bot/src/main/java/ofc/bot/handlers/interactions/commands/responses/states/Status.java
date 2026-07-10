@@ -256,6 +256,7 @@ public enum Status implements InteractionResult {
     BASE_GROUP_ROLE_NOT_FOUND(                  State.FAILURE, true,  "Cargo base necessário não foi encontrado."),
     OWNER_MEMBER_NOT_FOUND(                     State.FAILURE, true,  "O dono fornecido não foi encontrado no servidor."),
     NO_GROUP_CHANNEL_FOUND(                     State.FAILURE, true,  "Nenhum canal de grupo encontrado."),
+    STORE_ITEM_CONFIGURATION_UNAVAILABLE(       State.FAILURE, true,  "Esta ação está temporariamente indisponível. Avise a staff para revisar sua configuração."),
 
     COULD_NOT_EXECUTE_SUCH_OPERATION(           State.FAILURE, true,  "Não foi possível completar a operação.");
 

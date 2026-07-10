@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.OficinaGroup;
 import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.domain.database.repository.OficinaGroupRepository;
+import ofc.bot.domain.database.repository.StoreItemSettingsRepository;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.Cooldown;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
@@ -26,9 +27,14 @@ import java.util.concurrent.TimeUnit;
 @DiscordCommand(name = "group channel create")
 public class CreateGroupChannelCommand extends SlashSubcommand {
     private final OficinaGroupRepository grpRepo;
+    private final StoreItemSettingsRepository storeItemSettingsRepo;
 
-    public CreateGroupChannelCommand(OficinaGroupRepository grpRepo) {
+    public CreateGroupChannelCommand(
+            OficinaGroupRepository grpRepo,
+            StoreItemSettingsRepository storeItemSettingsRepo
+    ) {
         this.grpRepo = grpRepo;
+        this.storeItemSettingsRepo = storeItemSettingsRepo;
     }
 
     @Override
@@ -53,7 +59,13 @@ public class CreateGroupChannelCommand extends SlashSubcommand {
             return Status.GROUP_ALREADY_HAS_THE_PROVIDED_CHANNEL;
 
         StoreItemType itemType = resolveStoreItem(chanType);
-        int price = group.hasFreeAccess() ? 0 : itemType.getPrice();
+        int price = 0;
+        if (!group.hasFreeAccess()) {
+            var configuredPrice = storeItemSettingsRepo.findPrice(itemType);
+            if (configuredPrice.isEmpty())
+                return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+            price = configuredPrice.getAsInt();
+        }
 
         Button confirm = EntityContextFactory.createGroupChannelConfirm(group, chanType, price);
         MessageEmbed embed = EmbedFactory.embedGroupChannelCreate(issuer, group, chanType, price);
