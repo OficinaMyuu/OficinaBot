@@ -1,0 +1,29 @@
+.header {
+  cursor: pointer;
+  user-select: none;
+}
+
+.header:hover {
+  color: var(--text-main);
+}
+
+.content {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.indicator {
+  font-size: 10px;
+  opacity: 0.4;
+  transition: opacity 150ms ease;
+}
+
+.header:hover .indicator {
+  opacity: 0.8;
+}
+
+.header[aria-sort] .indicator {
+  opacity: 1;
+  color: var(--accent-strong);
+}
