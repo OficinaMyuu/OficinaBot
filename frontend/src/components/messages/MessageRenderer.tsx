@@ -1,19 +1,12 @@
 import { memo } from "react"
 import { useTranslation } from "react-i18next"
 import type { TicketMessageView } from "@/types/ticket"
-import { epochToDate } from "@/utils/time"
+import { formatLocalTimestamp } from "@/utils/time"
 import styles from "./MessageRenderer.module.css"
 
 type MessageRendererProps = {
   messages: TicketMessageView[]
 }
-
-const timeFormatter = new Intl.DateTimeFormat(undefined, {
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  month: "2-digit"
-})
 
 export const MessageRenderer = memo(function MessageRenderer({
   messages
@@ -27,7 +20,6 @@ export const MessageRenderer = memo(function MessageRenderer({
   return (
     <ol className={styles.list} aria-label={t("messages.logLabel")}>
       {messages.map((message) => {
-        const createdAt = epochToDate(message.created_at)
         const isDeleted = message.is_deleted
         const content = message.content?.trim()
 
@@ -46,8 +38,8 @@ export const MessageRenderer = memo(function MessageRenderer({
             <div className={styles.body}>
               <div className={styles.meta}>
                 <strong>{message.author.display_name}</strong>
-                <time dateTime={createdAt.toISOString()}>
-                  {timeFormatter.format(createdAt)}
+                <time dateTime={message.created_at}>
+                  {formatLocalTimestamp(message.created_at)}
                 </time>
                 {message.is_edited ? <span>{t("messages.edited")}</span> : null}
               </div>

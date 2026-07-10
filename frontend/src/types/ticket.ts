@@ -13,8 +13,8 @@ export type Ticket = {
   close_reason: string | null
   closed_by_id: string | null
   merged_into: number | null
-  created_at: number
-  updated_at: number
+  created_at: string
+  updated_at: string
 }
 
 export type TicketMessage = {
@@ -26,8 +26,8 @@ export type TicketMessage = {
   is_edited: boolean
   is_deleted: boolean
   deleted_by_id: string | null
-  created_at: number
-  updated_at: number
+  created_at: string
+  updated_at: string
 }
 
 export type TicketMessageView = TicketMessage & {

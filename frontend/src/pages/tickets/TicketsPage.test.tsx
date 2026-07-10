@@ -124,6 +124,6 @@ const ticket: Ticket = {
   close_reason: null,
   closed_by_id: null,
   merged_into: null,
-  created_at: 1_700_000_000_000,
-  updated_at: 1_700_000_000_000
+  created_at: "2023-11-14T22:13:20Z",
+  updated_at: "2023-11-14T22:13:20Z"
 }

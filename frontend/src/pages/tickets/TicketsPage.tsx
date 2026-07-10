@@ -1,18 +1,4 @@
-import { useInfiniteQuery } from "@tanstack/react-query"
 import { useDeferredValue, useEffect, useMemo, useState } from "react"
-import { useTranslation } from "react-i18next"
-import {
-  FiChevronDown,
-  FiChevronRight,
-  FiRefreshCw,
-  FiSearch
-} from "react-icons/fi"
-import { DashboardLayout } from "@/components/layout/DashboardLayout"
-import { MessageRenderer } from "@/components/messages/MessageRenderer"
-import { Button } from "@/components/ui/Button"
-import { ticketService } from "@/services/ticketService"
-import { useTicketsStore } from "@/stores/useTicketsStore"
-import { fallbackUser, useUsersStore } from "@/stores/useUsersStore"
 import type { ReactNode } from "react"
 import type {
   Ticket,
@@ -22,18 +8,28 @@ import type {
   TicketStatus
 } from "@/types/ticket"
 import type { UserSummary } from "@/types/user"
-import { epochToDate } from "@/utils/time"
+import { useTranslation } from "react-i18next"
+import {
+  FiChevronDown,
+  FiChevronRight,
+  FiRefreshCw,
+  FiSearch
+} from "react-icons/fi"
+import { useInfiniteQuery } from "@tanstack/react-query"
+import { DashboardLayout } from "@/components/layout/DashboardLayout"
+import { MessageRenderer } from "@/components/messages/MessageRenderer"
+import { Button } from "@/components/ui/Button"
+import { ticketService } from "@/services/ticketService"
+import { useTicketsStore } from "@/stores/useTicketsStore"
+import { fallbackUser, useUsersStore } from "@/stores/useUsersStore"
+import { formatLocalTimestamp } from "@/utils/time"
+
+import clsx from "clsx"
+
 import styles from "./TicketsPage.module.css"
 
 const ticketLimit = 25
 const messageLimit = 50
-const timeFormatter = new Intl.DateTimeFormat(undefined, {
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  month: "2-digit",
-  year: "numeric"
-})
 
 export function TicketsPage() {
   const { t } = useTranslation()
@@ -174,9 +170,7 @@ export function TicketsPage() {
                       <strong>{formatTicketNumber(ticket.id)}</strong>
                       <span>{ticket.title}</span>
                     </span>
-                    <span className={styles.user}>
-                      {initiator.display_name}
-                    </span>
+                    <span className={styles.user}>{initiator.username}</span>
                     <span
                       className={[styles.status, styles[ticket.status]].join(
                         " "
@@ -184,10 +178,8 @@ export function TicketsPage() {
                     >
                       {t(`tickets.status.${ticket.status}`)}
                     </span>
-                    <time
-                      dateTime={epochToDate(ticket.updated_at).toISOString()}
-                    >
-                      {formatTime(ticket.updated_at)}
+                    <time dateTime={ticket.updated_at}>
+                      {formatLocalTimestamp(ticket.updated_at)}
                     </time>
                   </button>
 
@@ -214,11 +206,11 @@ export function TicketsPage() {
                           />
                           <Meta
                             label={t("tickets.fields.createdAt")}
-                            value={formatTime(ticket.created_at)}
+                            value={formatLocalTimestamp(ticket.created_at)}
                           />
                           <Meta
                             label={t("tickets.fields.updatedAt")}
-                            value={formatTime(ticket.updated_at)}
+                            value={formatLocalTimestamp(ticket.updated_at)}
                           />
                           {closedBy ? (
                             <Meta
@@ -295,9 +287,9 @@ type MetaProps = {
 
 function Meta({ label, value, mono = false }: MetaProps) {
   return (
-    <div>
-      <dt>{label}</dt>
-      <dd className={mono ? styles.mono : undefined}>{value}</dd>
+    <div className={styles.metaRow}>
+      <dt className={styles.metaLabel}>{label}</dt>
+      <dd className={clsx(styles.metaData, mono && styles.mono)}>{value}</dd>
     </div>
   )
 }
@@ -432,10 +424,6 @@ function messageUserIds(messages: TicketMessage[]): string[] {
 
 function formatTicketNumber(id: number): string {
   return `#${String(id).padStart(2, "0")}`
-}
-
-function formatTime(value: number): string {
-  return timeFormatter.format(epochToDate(value))
 }
 
 function toMessage(error: unknown): string {

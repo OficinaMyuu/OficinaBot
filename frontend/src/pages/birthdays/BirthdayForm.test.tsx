@@ -31,8 +31,8 @@ describe('BirthdayForm', () => {
           name: 'Myuu',
           birthday: '2020-05-10',
           zone_hours: -3,
-          created_at: 1,
-          updated_at: 1,
+          created_at: '1970-01-01T00:00:01Z',
+          updated_at: '1970-01-01T00:00:01Z',
         }}
         onSubmit={vi.fn()}
       />,

@@ -3,8 +3,8 @@ export type Birthday = {
   name: string
   birthday: string
   zone_hours: number
-  created_at: number
-  updated_at: number
+  created_at: string
+  updated_at: string
 }
 
 export type BirthdayPayload = {

@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { epochToDate } from './time'
+import { formatLocalTimestamp } from './time'
 
-describe('epochToDate', () => {
-  it('accepts epoch seconds and milliseconds', () => {
-    expect(epochToDate(1_700_000_000).getTime()).toBe(1_700_000_000_000)
-    expect(epochToDate(1_700_000_000_123).getTime()).toBe(1_700_000_000_123)
+describe('formatLocalTimestamp', () => {
+  it('formats RFC 3339 timestamps returned by the API', () => {
+    expect(formatLocalTimestamp('2023-11-14T22:13:20Z')).toMatch(
+      /14 de Nov\. de 2023, às \d{2}:\d{2}/,
+    )
   })
 })

@@ -73,8 +73,8 @@ function message(
     is_deleted: false,
     deleted_by_id: null,
     deleted_by: null,
-    created_at: 1_700_000_000_000,
-    updated_at: 1_700_000_000_000,
+    created_at: "2023-11-14T22:13:20Z",
+    updated_at: "2023-11-14T22:13:20Z",
     ...overrides
   }
 }
