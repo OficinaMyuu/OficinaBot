@@ -1,7 +1,9 @@
+import type { TicketMessageView } from "@/types/ticket"
+
 import { memo } from "react"
 import { useTranslation } from "react-i18next"
-import type { TicketMessageView } from "@/types/ticket"
-import { formatLocalTimestamp } from "@/utils/time"
+import { formatMessageTimestamp } from "@/utils/timeUtils"
+
 import styles from "./MessageRenderer.module.css"
 
 type MessageRendererProps = {
@@ -39,7 +41,7 @@ export const MessageRenderer = memo(function MessageRenderer({
               <div className={styles.meta}>
                 <strong>{message.author.display_name}</strong>
                 <time dateTime={message.created_at}>
-                  {formatLocalTimestamp(message.created_at)}
+                  {formatMessageTimestamp(message.created_at)}
                 </time>
                 {message.is_edited ? <span>{t("messages.edited")}</span> : null}
               </div>
