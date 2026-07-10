@@ -17,6 +17,7 @@ import ofc.bot.handlers.interactions.modals.ModalInteractionGateway;
 import ofc.bot.handlers.nick.NicknameEmojiEnforcer;
 import ofc.bot.handlers.nick.NicknameEmojiPolicy;
 import ofc.bot.handlers.nick.NicknameEmojiSanitizer;
+import ofc.bot.handlers.userinfo.CountingReleaseService;
 import ofc.bot.jobs.*;
 import ofc.bot.jobs.groups.LateGroupsChecker;
 import ofc.bot.jobs.income.VoiceChatMoneyHandler;
@@ -165,6 +166,7 @@ public final class EntityInitializerManager {
         var betRepo = Repositories.getBetGameRepository();
         var userRepo = Repositories.getUserRepository();
         var xpRepo = Repositories.getUserXPRepository();
+        var storeItemSettingsRepo = Repositories.getStoreItemSettingsRepository();
 
         InteractionMemoryManager.getManager().registerListeners(
                 // Infractions
@@ -184,12 +186,12 @@ public final class EntityInitializerManager {
                 new TicketsPagination(msgVrsRepo),
 
                 // Shop
-                new OpenColorRolePurchaseConfirmationHandler(colorItemRepo, colorStateRepo),
+                new OpenColorRolePurchaseConfirmationHandler(colorItemRepo, colorStateRepo, storeItemSettingsRepo),
                 new OpenColorRoleRemovalConfirmationHandler(colorStateRepo),
-                new ColorRolePurchaseHandler(colorStateRepo),
+                new ColorRolePurchaseHandler(colorStateRepo, storeItemSettingsRepo),
                 new ColorRoleRemoveHandler(colorStateRepo),
-                new OpenCountingReleaseConfirmationHandler(),
-                new CountingReleasePurchaseHandler(),
+                new OpenCountingReleaseConfirmationHandler(new CountingReleaseService(storeItemSettingsRepo)),
+                new CountingReleasePurchaseHandler(new CountingReleaseService(storeItemSettingsRepo)),
                 new ChannelOptimizeApproveHandler(),
 
                 // Groups' commands confirmation handlers

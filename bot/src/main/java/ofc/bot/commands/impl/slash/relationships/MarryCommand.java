@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import ofc.bot.domain.entity.AppUser;
 import ofc.bot.domain.entity.MarriageRequest;
+import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.domain.database.repository.*;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
@@ -23,7 +24,6 @@ import java.util.List;
 
 @DiscordCommand(name = "marry")
 public class MarryCommand extends SlashCommand {
-    public static final int INITIAL_MARRIAGE_COST = 25000;
     public static final int DAILY_COST = 50;
     public static final int MAX_GENERAL_MARRIAGES = 10;
     public static final int MAX_PRIVILEGED_MARRIAGES = 20;
@@ -31,12 +31,20 @@ public class MarryCommand extends SlashCommand {
     private final UserEconomyRepository ecoRepo;
     private final MarriageRepository marrRepo;
     private final UserRepository userRepo;
+    private final StoreItemSettingsRepository storeItemSettingsRepo;
 
-    public MarryCommand(MarriageRequestRepository mreqRepo, UserEconomyRepository ecoRepo, MarriageRepository marrRepo, UserRepository userRepo) {
+    public MarryCommand(
+            MarriageRequestRepository mreqRepo,
+            UserEconomyRepository ecoRepo,
+            MarriageRepository marrRepo,
+            UserRepository userRepo,
+            StoreItemSettingsRepository storeItemSettingsRepo
+    ) {
         this.mreqRepo = mreqRepo;
         this.ecoRepo = ecoRepo;
         this.marrRepo = marrRepo;
         this.userRepo = userRepo;
+        this.storeItemSettingsRepo = storeItemSettingsRepo;
     }
 
     @Override
@@ -52,8 +60,6 @@ public class MarryCommand extends SlashCommand {
         long targetId = target.getIdLong();
         boolean requesterHitLimit = hitLimit(sender);
         boolean targetHitLimit = hitLimit(target);
-        boolean reqHasBalance = hasEnoughBalance(requesterId);
-        boolean tarHasBalance = hasEnoughBalance(targetId);
         boolean privilegedMarriage = isPrivilegedMarriage(sender, target);
 
         if (requesterId == targetId || target.getUser().isBot())
@@ -71,8 +77,17 @@ public class MarryCommand extends SlashCommand {
         if (targetHitLimit)
             return Status.TARGET_HIT_MARRIAGE_LIMIT;
 
-        if ((!reqHasBalance || !tarHasBalance) && !privilegedMarriage)
-            return Status.MARRIAGE_INSUFFICIENT_BALANCE.args(Bot.fmtNum(INITIAL_MARRIAGE_COST));
+        if (!privilegedMarriage) {
+            var configuredPrice = storeItemSettingsRepo.findPrice(StoreItemType.MARRIAGE);
+            if (configuredPrice.isEmpty()) {
+                return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+            }
+
+            int price = configuredPrice.getAsInt();
+            if (!hasEnoughBalance(requesterId, price) || !hasEnoughBalance(targetId, price)) {
+                return Status.MARRIAGE_INSUFFICIENT_BALANCE.args(Bot.fmtNum(price));
+            }
+        }
 
         channel.sendMessageFormat("> ✨💍 %s você recebeu uma proposta de casamento maravilhosa de %s, safadeza hein?! 😏\nPara aceitar, use `/marriage accept`.",
                 target.getAsMention(),
@@ -102,8 +117,8 @@ public class MarryCommand extends SlashCommand {
         );
     }
 
-    private boolean hasEnoughBalance(long userId) {
-        return ecoRepo.hasEnoughWallet(userId, MarryCommand.INITIAL_MARRIAGE_COST);
+    private boolean hasEnoughBalance(long userId, int price) {
+        return ecoRepo.hasEnoughWallet(userId, price);
     }
 
     private boolean hitLimit(Member member) {

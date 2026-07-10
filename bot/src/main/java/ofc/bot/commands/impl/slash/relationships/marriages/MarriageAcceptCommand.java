@@ -6,12 +6,13 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import ofc.bot.commands.impl.slash.relationships.MarryCommand;
 import ofc.bot.domain.entity.Marriage;
 import ofc.bot.domain.entity.MarriageRequest;
 import ofc.bot.domain.entity.UserEconomy;
+import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.domain.database.repository.MarriageRepository;
 import ofc.bot.domain.database.repository.MarriageRequestRepository;
+import ofc.bot.domain.database.repository.StoreItemSettingsRepository;
 import ofc.bot.domain.database.repository.UserEconomyRepository;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
@@ -32,11 +33,18 @@ public class MarriageAcceptCommand extends SlashSubcommand {
     private final MarriageRequestRepository mreqRepo;
     private final MarriageRepository marrRepo;
     private final UserEconomyRepository ecoRepo;
+    private final StoreItemSettingsRepository storeItemSettingsRepo;
 
-    public MarriageAcceptCommand(MarriageRequestRepository mreqRepo, MarriageRepository marrRepo, UserEconomyRepository ecoRepo) {
+    public MarriageAcceptCommand(
+            MarriageRequestRepository mreqRepo,
+            MarriageRepository marrRepo,
+            UserEconomyRepository ecoRepo,
+            StoreItemSettingsRepository storeItemSettingsRepo
+    ) {
         this.mreqRepo = mreqRepo;
         this.marrRepo = marrRepo;
         this.ecoRepo = ecoRepo;
+        this.storeItemSettingsRepo = storeItemSettingsRepo;
     }
 
     @Override
@@ -50,7 +58,6 @@ public class MarriageAcceptCommand extends SlashSubcommand {
         UserEconomy senderBal = ecoRepo.findByUserId(issuerId);
         UserEconomy targetBal = ecoRepo.findByUserId(targetId);
         MarriageRequest proposal = mreqRepo.findByStrictIds(targetId, issuerId);
-        int cost = MarryCommand.INITIAL_MARRIAGE_COST;
 
         if (issuerId == targetId)
             return Status.CANNOT_ACCEPT_SELF_MARRIAGE_PROPOSAL;
@@ -61,8 +68,18 @@ public class MarriageAcceptCommand extends SlashSubcommand {
         if (proposal.getRequesterId() == issuerId)
             return Status.CANNOT_ACCEPT_SELF_MARRIAGE_PROPOSAL;
 
-        if (!isAffordable(senderBal, targetBal) && !privilegedMarriage)
-            return Status.MARRIAGE_INSUFFICIENT_BALANCE.args(Bot.fmtNum(cost));
+        int cost = 0;
+        if (!privilegedMarriage) {
+            var configuredPrice = storeItemSettingsRepo.findPrice(StoreItemType.MARRIAGE);
+            if (configuredPrice.isEmpty()) {
+                return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+            }
+
+            cost = configuredPrice.getAsInt();
+            if (!isAffordable(senderBal, targetBal, cost)) {
+                return Status.MARRIAGE_INSUFFICIENT_BALANCE.args(Bot.fmtNum(cost));
+            }
+        }
 
         try {
             accept(proposal);
@@ -92,12 +109,12 @@ public class MarriageAcceptCommand extends SlashSubcommand {
         );
     }
 
-    private boolean isAffordable(UserEconomy user1, UserEconomy user2) {
-        return checkBalance(user1) && checkBalance(user2);
+    private boolean isAffordable(UserEconomy user1, UserEconomy user2, int price) {
+        return checkBalance(user1, price) && checkBalance(user2, price);
     }
 
-    private boolean checkBalance(UserEconomy user) {
-        return user != null && user.getWallet() >= MarryCommand.INITIAL_MARRIAGE_COST;
+    private boolean checkBalance(UserEconomy user, int price) {
+        return user != null && user.getWallet() >= price;
     }
 
     private void chargeMarriage(UserEconomy sender, UserEconomy target, int price) {

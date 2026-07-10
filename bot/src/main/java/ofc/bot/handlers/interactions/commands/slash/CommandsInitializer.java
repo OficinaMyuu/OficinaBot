@@ -50,6 +50,7 @@ import ofc.bot.handlers.interactions.commands.slash.dummy.EmptySlashCommand;
 import ofc.bot.handlers.giveaway.GiveawayServices;
 import ofc.bot.handlers.nick.NicknameEmojiPolicy;
 import ofc.bot.handlers.nick.NicknameRequestDispatcher;
+import ofc.bot.handlers.userinfo.CountingReleaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,7 +125,7 @@ public final class CommandsInitializer {
 
         // Marriage
         SlashCommand marriage = new EmptySlashCommand("marriage", "Gerencia os seus casamentos.")
-                .addSubcommand(new MarriageAcceptCommand(mreqRepo, marrRepo, ecoRepo))
+                .addSubcommand(new MarriageAcceptCommand(mreqRepo, marrRepo, ecoRepo, storeItemSettingsRepo))
                 .addSubcommand(new CancelProposalCommand(mreqRepo))
                 .addSubcommand(new ProposalsListCommand(mreqRepo))
                 .addSubcommand(new MarriageRejectCommand(mreqRepo));
@@ -215,14 +216,22 @@ public final class CommandsInitializer {
 
         // Relationships
         registry.register(new DivorceCommand(marrRepo));
-        registry.register(new MarryCommand(mreqRepo, ecoRepo, marrRepo, userRepo));
+        registry.register(new MarryCommand(mreqRepo, ecoRepo, marrRepo, userRepo, storeItemSettingsRepo));
         registry.register(new UpdateMarriageCreationCommand(marrRepo));
 
         // Userinfo
-        registry.register(new UserinfoCommand(csinfoRepo, emjRepo, ecoRepo, marrRepo, grpRepo, joinEventRepo));
+        registry.register(new UserinfoCommand(
+                csinfoRepo,
+                emjRepo,
+                ecoRepo,
+                marrRepo,
+                grpRepo,
+                joinEventRepo,
+                new CountingReleaseService(storeItemSettingsRepo)
+        ));
 
         // Color Roles
-        registry.register(new ColorsCommand(colorItemRepo, colorStateRepo));
+        registry.register(new ColorsCommand(colorItemRepo, colorStateRepo, storeItemSettingsRepo));
 
         // Generic
         registry.register(new AvatarCommand());
