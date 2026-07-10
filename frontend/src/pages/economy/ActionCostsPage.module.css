@@ -29,8 +29,8 @@
 
 .notice {
   align-items: center;
-  background: rgba(107, 64, 156, 0.1);
-  border: 1px solid rgba(107, 64, 156, 0.25);
+  background-color: rgba(126, 228, 152, 0.144);
+  border: 1px solid rgba(129, 226, 145, 0.603);
   border-radius: 8px;
   color: var(--text-main);
   display: flex;
@@ -42,16 +42,16 @@
 }
 
 .notice button {
-  background: transparent;
+  background-color: transparent;
   border: 0;
-  color: var(--accent-strong);
+  color: rgba(234, 238, 234, 0.7);
   cursor: pointer;
   font: inherit;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .tableShell {
-  background: var(--surface-sidebar);
+  background-color: var(--surface-sidebar);
   border: 1px solid var(--border-soft);
   border-radius: 12px;
   overflow: auto;
@@ -71,7 +71,7 @@
 }
 
 .table th {
-  background: rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0.1);
   color: var(--text-muted);
   font-size: 11px;
   font-weight: 700;
@@ -80,7 +80,7 @@
 }
 
 .table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background-color: rgba(255, 255, 255, 0.02);
 }
 
 .table tr:last-child td {
@@ -94,7 +94,7 @@
 }
 
 .priceInput input {
-  background: var(--surface-input);
+  background-color: var(--surface-input);
   border: 1px solid var(--border-strong);
   border-radius: 8px;
   color: var(--text-main);
@@ -118,7 +118,7 @@
 
 .editButton {
   align-items: center;
-  background: transparent;
+  background-color: transparent;
   border: 1px solid transparent;
   border-radius: 8px;
   color: var(--text-muted);
@@ -130,7 +130,7 @@
 }
 
 .editButton:hover {
-  background: var(--surface-raised);
+  background-color: var(--surface-raised);
   border-color: var(--border-strong);
   color: var(--text-main);
 }
@@ -155,7 +155,7 @@
 
 .skeletonRow span {
   animation: pulse 1.4s ease-in-out infinite;
-  background: var(--surface-raised);
+  background-color: var(--surface-raised);
   border-radius: 6px;
   height: 18px;
 }

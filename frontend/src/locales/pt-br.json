@@ -98,18 +98,39 @@
         "save": "Salvar custo"
       },
       "messages": {
-        "updated": "Custo da ação atualizado.",
+        "updated": "Alterações salvas com sucesso.",
         "invalidPrice": "Informe um número inteiro igual ou maior que zero."
       },
       "items": {
         "GROUP": { "title": "Criar grupo", "command": "/group create" },
-        "GROUP_TEXT_CHANNEL": { "title": "Criar chat de texto", "command": "/group channel create (texto)" },
-        "GROUP_VOICE_CHANNEL": { "title": "Criar chat de voz", "command": "/group channel create (voz)" },
-        "UPDATE_GROUP": { "title": "Modificar grupo", "command": "/group modify" },
-        "ADDITIONAL_BOT": { "title": "Adicionar bot", "command": "/group bots" },
-        "GROUP_SLOT": { "title": "Adicionar vaga", "command": "/group member add" },
-        "GROUP_PERMISSION": { "title": "Adicionar permissão", "command": "/group permission" },
-        "PIN_MESSAGE": { "title": "Fixar mensagem", "command": "/group pins (pin)" }
+        "GROUP_TEXT_CHANNEL": {
+          "title": "Criar chat de texto",
+          "command": "/group channel create (texto)"
+        },
+        "GROUP_VOICE_CHANNEL": {
+          "title": "Criar chat de voz",
+          "command": "/group channel create (voz)"
+        },
+        "UPDATE_GROUP": {
+          "title": "Modificar grupo",
+          "command": "/group modify"
+        },
+        "ADDITIONAL_BOT": {
+          "title": "Adicionar bot",
+          "command": "/group bots"
+        },
+        "GROUP_SLOT": {
+          "title": "Adicionar vaga",
+          "command": "/group member add"
+        },
+        "GROUP_PERMISSION": {
+          "title": "Adicionar permissão",
+          "command": "/group permission"
+        },
+        "PIN_MESSAGE": {
+          "title": "Fixar mensagem",
+          "command": "/group pins (pin)"
+        }
       }
     }
   },
