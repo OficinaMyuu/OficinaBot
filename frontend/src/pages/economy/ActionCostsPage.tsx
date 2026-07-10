@@ -1,3 +1,4 @@
+import type { ActionCost } from "@/types/actionCost"
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
@@ -5,8 +6,8 @@ import { FiEdit2, FiRefreshCw } from "react-icons/fi"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Button } from "@/components/ui/Button"
 import { actionCostService } from "@/services/actionCostService"
-import type { ActionCost } from "@/types/actionCost"
 import { formatLocalTimestamp } from "@/utils/time"
+
 import styles from "./ActionCostsPage.module.css"
 
 const actionCostsQueryKey = ["action-costs"] as const
@@ -15,7 +16,9 @@ const priceFormatter = new Intl.NumberFormat()
 export function ActionCostsPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const [editingItemType, setEditingItemType] = useState<ActionCost["item_type"] | null>(null)
+  const [editingItemType, setEditingItemType] = useState<
+    ActionCost["item_type"] | null
+  >(null)
   const [draftPrice, setDraftPrice] = useState("")
   const [notice, setNotice] = useState<string | null>(null)
   const actionCostsQuery = useQuery({
@@ -28,10 +31,12 @@ export function ActionCostsPage() {
         price
       }),
     onSuccess: (updated) => {
-      queryClient.setQueryData<ActionCost[]>(actionCostsQueryKey, (items = []) =>
-        items.map((item) =>
-          item.item_type === updated.item_type ? updated : item
-        )
+      queryClient.setQueryData<ActionCost[]>(
+        actionCostsQueryKey,
+        (items = []) =>
+          items.map((item) =>
+            item.item_type === updated.item_type ? updated : item
+          )
       )
       setEditingItemType(null)
       setNotice(t("economy.actionCosts.messages.updated"))
@@ -95,7 +100,9 @@ export function ActionCostsPage() {
           {actionCostsQuery.isLoading ? (
             <ActionCostsSkeleton label={t("economy.actionCosts.loading")} />
           ) : actionCostsQuery.isError ? (
-            <div className={styles.state}>{toMessage(actionCostsQuery.error)}</div>
+            <div className={styles.state}>
+              {toMessage(actionCostsQuery.error)}
+            </div>
           ) : items.length === 0 ? (
             <div className={styles.state}>{t("economy.actionCosts.empty")}</div>
           ) : (
@@ -120,16 +127,22 @@ export function ActionCostsPage() {
                       <td>
                         <strong>{t(`${itemKey}.title`)}</strong>
                       </td>
-                      <td className={styles.command}>{t(`${itemKey}.command`)}</td>
+                      <td className={styles.command}>
+                        {t(`${itemKey}.command`)}
+                      </td>
                       <td>
                         {isEditing ? (
                           <label className={styles.priceInput}>
-                            <span className={styles.srOnly}>{t("economy.actionCosts.fields.cost")}</span>
+                            <span className={styles.srOnly}>
+                              {t("economy.actionCosts.fields.cost")}
+                            </span>
                             <input
                               aria-label={t(`${itemKey}.title`)}
                               inputMode="numeric"
                               min="0"
-                              onChange={(event) => setDraftPrice(event.target.value)}
+                              onChange={(event) =>
+                                setDraftPrice(event.target.value)
+                              }
                               step="1"
                               type="number"
                               value={draftPrice}

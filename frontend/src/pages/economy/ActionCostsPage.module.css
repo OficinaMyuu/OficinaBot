@@ -10,6 +10,7 @@
   display: flex;
   gap: 24px;
   justify-content: space-between;
+  user-select: none;
 }
 
 .heading h2 {

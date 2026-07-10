@@ -83,8 +83,8 @@
   },
   "economy": {
     "actionCosts": {
-      "title": "Custos de ações",
-      "description": "Configure os valores cobrados pelos comandos de grupo. Isto é um controle interno, não uma loja.",
+      "title": "Preços",
+      "description": "Configure os valores cobrados pelos comandos e itens do bot.",
       "loading": "Carregando custos de ações...",
       "empty": "Nenhum custo de ação foi configurado.",
       "fields": {
