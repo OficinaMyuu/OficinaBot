@@ -1,0 +1,46 @@
+.editableCell {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: -4px -8px;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.editableCell:hover {
+  background-color: var(--surface-raised);
+  color: var(--text-main);
+}
+
+.priceInput input {
+  appearance: none;
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  color: var(--text-main);
+  font: inherit;
+  min-height: 36px;
+  outline: 0;
+  padding: 0 10px;
+  width: 132px;
+}
+
+.priceInput input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(107, 64, 156, 0.25);
+}
+
+.cellSpinner {
+  display: flex;
+  align-items: center;
+  height: 36px;
+}
+
+.srOnly {
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+}

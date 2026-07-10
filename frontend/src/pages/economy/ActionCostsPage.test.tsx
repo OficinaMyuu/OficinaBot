@@ -41,34 +41,57 @@ describe("ActionCostsPage", () => {
     })
   })
 
-  it("edits and saves a zero-cost action", async () => {
+  it("inline-edits a cost to zero via Enter key", async () => {
     renderPage()
 
-    fireEvent.click(await screen.findByTitle(/editar custo|edit cost/i))
-    fireEvent.change(screen.getByLabelText(/criar grupo|create group/i), {
-      target: { value: "0" }
-    })
-    fireEvent.click(screen.getByRole("button", { name: /salvar custo|save cost/i }))
+    const costCell = await screen.findByText("600.000")
+    fireEvent.click(costCell)
+
+    const input = screen.getByLabelText("GROUP")
+    fireEvent.change(input, { target: { value: "0" } })
+    fireEvent.keyDown(input, { key: "Enter" })
 
     await waitFor(() =>
       expect(actionCostService.update).toHaveBeenCalledWith("GROUP", {
         price: 0
       })
     )
-    expect(await screen.findByText(/atualizado|updated/i)).toBeInTheDocument()
+    expect(await screen.findByText(/salvas|updated/i)).toBeInTheDocument()
   })
 
   it("rejects negative values before calling the API", async () => {
     renderPage()
 
-    fireEvent.click(await screen.findByTitle(/editar custo|edit cost/i))
-    fireEvent.change(screen.getByLabelText(/criar grupo|create group/i), {
-      target: { value: "-1" }
-    })
-    fireEvent.click(screen.getByRole("button", { name: /salvar custo|save cost/i }))
+    const costCell = await screen.findByText("600.000")
+    fireEvent.click(costCell)
+
+    const input = screen.getByLabelText("GROUP")
+    fireEvent.change(input, { target: { value: "-1" } })
+    fireEvent.keyDown(input, { key: "Enter" })
 
     expect(actionCostService.update).not.toHaveBeenCalled()
     expect(await screen.findByText(/maior que zero|zero or greater/i)).toBeInTheDocument()
+  })
+
+  it("does not render an edit button", async () => {
+    renderPage()
+
+    await screen.findByText("600.000")
+    expect(screen.queryByTitle(/editar custo|edit cost/i)).not.toBeInTheDocument()
+  })
+
+  it("cancels editing on Escape key", async () => {
+    renderPage()
+
+    const costCell = await screen.findByText("600.000")
+    fireEvent.click(costCell)
+
+    const input = screen.getByLabelText("GROUP")
+    fireEvent.change(input, { target: { value: "999" } })
+    fireEvent.keyDown(input, { key: "Escape" })
+
+    expect(actionCostService.update).not.toHaveBeenCalled()
+    expect(screen.getByText("600.000")).toBeInTheDocument()
   })
 })
 

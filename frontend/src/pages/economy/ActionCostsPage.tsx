@@ -1,14 +1,20 @@
 import type { ActionCost } from "@/types/actionCost"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
-import { FiEdit2, FiRefreshCw } from "react-icons/fi"
+import { FiRefreshCw } from "react-icons/fi"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
+import { SortableHeader } from "@/components/ui/SortableHeader"
 import { Button } from "@/components/ui/Button"
+import { Notice } from "@/components/ui/Notice"
 import { actionCostService } from "@/services/actionCostService"
 import { formatLocalTimestamp } from "@/utils/time"
-import { formatNumber } from "@/utils/numberUtils"
+import { formatIntegerInput, parseFormattedInteger } from "@/utils/numberUtils"
+import { useTableSort } from "@/utils/useTableSort"
+import { toMessage } from "@/utils/errorUtils"
+import { CostCell } from "./CostCell"
+import { ActionCostsSkeleton } from "./ActionCostsSkeleton"
 
 import styles from "./ActionCostsPage.module.css"
 
@@ -22,6 +28,7 @@ export function ActionCostsPage() {
   >(null)
   const [draftPrice, setDraftPrice] = useState("")
   const [notice, setNotice] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const actionCostsQuery = useQuery({
     queryKey: actionCostsQueryKey,
     queryFn: actionCostService.list
@@ -43,31 +50,36 @@ export function ActionCostsPage() {
       setNotice(t("economy.actionCosts.messages.updated"))
     },
     onError: (error) => {
+      setEditingItemType(null)
       setNotice(toMessage(error))
     }
   })
 
   const beginEditing = (item: ActionCost) => {
     setEditingItemType(item.item_type)
-    setDraftPrice(String(item.price))
+    setDraftPrice(formatIntegerInput(String(item.price)))
     setNotice(null)
-  }
-
-  const cancelEditing = () => {
-    setEditingItemType(null)
-    setDraftPrice("")
+    requestAnimationFrame(() => {
+      inputRef.current?.focus()
+      inputRef.current?.select()
+    })
   }
 
   const save = (item: ActionCost) => {
-    const price = Number(draftPrice)
+    const price = parseFormattedInteger(draftPrice)
     if (!Number.isSafeInteger(price) || price < 0) {
       setNotice(t("economy.actionCosts.messages.invalidPrice"))
+      return
+    }
+    if (price === item.price) {
+      setEditingItemType(null)
       return
     }
     updateCost.mutate({ item, price })
   }
 
   const items = actionCostsQuery.data ?? []
+  const { sorted, sortKey, sortDir, toggle } = useTableSort(items)
 
   return (
     <DashboardLayout title={t("economy.actionCosts.title")}>
@@ -88,14 +100,7 @@ export function ActionCostsPage() {
           </Button>
         </header>
 
-        {notice ? (
-          <div className={styles.notice} role="status">
-            <span>{notice}</span>
-            <button type="button" onClick={() => setNotice(null)}>
-              {t("common.dismiss")}
-            </button>
-          </div>
-        ) : null}
+        <Notice message={notice} onDismiss={() => setNotice(null)} />
 
         <div className={styles.tableShell}>
           {actionCostsQuery.isLoading ? (
@@ -110,15 +115,32 @@ export function ActionCostsPage() {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>{t("economy.actionCosts.fields.action")}</th>
+                  <SortableHeader
+                    label={t("economy.actionCosts.fields.action")}
+                    sortKey="item_type"
+                    activeSortKey={sortKey as string | null}
+                    sortDir={sortDir}
+                    onSort={(key) => toggle(key as keyof ActionCost)}
+                  />
                   <th>{t("economy.actionCosts.fields.command")}</th>
-                  <th>{t("economy.actionCosts.fields.cost")}</th>
-                  <th>{t("economy.actionCosts.fields.updatedAt")}</th>
-                  <th aria-label={t("common.actions")} />
+                  <SortableHeader
+                    label={t("economy.actionCosts.fields.cost")}
+                    sortKey="price"
+                    activeSortKey={sortKey as string | null}
+                    sortDir={sortDir}
+                    onSort={(key) => toggle(key as keyof ActionCost)}
+                  />
+                  <SortableHeader
+                    label={t("economy.actionCosts.fields.updatedAt")}
+                    sortKey="updated_at"
+                    activeSortKey={sortKey as string | null}
+                    sortDir={sortDir}
+                    onSort={(key) => toggle(key as keyof ActionCost)}
+                  />
                 </tr>
               </thead>
               <tbody>
-                {items.map((item) => {
+                {sorted.map((item) => {
                   const itemKey = `economy.actionCosts.items.${item.item_type}`
                   const isEditing = item.item_type === editingItemType
                   const isSaving = isEditing && updateCost.isPending
@@ -132,63 +154,22 @@ export function ActionCostsPage() {
                         {t(`${itemKey}.command`)}
                       </td>
                       <td>
-                        {isEditing ? (
-                          <label className={styles.priceInput}>
-                            <span className={styles.srOnly}>
-                              {t("economy.actionCosts.fields.cost")}
-                            </span>
-                            <input
-                              aria-label={t(`${itemKey}.title`)}
-                              inputMode="numeric"
-                              min="0"
-                              onChange={(event) =>
-                                setDraftPrice(event.target.value)
-                              }
-                              step="1"
-                              type="number"
-                              value={draftPrice}
-                            />
-                          </label>
-                        ) : (
-                          formatNumber(item.price)
-                        )}
+                        <CostCell
+                          item={item}
+                          isEditing={isEditing}
+                          isSaving={isSaving}
+                          draftPrice={draftPrice}
+                          inputRef={inputRef}
+                          onBeginEditing={() => beginEditing(item)}
+                          onDraftChange={setDraftPrice}
+                          onSave={() => save(item)}
+                          onCancel={() => setEditingItemType(null)}
+                        />
                       </td>
                       <td>
                         <time dateTime={item.updated_at}>
                           {formatLocalTimestamp(item.updated_at)}
                         </time>
-                      </td>
-                      <td>
-                        <div className={styles.rowActions}>
-                          {isEditing ? (
-                            <>
-                              <Button
-                                type="button"
-                                variant="secondary"
-                                disabled={isSaving}
-                                onClick={cancelEditing}
-                              >
-                                {t("common.cancel")}
-                              </Button>
-                              <Button
-                                type="button"
-                                disabled={isSaving}
-                                onClick={() => save(item)}
-                              >
-                                {t("economy.actionCosts.actions.save")}
-                              </Button>
-                            </>
-                          ) : (
-                            <button
-                              type="button"
-                              className={styles.editButton}
-                              title={t("economy.actionCosts.actions.edit")}
-                              onClick={() => beginEditing(item)}
-                            >
-                              <FiEdit2 aria-hidden="true" />
-                            </button>
-                          )}
-                        </div>
                       </td>
                     </tr>
                   )
@@ -200,29 +181,4 @@ export function ActionCostsPage() {
       </section>
     </DashboardLayout>
   )
-}
-
-function ActionCostsSkeleton({ label }: { label: string }) {
-  return (
-    <div className={styles.skeleton} role="status" aria-label={label}>
-      {[0, 1, 2, 3].map((row) => (
-        <div className={styles.skeletonRow} key={row}>
-          <span />
-          <span />
-          <span />
-          <span />
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function toMessage(error: unknown): string {
-  if (typeof error === "object" && error !== null && "message" in error) {
-    return String(error.message)
-  }
-  if (error instanceof Error) {
-    return error.message
-  }
-  return "Unexpected error"
 }
