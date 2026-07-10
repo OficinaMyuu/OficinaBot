@@ -36,6 +36,7 @@ public final class Repositories {
     private static RegisterRepository registerRepository;
     private static ReminderRepository reminderRepository;
     private static SupportTicketRepository supportTicketRepository;
+    private static StoreItemSettingsRepository storeItemSettingsRepository;
     private static TempBanRepository tempBanRepository;
     private static UserEconomyRepository userEconomyRepository;
     private static UserEmojiPermissionRepository userEmojiPermissionRepository;
@@ -209,6 +210,13 @@ public final class Repositories {
     public static SupportTicketRepository getSupportTicketRepository() {
         if (supportTicketRepository == null) supportTicketRepository = new SupportTicketRepository(getDSLContext());
         return supportTicketRepository;
+    }
+
+    public static StoreItemSettingsRepository getStoreItemSettingsRepository() {
+        if (storeItemSettingsRepository == null) {
+            storeItemSettingsRepository = new StoreItemSettingsRepository(getDSLContext());
+        }
+        return storeItemSettingsRepository;
     }
 
     public static TempBanRepository getTempBanRepository() {
