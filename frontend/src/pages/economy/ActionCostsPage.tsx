@@ -1,4 +1,5 @@
 import type { ActionCost } from "@/types/actionCost"
+
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
@@ -7,11 +8,11 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Button } from "@/components/ui/Button"
 import { actionCostService } from "@/services/actionCostService"
 import { formatLocalTimestamp } from "@/utils/time"
+import { formatNumber } from "@/utils/numberUtils"
 
 import styles from "./ActionCostsPage.module.css"
 
 const actionCostsQueryKey = ["action-costs"] as const
-const priceFormatter = new Intl.NumberFormat()
 
 export function ActionCostsPage() {
   const { t } = useTranslation()
@@ -149,7 +150,7 @@ export function ActionCostsPage() {
                             />
                           </label>
                         ) : (
-                          formatPrice(item.price)
+                          formatNumber(item.price)
                         )}
                       </td>
                       <td>
@@ -214,10 +215,6 @@ function ActionCostsSkeleton({ label }: { label: string }) {
       ))}
     </div>
   )
-}
-
-function formatPrice(value: number): string {
-  return priceFormatter.format(value)
 }
 
 function toMessage(error: unknown): string {
