@@ -87,21 +87,6 @@ textarea {
   background-color: rgba(93, 81, 104, 0.5);
 }
 
-.loader {
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--border-strong);
-  border-top-color: var(--accent-strong);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* Modal Animations */
 @keyframes modalOverlayIn {
   from {
