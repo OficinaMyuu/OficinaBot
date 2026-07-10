@@ -23,11 +23,7 @@ public class CountingReleasePurchaseHandler implements InteractionListener<Butto
     private static final Logger LOGGER = LoggerFactory.getLogger(CountingReleasePurchaseHandler.class);
     private final CountingReleaseService service;
 
-    public CountingReleasePurchaseHandler() {
-        this(new CountingReleaseService());
-    }
-
-    CountingReleasePurchaseHandler(CountingReleaseService service) {
+    public CountingReleasePurchaseHandler(CountingReleaseService service) {
         this.service = service;
     }
 
@@ -58,6 +54,7 @@ public class CountingReleasePurchaseHandler implements InteractionListener<Butto
         return switch (attempt.result()) {
             case ALREADY_RELEASED -> ctx.reply("Voce ja esta liberado da contagem.", true);
             case INSUFFICIENT_BALANCE -> Status.INSUFFICIENT_BALANCE;
+            case CONFIGURATION_UNAVAILABLE -> Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
             case CHARGED -> releaseRole(ctx, guild, user, role, currency, attempt.action());
         };
     }

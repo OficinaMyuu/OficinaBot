@@ -23,11 +23,7 @@ import java.util.OptionalLong;
 public class OpenCountingReleaseConfirmationHandler implements InteractionListener<ButtonClickContext> {
     private final CountingReleaseService service;
 
-    public OpenCountingReleaseConfirmationHandler() {
-        this(new CountingReleaseService());
-    }
-
-    OpenCountingReleaseConfirmationHandler(CountingReleaseService service) {
+    public OpenCountingReleaseConfirmationHandler(CountingReleaseService service) {
         this.service = service;
     }
 
@@ -46,7 +42,12 @@ public class OpenCountingReleaseConfirmationHandler implements InteractionListen
             return Status.ROLE_NOT_FOUND;
         }
 
-        MessageEmbed embed = EmbedFactory.embedCountingReleasePurchase(guild, user);
+        var configuredPrice = service.findPrice();
+        if (configuredPrice.isEmpty()) {
+            return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+        }
+
+        MessageEmbed embed = EmbedFactory.embedCountingReleasePurchase(guild, user, configuredPrice.getAsInt());
         List<Button> buttons = EntityContextFactory.createCountingReleasePaymentButtons(user);
 
         ctx.create()

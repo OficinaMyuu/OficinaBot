@@ -43,14 +43,6 @@ public class UserinfoCommand extends SlashCommand {
     public UserinfoCommand(
             CustomUserinfoRepository csInfoRepo, MemberEmojiRepository emjRepo,
             UserEconomyRepository ecoRepo, MarriageRepository marrRepo,
-            OficinaGroupRepository groupRepo, MemberJoinEventRepository joinEventRepo
-    ) {
-        this(csInfoRepo, emjRepo, ecoRepo, marrRepo, groupRepo, joinEventRepo, new CountingReleaseService());
-    }
-
-    UserinfoCommand(
-            CustomUserinfoRepository csInfoRepo, MemberEmojiRepository emjRepo,
-            UserEconomyRepository ecoRepo, MarriageRepository marrRepo,
             OficinaGroupRepository groupRepo, MemberJoinEventRepository joinEventRepo,
             CountingReleaseService countingReleaseService
     ) {

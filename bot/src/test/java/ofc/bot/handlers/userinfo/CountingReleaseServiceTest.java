@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalInt;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,7 +16,7 @@ class CountingReleaseServiceTest {
     @Test
     void shouldChargeSelectedEconomyBankOnly() {
         RecordingPaymentManager payment = new RecordingPaymentManager(CurrencyType.UNBELIEVABOAT, true);
-        CountingReleaseService service = new CountingReleaseService(currency -> payment);
+        CountingReleaseService service = serviceWithPrice(2_000, currency -> payment);
 
         CountingReleaseService.ReleaseAttempt attempt = service.charge(
                 CurrencyType.UNBELIEVABOAT,
@@ -30,7 +31,7 @@ class CountingReleaseServiceTest {
                 42L,
                 100L,
                 0L,
-                CountingReleaseService.PRICE,
+                2_000,
                 CountingReleaseService.PAYMENT_REASON
         )), payment.calls);
     }
@@ -38,7 +39,7 @@ class CountingReleaseServiceTest {
     @Test
     void shouldNotChargeWhenMemberIsAlreadyReleased() {
         RecordingPaymentManager payment = new RecordingPaymentManager(CurrencyType.OFICINA, true);
-        CountingReleaseService service = new CountingReleaseService(currency -> payment);
+        CountingReleaseService service = serviceWithPrice(2_000, currency -> payment);
 
         CountingReleaseService.ReleaseAttempt attempt = service.charge(CurrencyType.OFICINA, 42L, 100L, false);
 
@@ -50,7 +51,7 @@ class CountingReleaseServiceTest {
     @Test
     void shouldReportInsufficientBalanceWhenChargeFails() {
         RecordingPaymentManager payment = new RecordingPaymentManager(CurrencyType.OFICINA, false);
-        CountingReleaseService service = new CountingReleaseService(currency -> payment);
+        CountingReleaseService service = serviceWithPrice(2_000, currency -> payment);
 
         CountingReleaseService.ReleaseAttempt attempt = service.charge(CurrencyType.OFICINA, 42L, 100L, true);
 
@@ -61,13 +62,31 @@ class CountingReleaseServiceTest {
 
     @Test
     void shouldShowReleaseButtonOnlyForSelfWithPunishmentRole() {
-        CountingReleaseService service = new CountingReleaseService(currency -> {
+        CountingReleaseService service = serviceWithPrice(2_000, currency -> {
             throw new AssertionError("Payment provider should not be used for visibility checks.");
         });
 
         assertTrue(service.shouldShowReleaseButton(42L, 42L, true));
         assertFalse(service.shouldShowReleaseButton(42L, 42L, false));
         assertFalse(service.shouldShowReleaseButton(7L, 42L, true));
+    }
+
+    @Test
+    void shouldFailClosedWhenThePriceIsNotConfigured() {
+        RecordingPaymentManager payment = new RecordingPaymentManager(CurrencyType.OFICINA, true);
+        CountingReleaseService service = new CountingReleaseService(OptionalInt::empty, currency -> payment);
+
+        CountingReleaseService.ReleaseAttempt attempt = service.charge(CurrencyType.OFICINA, 42L, 100L, true);
+
+        assertEquals(CountingReleaseService.Result.CONFIGURATION_UNAVAILABLE, attempt.result());
+        assertTrue(payment.calls.isEmpty());
+    }
+
+    private static CountingReleaseService serviceWithPrice(
+            int price,
+            java.util.function.Function<CurrencyType, PaymentManager> paymentProvider
+    ) {
+        return new CountingReleaseService(() -> OptionalInt.of(price), paymentProvider);
     }
 
     private record ChargeCall(long userId, long guildId, long cash, long bank, String reason) {}
