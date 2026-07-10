@@ -11,6 +11,7 @@ import (
 	"oficina-img/internal/contract"
 	"oficina-img/internal/domain/entity"
 	"oficina-img/internal/domain/mysql/repository"
+	"oficina-img/internal/utils"
 )
 
 type BirthdayRepository interface {
@@ -161,8 +162,8 @@ func toBirthdayResponse(birthday entity.Birthday) contract.BirthdayResponse {
 		Name:      birthday.Name,
 		Birthday:  birthday.Birthday.Format(repository.DateOnlyLayout),
 		ZoneHours: birthday.ZoneHours,
-		CreatedAt: birthday.CreatedAt,
-		UpdatedAt: birthday.UpdatedAt,
+		CreatedAt: utils.FormatEpoch(birthday.CreatedAt),
+		UpdatedAt: utils.FormatEpoch(birthday.UpdatedAt),
 	}
 }
 

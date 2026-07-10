@@ -74,8 +74,15 @@ func TestBirthdayHandlerListAppliesMonthFilter(t *testing.T) {
 	if repo.listFilter.Month != 5 || repo.listFilter.Search != "myuu" {
 		t.Fatalf("unexpected filter: %+v", repo.listFilter)
 	}
-	if !strings.Contains(rec.Body.String(), `"user_id":"42"`) {
-		t.Fatalf("expected user id response, got %s", rec.Body.String())
+	for _, expected := range []string{
+		`"user_id":"42"`,
+		`"created_at":"1970-01-01T00:00:01Z"`,
+		`"updated_at":"1970-01-01T00:00:02Z"`,
+	} {
+		if strings.Contains(rec.Body.String(), expected) {
+			continue
+		}
+		t.Fatalf("expected %s in response, got %s", expected, rec.Body.String())
 	}
 }
 

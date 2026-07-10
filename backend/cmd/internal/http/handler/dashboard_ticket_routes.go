@@ -11,6 +11,7 @@ import (
 	"oficina-img/internal/contract"
 	"oficina-img/internal/domain/entity"
 	"oficina-img/internal/domain/mysql/repository"
+	"oficina-img/internal/utils"
 )
 
 type TicketRepository interface {
@@ -149,8 +150,8 @@ func toTicketResponse(ticket entity.Ticket) contract.TicketResponse {
 		CloseReason: ticket.CloseReason,
 		ClosedByID:  optionalInt64String(ticket.ClosedByID),
 		MergedInto:  ticket.MergedInto,
-		CreatedAt:   ticket.CreatedAt,
-		UpdatedAt:   ticket.UpdatedAt,
+		CreatedAt:   utils.FormatEpoch(ticket.CreatedAt),
+		UpdatedAt:   utils.FormatEpoch(ticket.UpdatedAt),
 	}
 }
 
@@ -164,8 +165,8 @@ func toTicketMessageResponse(message entity.TicketMessage) contract.TicketMessag
 		IsEdited:           message.IsEdited,
 		IsDeleted:          message.IsDeleted,
 		DeletedByID:        optionalInt64String(message.DeletedByID),
-		CreatedAt:          message.CreatedAt,
-		UpdatedAt:          message.UpdatedAt,
+		CreatedAt:          utils.FormatEpoch(message.CreatedAt),
+		UpdatedAt:          utils.FormatEpoch(message.UpdatedAt),
 	}
 }
 

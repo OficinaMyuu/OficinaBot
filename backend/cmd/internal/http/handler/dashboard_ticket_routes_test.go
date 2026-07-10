@@ -103,7 +103,7 @@ func TestTicketHandlerListUsesSnakeCaseAndFilters(t *testing.T) {
 		t.Fatalf("unexpected cursor: %+v", repo.listFilter.Cursor)
 	}
 	body := rec.Body.String()
-	for _, expected := range []string{`"channel_id":"456"`, `"initiator_id":"42"`, `"close_reason":"Solved"`, `"closed_by_id":"99"`, `"merged_into":9`, `"next_cursor":"10:7"`} {
+	for _, expected := range []string{`"channel_id":"456"`, `"initiator_id":"42"`, `"close_reason":"Solved"`, `"closed_by_id":"99"`, `"merged_into":9`, `"created_at":"1970-01-01T00:00:10Z"`, `"updated_at":"1970-01-01T00:00:11Z"`, `"next_cursor":"10:7"`} {
 		if !strings.Contains(body, expected) {
 			t.Fatalf("expected %s in response, got %s", expected, body)
 		}
@@ -133,7 +133,7 @@ func TestTicketHandlerMessagesReturnsSnakeCaseMessageFields(t *testing.T) {
 		t.Fatalf("expected limit filter, got %+v", repo.messageFilter)
 	}
 	body := rec.Body.String()
-	for _, expected := range []string{`"message_id":"101"`, `"author_id":"42"`, `"message_reference_id":"100"`, `"sticker_id":"200"`, `"is_edited":true`, `"is_deleted":false`} {
+	for _, expected := range []string{`"message_id":"101"`, `"author_id":"42"`, `"message_reference_id":"100"`, `"sticker_id":"200"`, `"is_edited":true`, `"is_deleted":false`, `"created_at":"1970-01-01T00:16:40Z"`, `"updated_at":"1970-01-01T00:16:41Z"`} {
 		if !strings.Contains(body, expected) {
 			t.Fatalf("expected %s in response, got %s", expected, body)
 		}

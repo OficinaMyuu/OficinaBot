@@ -12,8 +12,8 @@ type BirthdayResponse struct {
 	Name      string `json:"name"`
 	Birthday  string `json:"birthday"`
 	ZoneHours int    `json:"zone_hours"`
-	CreatedAt int64  `json:"created_at"`
-	UpdatedAt int64  `json:"updated_at"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
 }
 
 type BirthdayListResponse struct {
@@ -42,8 +42,8 @@ type TicketResponse struct {
 	CloseReason *string `json:"close_reason"`
 	ClosedByID  *string `json:"closed_by_id"`
 	MergedInto  *int    `json:"merged_into"`
-	CreatedAt   int64   `json:"created_at"`
-	UpdatedAt   int64   `json:"updated_at"`
+	CreatedAt   string  `json:"created_at"`
+	UpdatedAt   string  `json:"updated_at"`
 }
 
 type TicketMessageResponse struct {
@@ -55,8 +55,24 @@ type TicketMessageResponse struct {
 	IsEdited           bool    `json:"is_edited"`
 	IsDeleted          bool    `json:"is_deleted"`
 	DeletedByID        *string `json:"deleted_by_id"`
-	CreatedAt          int64   `json:"created_at"`
-	UpdatedAt          int64   `json:"updated_at"`
+	CreatedAt          string  `json:"created_at"`
+	UpdatedAt          string  `json:"updated_at"`
+}
+
+type StoreItemSettingsUpdateRequest struct {
+	Price int `json:"price"`
+}
+
+type StoreItemSettingsResponse struct {
+	ItemType  string  `json:"item_type"`
+	Price     int     `json:"price"`
+	CreatedAt string  `json:"created_at"`
+	UpdatedAt string  `json:"updated_at"`
+	UpdatedBy *string `json:"updated_by"`
+}
+
+type StoreItemSettingsListResponse struct {
+	Items []StoreItemSettingsResponse `json:"items"`
 }
 
 type UserQueryRequest struct {
