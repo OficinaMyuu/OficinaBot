@@ -9,6 +9,8 @@ import ofc.bot.domain.entity.ColorRoleItem;
 import ofc.bot.domain.entity.ColorRoleState;
 import ofc.bot.domain.database.repository.ColorRoleItemRepository;
 import ofc.bot.domain.database.repository.ColorRoleStateRepository;
+import ofc.bot.domain.database.repository.StoreItemSettingsRepository;
+import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
@@ -29,10 +31,16 @@ import java.util.stream.Collectors;
 public class ColorsCommand extends SlashCommand {
     private final ColorRoleItemRepository colorItemRepo;
     private final ColorRoleStateRepository colorStateRepo;
+    private final StoreItemSettingsRepository storeItemSettingsRepo;
 
-    public ColorsCommand(ColorRoleItemRepository colorItemRepo, ColorRoleStateRepository colorStateRepo) {
+    public ColorsCommand(
+            ColorRoleItemRepository colorItemRepo,
+            ColorRoleStateRepository colorStateRepo,
+            StoreItemSettingsRepository storeItemSettingsRepo
+    ) {
         this.colorItemRepo = colorItemRepo;
         this.colorStateRepo = colorStateRepo;
+        this.storeItemSettingsRepo = storeItemSettingsRepo;
     }
 
     @Override
@@ -41,13 +49,18 @@ public class ColorsCommand extends SlashCommand {
         User user = ctx.getUser();
         long guildId = guild.getIdLong();
         long userId = user.getIdLong();
+        var configuredPrice = storeItemSettingsRepo.findPrice(StoreItemType.COLOR_ROLE);
+        if (configuredPrice.isEmpty()) {
+            return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+        }
+
         Map<Long, ColorRoleState> states = colorStateRepo.findByUserId(userId).stream()
                 .filter(state -> state.getGuildId() == guildId)
                 .collect(Collectors.toMap(ColorRoleState::getRoleId, Function.identity(), (first, ignored) -> first));
 
         List<ColorRoleStoreMessageFactory.Entry> entries = colorItemRepo.findAll()
                 .stream()
-                .map(color -> toEntry(guild, user, states, color))
+                .map(color -> toEntry(guild, user, states, color, configuredPrice.getAsInt()))
                 .filter(Objects::nonNull)
                 .toList();
 
@@ -73,7 +86,8 @@ public class ColorsCommand extends SlashCommand {
             Guild guild,
             User user,
             Map<Long, ColorRoleState> states,
-            ColorRoleItem color
+            ColorRoleItem color,
+            int price
     ) {
         Role role = guild.getRoleById(color.getRoleId());
         if (role == null) {
@@ -82,7 +96,7 @@ public class ColorsCommand extends SlashCommand {
 
         ColorRoleState state = states.get(color.getRoleId());
         Button button = state == null
-                ? EntityContextFactory.createColorRoleStorePurchaseButton(color, role, user)
+                ? EntityContextFactory.createColorRoleStorePurchaseButton(price, role, user)
                 : EntityContextFactory.createColorRoleStoreRemoveButton(
                         state,
                         role,

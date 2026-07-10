@@ -17,7 +17,6 @@ import ofc.bot.handlers.channels.ChannelPermissionOptimizer;
 import ofc.bot.handlers.economy.CurrencyType;
 import ofc.bot.handlers.nick.NicknameEmojiPolicy;
 import ofc.bot.handlers.paginations.PageItem;
-import ofc.bot.handlers.userinfo.CountingReleaseService;
 import ofc.bot.util.Bot;
 import ofc.bot.util.OficinaEmbed;
 
@@ -102,9 +101,9 @@ public final class EmbedFactory {
                 .build();
     }
 
-    public static MessageEmbed embedColorRolesList(Guild guild, List<ColorRoleItem> roles) {
+    public static MessageEmbed embedColorRolesList(Guild guild, List<ColorRoleItem> roles, int price) {
         EmbedBuilder builder = new EmbedBuilder();
-        String prettyRoles = prettifyRoles(roles);
+        String prettyRoles = prettifyRoles(roles, price);
         String desc = String.format("Abaixo estão todos os cargos de cor disponíveis.\n\n%s", prettyRoles);
 
         return builder
@@ -382,10 +381,9 @@ public final class EmbedFactory {
                 .build();
     }
 
-    public static MessageEmbed embedColorRolePurchase(ColorRoleItem color, Role role, User user) {
+    public static MessageEmbed embedColorRolePurchase(int price, Role role, User user) {
         EmbedBuilder builder = new EmbedBuilder();
         Guild guild = role.getGuild();
-        int price = color.getPrice();
 
         return builder
                 .setTitle("Confirmação de Compra")
@@ -432,7 +430,7 @@ public final class EmbedFactory {
                 .build();
     }
 
-    public static MessageEmbed embedCountingReleasePurchase(Guild guild, User user) {
+    public static MessageEmbed embedCountingReleasePurchase(Guild guild, User user, int price) {
         EmbedBuilder builder = new EmbedBuilder();
 
         return builder
@@ -440,7 +438,7 @@ public final class EmbedFactory {
                 .setDescription("Deseja remover sua punição da contagem?")
                 .setThumbnail(user.getEffectiveAvatarUrl())
                 .setColor(Bot.Colors.DEFAULT)
-                .addField("\uD83D\uDCB0 Valor", Bot.fmtMoney(CountingReleaseService.PRICE), true)
+                .addField("\uD83D\uDCB0 Valor", Bot.fmtMoney(price), true)
                 .addField("\uD83D\uDCB3 Cobrança", "Bank", true)
                 .setFooter(guild.getName(), guild.getIconUrl())
                 .build();
@@ -882,11 +880,10 @@ public final class EmbedFactory {
         return builder.toString().strip();
     }
 
-    private static String prettifyRoles(List<ColorRoleItem> roles) {
+    private static String prettifyRoles(List<ColorRoleItem> roles, int price) {
         StringBuilder builder = new StringBuilder();
 
         for (ColorRoleItem cri : roles) {
-            int price = cri.getPrice();
             long roleId = cri.getRoleId();
             String row = String.format("`%s`**・**<@&%d>\n", Bot.fmtMoney(price), roleId);
 

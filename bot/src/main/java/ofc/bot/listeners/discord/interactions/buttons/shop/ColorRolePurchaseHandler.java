@@ -4,6 +4,8 @@ import net.dv8tion.jda.api.entities.*;
 import ofc.bot.domain.entity.ColorRoleItem;
 import ofc.bot.domain.entity.ColorRoleState;
 import ofc.bot.domain.database.repository.ColorRoleStateRepository;
+import ofc.bot.domain.database.repository.StoreItemSettingsRepository;
+import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.handlers.economy.*;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.InteractionListener;
@@ -21,9 +23,14 @@ import org.slf4j.LoggerFactory;
 public class ColorRolePurchaseHandler implements InteractionListener<ButtonClickContext> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ColorRolePurchaseHandler.class);
     private final ColorRoleStateRepository colorStateRepo;
+    private final StoreItemSettingsRepository storeItemSettingsRepo;
 
-    public ColorRolePurchaseHandler(ColorRoleStateRepository colorStateRepo) {
+    public ColorRolePurchaseHandler(
+            ColorRoleStateRepository colorStateRepo,
+            StoreItemSettingsRepository storeItemSettingsRepo
+    ) {
         this.colorStateRepo = colorStateRepo;
+        this.storeItemSettingsRepo = storeItemSettingsRepo;
     }
 
     @Override
@@ -31,13 +38,17 @@ public class ColorRolePurchaseHandler implements InteractionListener<ButtonClick
         Guild guild = ctx.getGuild();
         User user = ctx.get("user");
         Role role = ctx.get("role");
-        ColorRoleItem color = ctx.get("color");
         CurrencyType currency = ctx.get("currency");
         PaymentManager payment = PaymentManagerProvider.fromType(currency);
         long userId = user.getIdLong();
         long guildId = guild.getIdLong();
         long now = Bot.unixNow();
-        int price = color.getPrice();
+        var configuredPrice = storeItemSettingsRepo.findPrice(StoreItemType.COLOR_ROLE);
+        if (configuredPrice.isEmpty()) {
+            return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+        }
+
+        int price = configuredPrice.getAsInt();
         BankAction act = payment.charge(userId, guildId, 0, price, "Color role purchase");
 
         if (!act.isOk())

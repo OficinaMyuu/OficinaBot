@@ -8,6 +8,8 @@ import net.dv8tion.jda.api.entities.User;
 import ofc.bot.domain.entity.ColorRoleItem;
 import ofc.bot.domain.database.repository.ColorRoleItemRepository;
 import ofc.bot.domain.database.repository.ColorRoleStateRepository;
+import ofc.bot.domain.database.repository.StoreItemSettingsRepository;
+import ofc.bot.domain.entity.enums.StoreItemType;
 import ofc.bot.handlers.interactions.AutoResponseType;
 import ofc.bot.handlers.interactions.EntityContextFactory;
 import ofc.bot.handlers.interactions.InteractionListener;
@@ -24,13 +26,16 @@ import java.util.List;
 public class OpenColorRolePurchaseConfirmationHandler implements InteractionListener<ButtonClickContext> {
     private final ColorRoleItemRepository colorItemRepo;
     private final ColorRoleStateRepository colorStateRepo;
+    private final StoreItemSettingsRepository storeItemSettingsRepo;
 
     public OpenColorRolePurchaseConfirmationHandler(
             ColorRoleItemRepository colorItemRepo,
-            ColorRoleStateRepository colorStateRepo
+            ColorRoleStateRepository colorStateRepo,
+            StoreItemSettingsRepository storeItemSettingsRepo
     ) {
         this.colorItemRepo = colorItemRepo;
         this.colorStateRepo = colorStateRepo;
+        this.storeItemSettingsRepo = storeItemSettingsRepo;
     }
 
     @Override
@@ -53,8 +58,13 @@ public class OpenColorRolePurchaseConfirmationHandler implements InteractionList
             return Status.YOU_ALREADY_HAVE_THIS_COLOR_ROLE;
         }
 
-        MessageEmbed embed = EmbedFactory.embedColorRolePurchase(color, role, user);
-        List<Button> buttons = EntityContextFactory.createColorRoleButtons(color, role, user);
+        var configuredPrice = storeItemSettingsRepo.findPrice(StoreItemType.COLOR_ROLE);
+        if (configuredPrice.isEmpty()) {
+            return Status.STORE_ITEM_CONFIGURATION_UNAVAILABLE;
+        }
+
+        MessageEmbed embed = EmbedFactory.embedColorRolePurchase(configuredPrice.getAsInt(), role, user);
+        List<Button> buttons = EntityContextFactory.createColorRoleButtons(role, user);
         ctx.create()
                 .setEmbeds(embed)
                 .setActionRows(buttons)

@@ -299,12 +299,11 @@ public final class EntityContextFactory {
         return List.of(confirm.getEntity());
     }
 
-    public static Button createColorRoleStorePurchaseButton(ColorRoleItem color, Role role, User user) {
-        ButtonContext confirm = ButtonContext.success(Bot.fmtNum(color.getPrice()), Bot.Emojis.MONEY_BAG)
+    public static Button createColorRoleStorePurchaseButton(int price, Role role, User user) {
+        ButtonContext confirm = ButtonContext.success(Bot.fmtNum(price), Bot.Emojis.MONEY_BAG)
                 .setScope(Scopes.Shop.OPEN_COLOR_ROLE_PURCHASE_CONFIRMATION)
                 .addUser(user.getIdLong())
                 .put("user", user)
-                .put("color", color)
                 .put("role", role);
 
         INTERACTION_MANAGER.save(confirm);
@@ -325,13 +324,12 @@ public final class EntityContextFactory {
         return confirm.getEntity();
     }
 
-    public static List<Button> createColorRoleButtons(ColorRoleItem color, Role role, User user) {
+    public static List<Button> createColorRoleButtons(Role role, User user) {
         ButtonContext payOfc = ButtonContext.success("Pagar com Oficina", CurrencyType.OFICINA.getEmoji())
                 .setScope(Scopes.Shop.ADD_COLOR_ROLE)
                 .addUser(user.getIdLong())
                 .put("currency", CurrencyType.OFICINA)
                 .put("user", user)
-                .put("color", color)
                 .put("role", role);
 
         ButtonContext payUnb = ButtonContext.success("Pagar com UnbelievaBoat", CurrencyType.UNBELIEVABOAT.getEmoji())
@@ -339,7 +337,6 @@ public final class EntityContextFactory {
                 .addUser(user.getIdLong())
                 .put("currency", CurrencyType.UNBELIEVABOAT)
                 .put("user", user)
-                .put("color", color)
                 .put("role", role);
 
         INTERACTION_MANAGER.save(payOfc, payUnb);
