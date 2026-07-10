@@ -84,7 +84,7 @@
   "economy": {
     "actionCosts": {
       "title": "Action costs",
-      "description": "Configure the amounts charged by group commands. This is an internal control, not a storefront.",
+        "description": "Configure the amounts charged by purchasable bot actions. This is an internal control, not a storefront.",
       "loading": "Loading action costs...",
       "empty": "No action costs are configured.",
       "fields": {
@@ -109,7 +109,10 @@
         "ADDITIONAL_BOT": { "title": "Add bot", "command": "/group bots" },
         "GROUP_SLOT": { "title": "Add member slot", "command": "/group member add" },
         "GROUP_PERMISSION": { "title": "Add group permission", "command": "/group permission" },
-        "PIN_MESSAGE": { "title": "Pin message", "command": "/group pins (pin)" }
+          "PIN_MESSAGE": { "title": "Pin message", "command": "/group pins (pin)" },
+          "COLOR_ROLE": { "title": "Buy color role", "command": "/colors" },
+          "COUNTING_RELEASE": { "title": "Release counting punishment", "command": "/userinfo" },
+          "MARRIAGE": { "title": "Accept marriage", "command": "/marriage accept" }
       }
     }
   },

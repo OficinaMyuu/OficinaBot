@@ -7,6 +7,9 @@ export type StoreItemType =
   | "GROUP_SLOT"
   | "GROUP_PERMISSION"
   | "PIN_MESSAGE"
+  | "COLOR_ROLE"
+  | "COUNTING_RELEASE"
+  | "MARRIAGE"
 
 export type ActionCost = {
   item_type: StoreItemType

@@ -127,10 +127,22 @@
           "title": "Adicionar permissão",
           "command": "/group permission"
         },
-        "PIN_MESSAGE": {
-          "title": "Fixar mensagem",
-          "command": "/group pins (pin)"
-        }
+          "PIN_MESSAGE": {
+            "title": "Fixar mensagem",
+            "command": "/group pins (pin)"
+          },
+          "COLOR_ROLE": {
+            "title": "Comprar cargo de cor",
+            "command": "/colors"
+          },
+          "COUNTING_RELEASE": {
+            "title": "Liberar contagem",
+            "command": "/userinfo"
+          },
+          "MARRIAGE": {
+            "title": "Aceitar casamento",
+            "command": "/marriage accept"
+          }
       }
     }
   },

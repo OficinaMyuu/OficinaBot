@@ -76,6 +76,17 @@ describe("ActionCostsPage", () => {
     expect(screen.queryByTitle(/editar custo|edit cost/i)).not.toBeInTheDocument()
   })
 
+  it("renders a color-role action cost", async () => {
+    vi.mocked(actionCostService.list).mockResolvedValue([
+      { ...actionCost, item_type: "COLOR_ROLE", price: 75000 }
+    ])
+
+    renderPage()
+
+    expect(await screen.findByText(/cargo de cor|color role/i)).toBeInTheDocument()
+    expect(screen.getByText("/colors")).toBeInTheDocument()
+  })
+
   it("cancels editing on Escape key", async () => {
     renderPage()
 
