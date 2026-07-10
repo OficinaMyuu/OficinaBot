@@ -52,6 +52,14 @@ type TicketMessage struct {
 	UpdatedAt          int64
 }
 
+type StoreItemSetting struct {
+	ItemType  string
+	Price     int
+	CreatedAt int64
+	UpdatedAt int64
+	UpdatedBy *int64
+}
+
 type DashboardUser struct {
 	ID           string
 	Username     string

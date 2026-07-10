@@ -10,6 +10,7 @@ type DashboardRoutesConfig struct {
 	Sessions      *SessionStore
 	Birthdays     BirthdayRepository
 	Tickets       TicketRepository
+	StoreItems    StoreItemSettingsRepository
 	Users         UserRepository
 	MissingConfig []string
 }
@@ -36,6 +37,13 @@ func RegisterDashboardRoutes(e *echo.Echo, cfg DashboardRoutesConfig) {
 		tickets := e.Group("/tickets", authHandler.RequireSession)
 		tickets.GET("", ticketHandler.List)
 		tickets.GET("/:ticketID/messages", ticketHandler.Messages)
+	}
+
+	if cfg.StoreItems != nil {
+		storeItemSettingsHandler := NewStoreItemSettingsHandler(cfg.StoreItems)
+		storeItemSettings := e.Group("/economy/action-costs", authHandler.RequireSession)
+		storeItemSettings.GET("", storeItemSettingsHandler.List)
+		storeItemSettings.PATCH("/:itemType", storeItemSettingsHandler.Update)
 	}
 
 	if cfg.Users != nil {
