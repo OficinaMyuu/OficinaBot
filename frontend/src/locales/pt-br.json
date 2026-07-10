@@ -81,6 +81,38 @@
       "loadMoreMessages": "Carregar mais mensagens"
     }
   },
+  "economy": {
+    "actionCosts": {
+      "title": "Custos de ações",
+      "description": "Configure os valores cobrados pelos comandos de grupo. Isto é um controle interno, não uma loja.",
+      "loading": "Carregando custos de ações...",
+      "empty": "Nenhum custo de ação foi configurado.",
+      "fields": {
+        "action": "Ação",
+        "command": "Comando",
+        "cost": "Custo",
+        "updatedAt": "Última alteração"
+      },
+      "actions": {
+        "edit": "Editar custo",
+        "save": "Salvar custo"
+      },
+      "messages": {
+        "updated": "Custo da ação atualizado.",
+        "invalidPrice": "Informe um número inteiro igual ou maior que zero."
+      },
+      "items": {
+        "GROUP": { "title": "Criar grupo", "command": "/group create" },
+        "GROUP_TEXT_CHANNEL": { "title": "Criar chat de texto", "command": "/group channel create (texto)" },
+        "GROUP_VOICE_CHANNEL": { "title": "Criar chat de voz", "command": "/group channel create (voz)" },
+        "UPDATE_GROUP": { "title": "Modificar grupo", "command": "/group modify" },
+        "ADDITIONAL_BOT": { "title": "Adicionar bot", "command": "/group bots" },
+        "GROUP_SLOT": { "title": "Adicionar vaga", "command": "/group member add" },
+        "GROUP_PERMISSION": { "title": "Adicionar permissão", "command": "/group permission" },
+        "PIN_MESSAGE": { "title": "Fixar mensagem", "command": "/group pins (pin)" }
+      }
+    }
+  },
   "messages": {
     "logLabel": "Historico de mensagens",
     "empty": "Nenhuma mensagem encontrada.",
@@ -114,6 +146,11 @@
     "12": "Dezembro"
   },
   "navigation": {
-    "modules": "Módulos"
+    "dashboard": "Navegação do dashboard",
+    "categories": {
+      "misc": "MISC",
+      "moderation": "MODERAÇÃO",
+      "economy": "ECONOMY"
+    }
   }
 }

@@ -15,6 +15,7 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardTicketsRouteImport } from './routes/dashboard.tickets'
 import { Route as DashboardLoginRouteImport } from './routes/dashboard.login'
 import { Route as DashboardBirthdaysRouteImport } from './routes/dashboard.birthdays'
+import { Route as DashboardEconomyActionCostsRouteImport } from './routes/dashboard.economy.action-costs'
 
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
@@ -46,6 +47,12 @@ const DashboardBirthdaysRoute = DashboardBirthdaysRouteImport.update({
   path: '/birthdays',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardEconomyActionCostsRoute =
+  DashboardEconomyActionCostsRouteImport.update({
+    id: '/economy/action-costs',
+    path: '/economy/action-costs',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/login': typeof DashboardLoginRoute
   '/dashboard/tickets': typeof DashboardTicketsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/economy/action-costs': typeof DashboardEconomyActionCostsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,6 +69,7 @@ export interface FileRoutesByTo {
   '/dashboard/login': typeof DashboardLoginRoute
   '/dashboard/tickets': typeof DashboardTicketsRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/dashboard/economy/action-costs': typeof DashboardEconomyActionCostsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,6 +79,7 @@ export interface FileRoutesById {
   '/dashboard/login': typeof DashboardLoginRoute
   '/dashboard/tickets': typeof DashboardTicketsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/economy/action-costs': typeof DashboardEconomyActionCostsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -80,6 +90,7 @@ export interface FileRouteTypes {
     | '/dashboard/login'
     | '/dashboard/tickets'
     | '/dashboard/'
+    | '/dashboard/economy/action-costs'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -87,6 +98,7 @@ export interface FileRouteTypes {
     | '/dashboard/login'
     | '/dashboard/tickets'
     | '/dashboard'
+    | '/dashboard/economy/action-costs'
   id:
     | '__root__'
     | '/'
@@ -95,6 +107,7 @@ export interface FileRouteTypes {
     | '/dashboard/login'
     | '/dashboard/tickets'
     | '/dashboard/'
+    | '/dashboard/economy/action-costs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -146,6 +159,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBirthdaysRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/economy/action-costs': {
+      id: '/dashboard/economy/action-costs'
+      path: '/economy/action-costs'
+      fullPath: '/dashboard/economy/action-costs'
+      preLoaderRoute: typeof DashboardEconomyActionCostsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
@@ -154,6 +174,7 @@ interface DashboardRouteChildren {
   DashboardLoginRoute: typeof DashboardLoginRoute
   DashboardTicketsRoute: typeof DashboardTicketsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardEconomyActionCostsRoute: typeof DashboardEconomyActionCostsRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -161,6 +182,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardLoginRoute: DashboardLoginRoute,
   DashboardTicketsRoute: DashboardTicketsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardEconomyActionCostsRoute: DashboardEconomyActionCostsRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(

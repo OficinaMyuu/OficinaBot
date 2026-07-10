@@ -78,8 +78,14 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 6px;
+  gap: 20px;
   padding: 20px 14px;
+}
+
+.moduleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .sectionLabel {

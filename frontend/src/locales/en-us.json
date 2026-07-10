@@ -81,6 +81,38 @@
       "loadMoreMessages": "Load more messages"
     }
   },
+  "economy": {
+    "actionCosts": {
+      "title": "Action costs",
+      "description": "Configure the amounts charged by group commands. This is an internal control, not a storefront.",
+      "loading": "Loading action costs...",
+      "empty": "No action costs are configured.",
+      "fields": {
+        "action": "Action",
+        "command": "Command",
+        "cost": "Cost",
+        "updatedAt": "Last updated"
+      },
+      "actions": {
+        "edit": "Edit cost",
+        "save": "Save cost"
+      },
+      "messages": {
+        "updated": "Action cost updated.",
+        "invalidPrice": "Enter a whole number that is zero or greater."
+      },
+      "items": {
+        "GROUP": { "title": "Create group", "command": "/group create" },
+        "GROUP_TEXT_CHANNEL": { "title": "Create text channel", "command": "/group channel create (text)" },
+        "GROUP_VOICE_CHANNEL": { "title": "Create voice channel", "command": "/group channel create (voice)" },
+        "UPDATE_GROUP": { "title": "Modify group", "command": "/group modify" },
+        "ADDITIONAL_BOT": { "title": "Add bot", "command": "/group bots" },
+        "GROUP_SLOT": { "title": "Add member slot", "command": "/group member add" },
+        "GROUP_PERMISSION": { "title": "Add group permission", "command": "/group permission" },
+        "PIN_MESSAGE": { "title": "Pin message", "command": "/group pins (pin)" }
+      }
+    }
+  },
   "messages": {
     "logLabel": "Message log",
     "empty": "No messages found.",
@@ -114,6 +146,11 @@
     "12": "December"
   },
   "navigation": {
-    "modules": "Modules"
+    "dashboard": "Dashboard navigation",
+    "categories": {
+      "misc": "MISC",
+      "moderation": "MODERATION",
+      "economy": "ECONOMY"
+    }
   }
 }
