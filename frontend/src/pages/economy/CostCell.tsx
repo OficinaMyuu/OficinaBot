@@ -1,3 +1,4 @@
+import { useRef } from "react"
 import type { RefObject } from "react"
 import { Spinner } from "@/components/ui/loaders"
 import type { ActionCost } from "@/types/actionCost"
@@ -27,6 +28,8 @@ export function CostCell({
   onSave,
   onCancel
 }: CostCellProps) {
+  const isCancelledRef = useRef(false)
+
   if (isSaving) {
     return (
       <div className={styles.cellSpinner}>
@@ -63,13 +66,20 @@ export function CostCell({
           }
           onDraftChange(formatIntegerInput(event.target.value))
         }}
-        onBlur={onSave}
+        onBlur={() => {
+          if (isCancelledRef.current) {
+            isCancelledRef.current = false
+            return
+          }
+          onSave()
+        }}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             event.preventDefault()
             onSave()
           } else if (event.key === "Escape") {
             event.preventDefault()
+            isCancelledRef.current = true
             onCancel()
             event.currentTarget.blur()
           }
@@ -78,3 +88,4 @@ export function CostCell({
     </label>
   )
 }
+
