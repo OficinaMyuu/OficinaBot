@@ -1,6 +1,7 @@
 import { Navigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useSession } from '@/contexts/SessionContext'
+import { Spinner } from '@/components/ui/loaders'
 import styles from './ProtectedRoute.module.css'
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -10,7 +11,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (isLoading) {
     return (
       <main className={styles.centered}>
-        <div className={styles.loader} />
+        <Spinner size={20} color="var(--border-soft)" spinColor="var(--accent)" />
         <span>{t('auth.loading')}</span>
       </main>
     )
