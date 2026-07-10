@@ -10,7 +10,6 @@ type CostCellProps = {
   isSaving: boolean
   draftPrice: string
   inputRef: RefObject<HTMLInputElement | null>
-
   onBeginEditing: () => void
   onDraftChange: (value: string) => void
   onSave: () => void
@@ -36,48 +35,46 @@ export function CostCell({
     )
   }
 
-  if (isEditing) {
-    return (
-      <label className={styles.priceInput}>
-        <span className={styles.srOnly}>{item.item_type}</span>
-        <input
-          ref={inputRef}
-          aria-label={item.item_type}
-          inputMode="numeric"
-          type="text"
-          value={draftPrice}
-          onChange={(event) =>
-            onDraftChange(formatIntegerInput(event.target.value))
-          }
-          onBlur={onSave}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault()
-              onSave()
-            } else if (event.key === "Escape") {
-              event.preventDefault()
-              onCancel()
-            }
-          }}
-        />
-      </label>
-    )
-  }
+  const displayValue = isEditing ? draftPrice : formatNumber(item.price)
 
   return (
-    <span
-      className={styles.editableCell}
-      role="button"
-      tabIndex={0}
-      onClick={onBeginEditing}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault()
-          onBeginEditing()
-        }
-      }}
-    >
-      {formatNumber(item.price)}
-    </span>
+    <label className={styles.cellWrapper}>
+      <span className={styles.srOnly}>{item.item_type}</span>
+      <input
+        ref={isEditing ? inputRef : null}
+        className={isEditing ? styles.inputActive : styles.inputResting}
+        aria-label={item.item_type}
+        inputMode="numeric"
+        type="text"
+        value={displayValue}
+        onFocus={() => {
+          if (!isEditing) {
+            onBeginEditing()
+          }
+        }}
+        onClick={() => {
+          if (!isEditing) {
+            onBeginEditing()
+          }
+        }}
+        onChange={(event) => {
+          if (!isEditing) {
+            onBeginEditing()
+          }
+          onDraftChange(formatIntegerInput(event.target.value))
+        }}
+        onBlur={onSave}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault()
+            onSave()
+          } else if (event.key === "Escape") {
+            event.preventDefault()
+            onCancel()
+            event.currentTarget.blur()
+          }
+        }}
+      />
+    </label>
   )
 }

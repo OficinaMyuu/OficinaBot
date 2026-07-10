@@ -44,10 +44,8 @@ describe("ActionCostsPage", () => {
   it("inline-edits a cost to zero via Enter key", async () => {
     renderPage()
 
-    const costCell = await screen.findByText("600.000")
-    fireEvent.click(costCell)
-
-    const input = screen.getByLabelText("GROUP")
+    const input = await screen.findByLabelText("GROUP")
+    fireEvent.click(input)
     fireEvent.change(input, { target: { value: "0" } })
     fireEvent.keyDown(input, { key: "Enter" })
 
@@ -62,10 +60,8 @@ describe("ActionCostsPage", () => {
   it("rejects negative values before calling the API", async () => {
     renderPage()
 
-    const costCell = await screen.findByText("600.000")
-    fireEvent.click(costCell)
-
-    const input = screen.getByLabelText("GROUP")
+    const input = await screen.findByLabelText("GROUP")
+    fireEvent.click(input)
     fireEvent.change(input, { target: { value: "-1" } })
     fireEvent.keyDown(input, { key: "Enter" })
 
@@ -76,22 +72,20 @@ describe("ActionCostsPage", () => {
   it("does not render an edit button", async () => {
     renderPage()
 
-    await screen.findByText("600.000")
+    await screen.findByLabelText("GROUP")
     expect(screen.queryByTitle(/editar custo|edit cost/i)).not.toBeInTheDocument()
   })
 
   it("cancels editing on Escape key", async () => {
     renderPage()
 
-    const costCell = await screen.findByText("600.000")
-    fireEvent.click(costCell)
-
-    const input = screen.getByLabelText("GROUP")
+    const input = await screen.findByLabelText("GROUP")
+    fireEvent.click(input)
     fireEvent.change(input, { target: { value: "999" } })
     fireEvent.keyDown(input, { key: "Escape" })
 
     expect(actionCostService.update).not.toHaveBeenCalled()
-    expect(screen.getByText("600.000")).toBeInTheDocument()
+    expect(screen.getByLabelText("GROUP")).toHaveValue("600.000")
   })
 })
 

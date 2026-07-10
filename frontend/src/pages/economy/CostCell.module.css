@@ -1,40 +1,51 @@
-.editableCell {
-  cursor: pointer;
-  border-radius: 6px;
-  padding: 4px 8px;
-  margin: -4px -8px;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
+.cellWrapper {
+  display: inline-block;
 }
 
-.editableCell:hover {
-  background-color: var(--surface-raised);
-  color: var(--text-main);
-}
-
-.priceInput input {
+.inputResting,
+.inputActive {
   appearance: none;
-  background-color: var(--surface-input);
-  border: 1px solid var(--border-strong);
   border-radius: 8px;
   color: var(--text-main);
   font: inherit;
-  min-height: 36px;
+  font-size: 14px;
+  height: 36px;
   outline: 0;
-  padding: 0 10px;
-  width: 132px;
+  padding: 0 12px;
+  width: 140px;
+  box-sizing: border-box;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
-.priceInput input:focus {
-  border-color: var(--accent);
+.inputResting {
+  background-color: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-soft);
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.inputResting:hover {
+  background-color: rgba(0, 0, 0, 0.35);
+  border-color: var(--border-strong);
+}
+
+.inputActive {
+  background-color: var(--surface-input);
+  border: 1px solid var(--accent);
   box-shadow: 0 0 0 3px rgba(107, 64, 156, 0.25);
+  cursor: text;
 }
 
 .cellSpinner {
   display: flex;
   align-items: center;
   height: 36px;
+  width: 140px;
+  padding-left: 12px;
+  box-sizing: border-box;
 }
 
 .srOnly {
