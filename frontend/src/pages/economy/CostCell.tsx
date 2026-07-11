@@ -41,8 +41,7 @@ export function CostCell({
   const displayValue = isEditing ? draftPrice : formatNumber(item.price)
 
   return (
-    <label className={styles.cellWrapper}>
-      <span className={styles.srOnly}>{item.item_type}</span>
+    <div className={styles.cellWrapper}>
       <input
         ref={isEditing ? inputRef : null}
         className={isEditing ? styles.inputActive : styles.inputResting}
@@ -85,7 +84,6 @@ export function CostCell({
           }
         }}
       />
-    </label>
+    </div>
   )
 }
-

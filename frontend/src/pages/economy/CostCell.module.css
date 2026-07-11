@@ -47,11 +47,3 @@
   padding-left: 12px;
   box-sizing: border-box;
 }
-
-.srOnly {
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  position: absolute;
-  width: 1px;
-}
