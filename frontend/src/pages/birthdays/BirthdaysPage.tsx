@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import {
-  FiPlus,
-  FiRefreshCw,
-  FiSearch
-} from "react-icons/fi"
+import { FiPlus, FiRefreshCw } from "react-icons/fi"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Button } from "@/components/ui/Button"
+import { CustomSelect } from "@/components/ui/CustomSelect"
+import { DataTableSkeleton } from "@/components/ui/DataTableSkeleton"
 import { Modal } from "@/components/ui/Modal"
 import { Notice } from "@/components/ui/Notice"
+import { SearchInput } from "@/components/ui/SearchInput"
+import { useDebouncedValue } from "@/hooks/useDebouncedValue"
 import { useBirthdaysStore } from "@/stores/useBirthdaysStore"
 import type { Birthday, BirthdayPayload } from "@/types/birthday"
 import { toMessage } from "@/utils/errorUtils"
@@ -36,6 +36,7 @@ const formId = "birthday-form"
 export function BirthdaysPage() {
   const { t } = useTranslation()
   const [search, setSearch] = useState("")
+  const debouncedSearch = useDebouncedValue(search)
   const [month, setMonth] = useState("all")
   const [editing, setEditing] = useState<Birthday | null>(null)
   const [isCreating, setIsCreating] = useState(false)
@@ -51,7 +52,15 @@ export function BirthdaysPage() {
   const updateBirthday = useBirthdaysStore((state) => state.updateBirthday)
   const deleteBirthday = useBirthdaysStore((state) => state.deleteBirthday)
 
-  const query = useMemo(() => ({ search, month }), [month, search])
+  const query = useMemo(
+    () => ({ search: debouncedSearch, month }),
+    [debouncedSearch, month]
+  )
+  const monthOptions = months.map((value) => ({
+    value,
+    label:
+      value === "all" ? t("birthdays.filters.allMonths") : t(`months.${value}`)
+  }))
 
   useEffect(() => {
     void loadBirthdays(query)
@@ -87,28 +96,23 @@ export function BirthdaysPage() {
     <DashboardLayout title={t("birthdays.title")}>
       <section className={styles.page}>
         <div className={styles.toolbar}>
-          <label className={styles.search}>
-            <FiSearch aria-hidden="true" />
-            <input
-              value={search}
-              placeholder={t("birthdays.searchPlaceholder")}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-          </label>
+          <SearchInput
+            value={search}
+            clearLabel={t("common.clearSearch")}
+            aria-label={t("birthdays.searchPlaceholder")}
+            placeholder={t("birthdays.searchPlaceholder")}
+            onChange={(event) => setSearch(event.target.value)}
+            onClear={() => setSearch("")}
+          />
 
-          <select
+          <CustomSelect
             value={month}
-            onChange={(event) => setMonth(event.target.value)}
-            aria-label={t("birthdays.filters.month")}
-          >
-            {months.map((value) => (
-              <option value={value} key={value}>
-                {value === "all"
-                  ? t("birthdays.filters.allMonths")
-                  : t(`months.${value}`)}
-              </option>
-            ))}
-          </select>
+            options={monthOptions}
+            className={styles.filter}
+            ariaLabel={t("birthdays.filters.month")}
+            onValueChange={setMonth}
+            searchable
+          />
 
           <Button
             type="button"
@@ -128,7 +132,7 @@ export function BirthdaysPage() {
 
         <div className={styles.tableShell}>
           {birthdaysLoading ? (
-            <div className={styles.state}>{t("birthdays.loading")}</div>
+            <DataTableSkeleton columns={5} label={t("birthdays.loading")} />
           ) : birthdayError ? (
             <div className={styles.state}>{birthdayError}</div>
           ) : birthdays.length === 0 ? (

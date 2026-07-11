@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { FiEdit2, FiTrash2 } from "react-icons/fi"
+import { AppTooltip } from "@/components/ui/AppTooltip"
 import { SortableHeader } from "@/components/ui/SortableHeader"
 import type { Birthday } from "@/types/birthday"
 import { useTableSort } from "@/utils/useTableSort"
@@ -11,7 +12,11 @@ type BirthdaysTableProps = {
   onDelete: (birthday: Birthday) => void
 }
 
-export function BirthdaysTable({ birthdays, onEdit, onDelete }: BirthdaysTableProps) {
+export function BirthdaysTable({
+  birthdays,
+  onEdit,
+  onDelete
+}: BirthdaysTableProps) {
   const { t } = useTranslation()
   const { sorted, sortKey, sortDir, toggle } = useTableSort(birthdays)
 
@@ -61,20 +66,24 @@ export function BirthdaysTable({ birthdays, onEdit, onDelete }: BirthdaysTablePr
             <td>{formatZone(birthday.zone_hours)}</td>
             <td>
               <div className={styles.rowActions}>
-                <button
-                  type="button"
-                  onClick={() => onEdit(birthday)}
-                  title={t("birthdays.actions.edit")}
-                >
-                  <FiEdit2 aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onDelete(birthday)}
-                  title={t("birthdays.actions.delete")}
-                >
-                  <FiTrash2 aria-hidden="true" />
-                </button>
+                <AppTooltip label={t("birthdays.actions.edit")}>
+                  <button
+                    type="button"
+                    aria-label={t("birthdays.actions.edit")}
+                    onClick={() => onEdit(birthday)}
+                  >
+                    <FiEdit2 aria-hidden="true" />
+                  </button>
+                </AppTooltip>
+                <AppTooltip label={t("birthdays.actions.delete")}>
+                  <button
+                    type="button"
+                    aria-label={t("birthdays.actions.delete")}
+                    onClick={() => onDelete(birthday)}
+                  >
+                    <FiTrash2 aria-hidden="true" />
+                  </button>
+                </AppTooltip>
               </div>
             </td>
           </tr>

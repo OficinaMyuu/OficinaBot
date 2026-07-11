@@ -12,61 +12,8 @@
   gap: 12px;
 }
 
-.search {
-  align-items: center;
-  background: var(--surface-input);
-  border: 1px solid var(--border-strong);
-  border-radius: 9999px; /* Pill shaped search */
-  color: var(--text-muted);
-  display: flex;
-  flex: 1 1 300px;
-  gap: 10px;
-  min-height: 40px;
-  padding: 0 16px;
-  transition:
-    border-color 200ms ease,
-    box-shadow 200ms ease;
-}
-
-.search:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(107, 64, 156, 0.25);
-}
-
-.search input {
-  background: transparent;
-  border: 0;
-  color: var(--text-main);
-  font: inherit;
-  font-size: 14px;
-  outline: 0;
-  flex: 1;
-  min-width: 0;
-}
-
-.search input::placeholder {
-  color: var(--text-faint);
-}
-
-.toolbar select {
-  background: var(--surface-input);
-  border: 1px solid var(--border-strong);
-  border-radius: 9999px; /* Pill shaped select */
-  color: var(--text-main);
-  font: inherit;
-  font-size: 14px;
-  outline: 0;
-  min-height: 40px;
-  padding: 0 16px 0 12px;
-  cursor: pointer;
-  transition:
-    border-color 200ms ease,
-    box-shadow 200ms ease;
-}
-
-.toolbar select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(107, 64, 156, 0.25);
+.filter {
+  flex: 0 0 auto;
 }
 
 .tableShell {
@@ -75,6 +22,12 @@
   border-radius: 12px;
   overflow: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 760px) {
+  .filter {
+    width: 100%;
+  }
 }
 
 .state {
