@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type {
   Ticket,
   TicketListQuery,
@@ -8,15 +8,13 @@ import type {
 } from "@/types/ticket"
 import type { UserSummary } from "@/types/user"
 import { useTranslation } from "react-i18next"
-import {
-  FiChevronDown,
-  FiChevronRight,
-  FiRefreshCw,
-  FiSearch
-} from "react-icons/fi"
+import { FiChevronDown, FiChevronRight, FiRefreshCw } from "react-icons/fi"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Button } from "@/components/ui/Button"
+import { CustomSelect } from "@/components/ui/CustomSelect"
+import { SearchInput } from "@/components/ui/SearchInput"
+import { useDebouncedValue } from "@/hooks/useDebouncedValue"
 import { ticketService } from "@/services/ticketService"
 import { useTicketsStore } from "@/stores/useTicketsStore"
 import { fallbackUser, useUsersStore } from "@/stores/useUsersStore"
@@ -25,6 +23,7 @@ import { toMessage } from "@/utils/errorUtils"
 import { Meta } from "./Meta"
 import { TicketUser } from "./TicketUser"
 import { TicketMessages } from "./TicketMessages"
+import { TicketListSkeleton } from "./TicketListSkeleton"
 
 import styles from "./TicketsPage.module.css"
 
@@ -34,7 +33,7 @@ const messageLimit = 50
 export function TicketsPage() {
   const { t } = useTranslation()
   const [search, setSearch] = useState("")
-  const deferredSearch = useDeferredValue(search)
+  const debouncedSearch = useDebouncedValue(search)
   const [status, setStatus] = useState<TicketStatus>("all")
   const [expandedTicketId, setExpandedTicketId] = useState<number | null>(null)
   const [messagesTicketId, setMessagesTicketId] = useState<number | null>(null)
@@ -50,8 +49,8 @@ export function TicketsPage() {
   const fetchUsers = useUsersStore((state) => state.fetchUsers)
 
   const ticketQuery = useMemo<TicketListQuery>(
-    () => ({ search: deferredSearch, status, limit: ticketLimit }),
-    [deferredSearch, status]
+    () => ({ search: debouncedSearch, status, limit: ticketLimit }),
+    [debouncedSearch, status]
   )
 
   useEffect(() => {
@@ -101,24 +100,26 @@ export function TicketsPage() {
     <DashboardLayout title={t("tickets.title")}>
       <section className={styles.page}>
         <div className={styles.toolbar}>
-          <label className={styles.search}>
-            <FiSearch aria-hidden="true" />
-            <input
-              value={search}
-              placeholder={t("tickets.searchPlaceholder")}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-          </label>
+          <SearchInput
+            value={search}
+            clearLabel={t("common.clearSearch")}
+            aria-label={t("tickets.searchPlaceholder")}
+            placeholder={t("tickets.searchPlaceholder")}
+            onChange={(event) => setSearch(event.target.value)}
+            onClear={() => setSearch("")}
+          />
 
-          <select
+          <CustomSelect
             value={status}
-            onChange={(event) => setStatus(event.target.value as TicketStatus)}
-            aria-label={t("tickets.filters.status")}
-          >
-            <option value="all">{t("tickets.filters.all")}</option>
-            <option value="open">{t("tickets.filters.open")}</option>
-            <option value="closed">{t("tickets.filters.closed")}</option>
-          </select>
+            className={styles.filter}
+            ariaLabel={t("tickets.filters.status")}
+            options={[
+              { value: "all", label: t("tickets.filters.all") },
+              { value: "open", label: t("tickets.filters.open") },
+              { value: "closed", label: t("tickets.filters.closed") }
+            ]}
+            onValueChange={setStatus}
+          />
 
           <Button
             type="button"
@@ -131,7 +132,7 @@ export function TicketsPage() {
         </div>
 
         {ticketsLoading ? (
-          <div className={styles.state}>{t("tickets.loading")}</div>
+          <TicketListSkeleton label={t("tickets.loading")} />
         ) : ticketError && tickets.length === 0 ? (
           <div className={styles.state}>{ticketError}</div>
         ) : tickets.length === 0 ? (
