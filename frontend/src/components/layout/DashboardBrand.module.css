@@ -1,0 +1,57 @@
+.brand {
+  align-items: center;
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  gap: 12px;
+  min-height: 64px;
+  padding: 0 18px;
+}
+
+.icon,
+.mark {
+  flex: 0 0 auto;
+  height: 34px;
+  width: 34px;
+}
+
+.icon {
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.mark {
+  align-items: center;
+  background: var(--accent);
+  border-radius: 8px;
+  color: #ffffff;
+  display: flex;
+  font-size: 16px;
+  font-weight: 800;
+  justify-content: center;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.text strong,
+.text span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text strong {
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.text span {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 2px;
+}

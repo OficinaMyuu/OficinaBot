@@ -1,0 +1,48 @@
+.header {
+  align-items: center;
+  background: var(--surface-sidebar);
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  justify-content: space-between;
+  min-height: 64px;
+  padding: 0 28px;
+}
+
+.title {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.title svg {
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+.title h1 {
+  color: var(--text-main);
+  font-family: Montserrat, sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.guild {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+}
+
+@media (max-width: 760px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 18px;
+  }
+}
