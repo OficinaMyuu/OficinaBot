@@ -1,0 +1,63 @@
+.root {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.card {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(100%, 280px);
+}
+
+.mark,
+.title,
+.copy {
+  animation: shimmer 1.4s ease-in-out infinite;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.045) 30%,
+    rgba(255, 255, 255, 0.13) 50%,
+    rgba(255, 255, 255, 0.045) 70%
+  );
+  background-size: 220% 100%;
+  border-radius: 6px;
+}
+
+.mark {
+  border-radius: 10px;
+  height: 42px;
+  width: 42px;
+}
+
+.title {
+  height: 16px;
+  width: 56%;
+}
+
+.copy {
+  height: 12px;
+  width: 82%;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 180% 0;
+  }
+
+  to {
+    background-position: -40% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark,
+  .title,
+  .copy {
+    animation: none;
+  }
+}
