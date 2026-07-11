@@ -7,6 +7,7 @@ import { FiRefreshCw } from "react-icons/fi"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { SortableHeader } from "@/components/ui/SortableHeader"
 import { Button } from "@/components/ui/Button"
+import { DataTableSkeleton } from "@/components/ui/DataTableSkeleton"
 import { Notice } from "@/components/ui/Notice"
 import { actionCostService } from "@/services/actionCostService"
 import { formatLocalTimestamp } from "@/utils/timeUtils"
@@ -14,7 +15,6 @@ import { formatIntegerInput, parseFormattedInteger } from "@/utils/numberUtils"
 import { useTableSort } from "@/utils/useTableSort"
 import { toMessage } from "@/utils/errorUtils"
 import { CostCell } from "./CostCell"
-import { ActionCostsSkeleton } from "./ActionCostsSkeleton"
 
 import styles from "./ActionCostsPage.module.css"
 
@@ -104,7 +104,10 @@ export function ActionCostsPage() {
 
         <div className={styles.tableShell}>
           {actionCostsQuery.isLoading ? (
-            <ActionCostsSkeleton label={t("economy.actionCosts.loading")} />
+            <DataTableSkeleton
+              columns={4}
+              label={t("economy.actionCosts.loading")}
+            />
           ) : actionCostsQuery.isError ? (
             <div className={styles.state}>
               {toMessage(actionCostsQuery.error)}
