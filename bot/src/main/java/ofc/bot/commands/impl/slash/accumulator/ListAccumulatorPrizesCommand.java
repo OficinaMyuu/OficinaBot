@@ -43,7 +43,7 @@ public class ListAccumulatorPrizesCommand extends SlashSubcommand {
     @NotNull
     @Override
     public String getDescription() {
-        return "Lists pending accumulated prizes.";
+        return "Lista os prêmios acumulados pendentes.";
     }
 
     private Paginator<AccumulatorPrize> paginator(long guildId) {

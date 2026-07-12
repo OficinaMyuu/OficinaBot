@@ -154,18 +154,18 @@ public class ImportAccumulatorPrizesCommand extends SlashSubcommand {
     @NotNull
     @Override
     public String getDescription() {
-        return "Imports event prizes from a same-channel message with one user ID per line.";
+        return "Importa prêmios a partir de uma mensagem do canal com um ID por linha.";
     }
 
     @NotNull
     @Override
     public List<OptionData> getOptions() {
         List<OptionData> options = new java.util.ArrayList<>(AccumulatorPrizeConfig.options(
-                new OptionData(OptionType.STRING, "message", "Message ID with one user ID per line.", true)
+                new OptionData(OptionType.STRING, "message", "ID da mensagem com um usuário por linha.", true)
         ));
-        options.add(new OptionData(OptionType.STRING, "duplicates", "How duplicate IDs should be handled.")
-                .addChoice("Allow", DuplicatePolicy.ALLOW.name())
-                .addChoice("Forbid", DuplicatePolicy.FORBID.name()));
+        options.add(new OptionData(OptionType.STRING, "duplicates", "Como tratar IDs duplicados.")
+                .addChoice("Permitir", DuplicatePolicy.ALLOW.name())
+                .addChoice("Bloquear", DuplicatePolicy.FORBID.name()));
         return options;
     }
 }

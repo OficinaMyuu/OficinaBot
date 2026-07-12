@@ -56,13 +56,13 @@ record AccumulatorPrizeConfig(
 
     static List<OptionData> options(OptionData targetOption) {
         return List.of(
-                new OptionData(OptionType.STRING, "type", "Prize type.", true)
+                new OptionData(OptionType.STRING, "type", "Tipo do prêmio.", true)
                         .addChoice(AccumulatorPrizeType.MONEY.getDisplay(), AccumulatorPrizeType.MONEY.name())
                         .addChoice(AccumulatorPrizeType.COLOR_ROLE.getDisplay(), AccumulatorPrizeType.COLOR_ROLE.name()),
                 targetOption,
-                new OptionData(OptionType.INTEGER, "amount", "Money amount.")
+                new OptionData(OptionType.INTEGER, "amount", "Valor em dinheiro.")
                         .setRequiredRange(1, AccumulatorPrize.MAX_AMOUNT),
-                new OptionData(OptionType.STRING, "duration", "Color role duration. Examples: 7d, 30d, 2h.")
+                new OptionData(OptionType.STRING, "duration", "Duração do cargo de cor. Exemplos: 7d, 30d, 2h.")
                         .setRequiredLength(1, 40)
         );
     }

@@ -64,12 +64,12 @@ public class AddAccumulatorPrizeCommand extends SlashSubcommand {
     @NotNull
     @Override
     public String getDescription() {
-        return "Adds event prizes to the pending accumulator box.";
+        return "Adiciona um prêmio à caixa de prêmios pendentes.";
     }
 
     @NotNull
     @Override
     public List<OptionData> getOptions() {
-        return AccumulatorPrizeConfig.options(new OptionData(OptionType.USER, "user", "Winner to add.", true));
+        return AccumulatorPrizeConfig.options(new OptionData(OptionType.USER, "user", "Vencedor que receberá o prêmio.", true));
     }
 }
