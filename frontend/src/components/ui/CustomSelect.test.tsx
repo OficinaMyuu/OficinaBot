@@ -1,6 +1,6 @@
+import { CustomSelect } from "./CustomSelect"
 import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
-import { CustomSelect } from "./CustomSelect"
 
 describe("CustomSelect", () => {
   it("selects an option without a native select element", () => {
@@ -83,5 +83,29 @@ describe("CustomSelect", () => {
     fireEvent.click(screen.getByRole("button", { name: "Clear status search" }))
 
     expect(searchInput).toHaveValue("")
+  })
+
+  it("highlights options when they are hovered", async () => {
+    render(
+      <CustomSelect
+        ariaLabel="Ticket status"
+        searchable
+        value="all"
+        onValueChange={vi.fn()}
+        options={[
+          { value: "all", label: "All tickets" },
+          { value: "open", label: "Open tickets" }
+        ]}
+      />
+    )
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Ticket status" }))
+    const option = await screen.findByRole("option", {
+      name: "Open tickets"
+    })
+
+    fireEvent.pointerMove(option, { pointerType: "mouse" })
+
+    await waitFor(() => expect(option).toHaveAttribute("data-highlighted"))
   })
 })

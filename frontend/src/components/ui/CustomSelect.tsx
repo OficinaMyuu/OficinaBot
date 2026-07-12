@@ -1,7 +1,10 @@
-import * as Select from "@radix-ui/react-select"
 import type { CSSProperties } from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
+
+import * as Select from "@radix-ui/react-select"
+
 import { FiCheck, FiChevronDown, FiSearch, FiX } from "react-icons/fi"
+
 import styles from "./CustomSelect.module.css"
 
 export type CustomSelectOption<T extends string> = {
@@ -142,11 +145,6 @@ export function CustomSelect<T extends string>({
                 className={styles.item}
                 key={option.value}
                 value={option.value}
-                onPointerMove={(event) => {
-                  if (document.activeElement === searchInputRef.current) {
-                    event.preventDefault()
-                  }
-                }}
               >
                 <Select.ItemText>{option.label}</Select.ItemText>
                 <Select.ItemIndicator className={styles.indicator}>
