@@ -105,14 +105,14 @@ public final class AccumulatorMessageFactory {
         return new OficinaEmbed()
                 .setAuthor(user.getName(), null, user.getEffectiveAvatarUrl())
                 .setColor(added > 0 ? EmbedFactory.OK_GREEN : EmbedFactory.DANGER_RED)
-                .setTitle("ImportaÃ§Ã£o concluÃ­da")
+                .setTitle("Importação concluída")
                 .setDescf(
-                        "PrÃªmio de **%s** adicionado para `%s` de `%s` IDs fornecidos.",
+                        "Prêmio de **%s** adicionado para `%s` de `%s` IDs fornecidos.",
                         localizedType(type),
                         Bot.fmtNum(added),
                         Bot.fmtNum(total)
                 )
-                .addFieldIf(details != null, "ðŸ“„ RelatÃ³rio", details, false)
+                .addFieldIf(details != null, "📄 Relatório", details, false)
                 .build();
     }
 

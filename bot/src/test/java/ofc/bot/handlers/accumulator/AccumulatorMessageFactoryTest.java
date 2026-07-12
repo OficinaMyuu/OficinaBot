@@ -126,7 +126,7 @@ class AccumulatorMessageFactoryTest {
 
         String reportField = embed.getFields().getFirst().getValue();
         assertNotNull(reportField);
-        assertEquals("ðŸ“„ RelatÃ³rio", embed.getFields().getFirst().getName());
+        assertEquals("📄 Relatório", embed.getFields().getFirst().getName());
         assertTrue(reportField.length() <= MessageEmbed.VALUE_MAX_LENGTH);
         assertTrue(reportField.endsWith("..."));
 
