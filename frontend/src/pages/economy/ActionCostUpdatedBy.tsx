@@ -23,6 +23,7 @@ export function ActionCostUpdatedBy({
             className={styles.updaterAvatar}
             src={updatedBy.avatar_url}
             alt=""
+            draggable={false}
           />
         </AppTooltip>
       ) : null}

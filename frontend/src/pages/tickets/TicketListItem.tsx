@@ -57,7 +57,12 @@ export function TicketListItem({
           className={expanded ? styles.expandedIcon : undefined}
           aria-hidden="true"
         />
-        <img className={styles.avatar} src={initiator.avatar_url} alt="" />
+        <img
+          className={styles.avatar}
+          src={initiator.avatar_url}
+          alt=""
+          draggable={false}
+        />
         <span className={styles.ticketTitle}>
           <strong>{formatTicketNumber(ticket.id)}</strong>
           <span>{ticket.title}</span>
