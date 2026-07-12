@@ -3,6 +3,7 @@ package ofc.bot.handlers.accumulator;
 import ofc.bot.handlers.accumulator.AccumulatorImportPlanner.DuplicatePolicy;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -10,6 +11,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AccumulatorImportPlannerTest {
     private final AccumulatorImportPlanner planner = new AccumulatorImportPlanner();
+
+    @Test
+    void shouldExposeValidTargetIdsForBatchMemberLookup() {
+        List<Long> ids = planner.validTargetIds("""
+                123
+                nope
+                -1
+                456
+                123
+                """);
+
+        assertEquals(List.of(123L, 456L, 123L), ids);
+    }
 
     @Test
     void shouldAllowDuplicatesWhenPolicyAllowsDuplicates() {

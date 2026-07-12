@@ -11,6 +11,7 @@ import ofc.bot.domain.database.repository.AccumulatorPrizeRepository;
 import ofc.bot.handlers.accumulator.AccumulatorImportPlanner;
 import ofc.bot.handlers.accumulator.AccumulatorImportPlanner.DuplicatePolicy;
 import ofc.bot.handlers.accumulator.AccumulatorImportPlanner.ImportPlan;
+import ofc.bot.handlers.accumulator.AccumulatorMemberResolver;
 import ofc.bot.handlers.accumulator.AccumulatorMessageFactory;
 import ofc.bot.handlers.interactions.commands.contexts.impl.SlashCommandContext;
 import ofc.bot.handlers.interactions.commands.responses.states.InteractionResult;
@@ -31,14 +32,20 @@ public class ImportAccumulatorPrizesCommand extends SlashSubcommand {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportAccumulatorPrizesCommand.class);
     private final AccumulatorPrizeRepository prizeRepo;
     private final AccumulatorImportPlanner planner;
+    private final AccumulatorMemberResolver memberResolver;
 
     public ImportAccumulatorPrizesCommand(AccumulatorPrizeRepository prizeRepo) {
-        this(prizeRepo, new AccumulatorImportPlanner());
+        this(prizeRepo, new AccumulatorImportPlanner(), new AccumulatorMemberResolver());
     }
 
-    ImportAccumulatorPrizesCommand(AccumulatorPrizeRepository prizeRepo, AccumulatorImportPlanner planner) {
+    ImportAccumulatorPrizesCommand(
+            AccumulatorPrizeRepository prizeRepo,
+            AccumulatorImportPlanner planner,
+            AccumulatorMemberResolver memberResolver
+    ) {
         this.prizeRepo = prizeRepo;
         this.planner = planner;
+        this.memberResolver = memberResolver;
     }
 
     @Override
@@ -75,11 +82,23 @@ public class ImportAccumulatorPrizesCommand extends SlashSubcommand {
         Set<Long> pendingTargetIds = duplicatePolicy == DuplicatePolicy.FORBID
                 ? prizeRepo.findPendingTargetIds(ctx.getGuildId())
                 : Set.of();
+        Set<Long> existingMemberIds;
+        try {
+            existingMemberIds = memberResolver.findExistingMemberIds(guild, planner.validTargetIds(message.getContentRaw()));
+        } catch (RuntimeException e) {
+            LOGGER.error("Could not resolve accumulator import members from message {} in guild {}", message.getIdLong(), ctx.getGuildId(), e);
+            ctx.getSource().getHook().editOriginalEmbeds(AccumulatorMessageFactory.failure(
+                    "Não foi possível validar os membros",
+                    "A consulta de membros no Discord falhou. Tente novamente em alguns segundos."
+            )).queue();
+            return;
+        }
+
         ImportPlan plan = planner.plan(
                 message.getContentRaw(),
                 duplicatePolicy,
                 pendingTargetIds,
-                userId -> memberExists(guild, userId)
+                existingMemberIds::contains
         );
 
         if (!plan.acceptedIds().isEmpty()) {
@@ -107,14 +126,6 @@ public class ImportAccumulatorPrizesCommand extends SlashSubcommand {
                 plan.totalIds(),
                 plan.errors()
         )).queue();
-    }
-
-    private boolean memberExists(Guild guild, long userId) {
-        try {
-            return guild.retrieveMemberById(userId).complete() != null;
-        } catch (RuntimeException e) {
-            return false;
-        }
     }
 
     private void replyMessageLookupFailure(SlashCommandContext ctx, Throwable error) {
