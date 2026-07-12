@@ -6,6 +6,7 @@
   justify-content: space-between;
   min-height: 64px;
   padding: 0 28px;
+  user-select: none;
 }
 
 .title {

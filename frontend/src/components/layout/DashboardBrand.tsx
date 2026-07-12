@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+
 import styles from "./DashboardBrand.module.css"
 
 type DashboardBrandProps = {
@@ -11,12 +12,17 @@ export function DashboardBrand({
   guildName
 }: DashboardBrandProps) {
   const { t } = useTranslation()
-  const displayName = guildName ?? "Oficina"
+  const displayName = guildName || "Oficina"
 
   return (
     <div className={styles.brand}>
       {guildIconUrl ? (
-        <img src={guildIconUrl} alt={displayName} className={styles.icon} />
+        <img
+          src={guildIconUrl}
+          alt={displayName}
+          className={styles.icon}
+          draggable={false}
+        />
       ) : (
         <div className={styles.mark}>
           {displayName[0]?.toUpperCase() ?? "O"}

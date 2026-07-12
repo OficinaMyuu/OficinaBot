@@ -1,8 +1,10 @@
-import { useTranslation } from "react-i18next"
+import type { SessionUser } from "@/types/session"
+
 import { FiLogOut } from "react-icons/fi"
 import { AppTooltip } from "@/components/ui/AppTooltip"
-import type { SessionUser } from "@/types/session"
+import { useTranslation } from "react-i18next"
 import { getEffectiveAvatarUrl } from "@/utils/userUtils"
+
 import styles from "./DashboardProfile.module.css"
 
 type DashboardProfileProps = {
