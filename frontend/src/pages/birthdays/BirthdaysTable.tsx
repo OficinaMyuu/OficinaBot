@@ -1,19 +1,26 @@
-import { useTranslation } from "react-i18next"
+import type { Birthday } from "@/types/birthday"
+import type { UserSummary } from "@/types/user"
+
 import { FiEdit2, FiTrash2 } from "react-icons/fi"
 import { AppTooltip } from "@/components/ui/AppTooltip"
 import { SortableHeader } from "@/components/ui/SortableHeader"
-import type { Birthday } from "@/types/birthday"
+import { fallbackUser } from "@/stores/useUsersStore"
+import { getDiscordDisplayName } from "@/utils/userUtils"
+import { useTranslation } from "react-i18next"
 import { useTableSort } from "@/utils/useTableSort"
+
 import styles from "./BirthdaysTable.module.css"
 
 type BirthdaysTableProps = {
   birthdays: Birthday[]
+  usersById: Record<string, UserSummary>
   onEdit: (birthday: Birthday) => void
   onDelete: (birthday: Birthday) => void
 }
 
 export function BirthdaysTable({
   birthdays,
+  usersById,
   onEdit,
   onDelete
 }: BirthdaysTableProps) {
@@ -56,38 +63,48 @@ export function BirthdaysTable({
         </tr>
       </thead>
       <tbody>
-        {sorted.map((birthday) => (
-          <tr key={birthday.user_id}>
-            <td>
-              <strong>{birthday.name}</strong>
-            </td>
-            <td className={styles.monospace}>{birthday.user_id}</td>
-            <td>{formatBirthday(birthday.birthday)}</td>
-            <td>{formatZone(birthday.zone_hours)}</td>
-            <td>
-              <div className={styles.rowActions}>
-                <AppTooltip label={t("birthdays.actions.edit")}>
-                  <button
-                    type="button"
-                    aria-label={t("birthdays.actions.edit")}
-                    onClick={() => onEdit(birthday)}
-                  >
-                    <FiEdit2 aria-hidden="true" />
-                  </button>
+        {sorted.map((birthday) => {
+          const user =
+            usersById[birthday.user_id] ?? fallbackUser(birthday.user_id)
+
+          return (
+            <tr key={birthday.user_id}>
+              <td>
+                <AppTooltip label={getDiscordDisplayName(user)}>
+                  <span className={styles.user}>
+                    <img src={user.avatar_url} alt="" />
+                    <strong>{birthday.name}</strong>
+                  </span>
                 </AppTooltip>
-                <AppTooltip label={t("birthdays.actions.delete")}>
-                  <button
-                    type="button"
-                    aria-label={t("birthdays.actions.delete")}
-                    onClick={() => onDelete(birthday)}
-                  >
-                    <FiTrash2 aria-hidden="true" />
-                  </button>
-                </AppTooltip>
-              </div>
-            </td>
-          </tr>
-        ))}
+              </td>
+              <td className={styles.monospace}>{birthday.user_id}</td>
+              <td>{formatBirthday(birthday.birthday)}</td>
+              <td>{formatZone(birthday.zone_hours)}</td>
+              <td>
+                <div className={styles.rowActions}>
+                  <AppTooltip label={t("birthdays.actions.edit")}>
+                    <button
+                      type="button"
+                      aria-label={t("birthdays.actions.edit")}
+                      onClick={() => onEdit(birthday)}
+                    >
+                      <FiEdit2 aria-hidden="true" />
+                    </button>
+                  </AppTooltip>
+                  <AppTooltip label={t("birthdays.actions.delete")}>
+                    <button
+                      type="button"
+                      aria-label={t("birthdays.actions.delete")}
+                      onClick={() => onDelete(birthday)}
+                    >
+                      <FiTrash2 aria-hidden="true" />
+                    </button>
+                  </AppTooltip>
+                </div>
+              </td>
+            </tr>
+          )
+        })}
       </tbody>
     </table>
   )

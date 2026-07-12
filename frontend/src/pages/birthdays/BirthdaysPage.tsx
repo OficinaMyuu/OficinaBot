@@ -1,5 +1,6 @@
+import type { Birthday, BirthdayPayload } from "@/types/birthday"
 import { useEffect, useMemo, useState } from "react"
-import { useTranslation } from "react-i18next"
+
 import { FiPlus, FiRefreshCw } from "react-icons/fi"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Button } from "@/components/ui/Button"
@@ -8,12 +9,14 @@ import { DataTableSkeleton } from "@/components/ui/DataTableSkeleton"
 import { Modal } from "@/components/ui/Modal"
 import { Notice } from "@/components/ui/Notice"
 import { SearchInput } from "@/components/ui/SearchInput"
-import { useDebouncedValue } from "@/hooks/useDebouncedValue"
-import { useBirthdaysStore } from "@/stores/useBirthdaysStore"
-import type { Birthday, BirthdayPayload } from "@/types/birthday"
-import { toMessage } from "@/utils/errorUtils"
 import { BirthdayForm } from "./BirthdayForm"
 import { BirthdaysTable } from "./BirthdaysTable"
+import { useDebouncedValue } from "@/hooks/useDebouncedValue"
+import { useBirthdaysStore } from "@/stores/useBirthdaysStore"
+import { useUsersStore } from "@/stores/useUsersStore"
+import { toMessage } from "@/utils/errorUtils"
+import { useTranslation } from "react-i18next"
+
 import styles from "./BirthdaysPage.module.css"
 
 const months = [
@@ -51,6 +54,8 @@ export function BirthdaysPage() {
   const createBirthday = useBirthdaysStore((state) => state.createBirthday)
   const updateBirthday = useBirthdaysStore((state) => state.updateBirthday)
   const deleteBirthday = useBirthdaysStore((state) => state.deleteBirthday)
+  const usersById = useUsersStore((state) => state.usersById)
+  const fetchUsers = useUsersStore((state) => state.fetchUsers)
 
   const query = useMemo(
     () => ({ search: debouncedSearch, month }),
@@ -65,6 +70,10 @@ export function BirthdaysPage() {
   useEffect(() => {
     void loadBirthdays(query)
   }, [loadBirthdays, query])
+
+  useEffect(() => {
+    void fetchUsers(birthdays.map((birthday) => birthday.user_id))
+  }, [birthdays, fetchUsers])
 
   const submitBirthday = async (payload: BirthdayPayload) => {
     try {
@@ -140,6 +149,7 @@ export function BirthdaysPage() {
           ) : (
             <BirthdaysTable
               birthdays={birthdays}
+              usersById={usersById}
               onEdit={setEditing}
               onDelete={setDeleting}
             />

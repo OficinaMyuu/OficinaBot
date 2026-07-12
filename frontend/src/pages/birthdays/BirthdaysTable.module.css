@@ -39,6 +39,21 @@
   font-size: 13px;
 }
 
+.user {
+  align-items: center;
+  display: inline-flex;
+  gap: 10px;
+  min-width: 0;
+}
+
+.user img {
+  border-radius: 999px;
+  flex: 0 0 auto;
+  height: 28px;
+  object-fit: cover;
+  width: 28px;
+}
+
 .rowActions {
   display: flex;
   justify-content: flex-end;
