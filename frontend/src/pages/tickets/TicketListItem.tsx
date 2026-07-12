@@ -1,11 +1,13 @@
-import { useTranslation } from "react-i18next"
-import { FiChevronRight } from "react-icons/fi"
 import type { Ticket, TicketMessageView } from "@/types/ticket"
 import type { UserSummary } from "@/types/user"
-import { formatLocalTimestamp } from "@/utils/timeUtils"
-import { formatTicketNumber } from "@/utils/ticketUtils"
+
 import { TicketDetails } from "./TicketDetails"
 import { TicketMessages } from "./TicketMessages"
+import { FiChevronRight } from "react-icons/fi"
+import { formatSimpleTimestamp } from "@/utils/timeUtils"
+import { formatTicketNumber } from "@/utils/ticketUtils"
+import { useTranslation } from "react-i18next"
+
 import styles from "./TicketListItem.module.css"
 
 type TicketListItemProps = {
@@ -65,7 +67,7 @@ export function TicketListItem({
           {t(`tickets.status.${ticket.status}`)}
         </span>
         <time dateTime={ticket.updated_at}>
-          {formatLocalTimestamp(ticket.updated_at)}
+          {formatSimpleTimestamp(ticket.updated_at)}
         </time>
       </button>
 

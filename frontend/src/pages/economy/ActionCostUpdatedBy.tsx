@@ -1,7 +1,7 @@
 import type { UserSummary } from "@/types/user"
 
 import { AppTooltip } from "@/components/ui/AppTooltip"
-import { formatLocalTimestamp } from "@/utils/timeUtils"
+import { formatLocalTimestamp, formatSimpleTimestamp } from "@/utils/timeUtils"
 import { getDiscordDisplayName } from "@/utils/userUtils"
 
 import styles from "./ActionCostUpdatedBy.module.css"
@@ -26,7 +26,9 @@ export function ActionCostUpdatedBy({
           />
         </AppTooltip>
       ) : null}
-      <time dateTime={updatedAt}>{formatLocalTimestamp(updatedAt)}</time>
+      <AppTooltip label={formatLocalTimestamp(updatedAt)}>
+        <time dateTime={updatedAt}>{formatSimpleTimestamp(updatedAt)}</time>
+      </AppTooltip>
     </span>
   )
 }

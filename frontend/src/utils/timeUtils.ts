@@ -45,6 +45,23 @@ export function formatLocalTimestamp(date: string): string {
   return `${day} de ${month}. de ${year}, às ${time}`
 }
 
+export function formatSimpleTimestamp(date: string): string {
+  const d = dayjs.utc(date).local()
+  const time = d.format("HH:mm")
+
+  if (d.isToday()) {
+    return `Hoje, às ${time}`
+  }
+
+  if (d.isYesterday()) {
+    return `Ontem, às ${time}`
+  }
+
+  const fmtDate = d.format("DD/MM/YYYY")
+
+  return `${fmtDate}`
+}
+
 export function formatMessageTimestamp(date: string): string {
   const d = dayjs.utc(date).local()
   const time = d.format("HH:mm")
