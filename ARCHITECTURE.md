@@ -20,6 +20,10 @@ OficinaServices is the mono-repo for Oficina's Discord-facing services and share
 ## Dashboard UI Primitives
 The dashboard composes its shell from focused layout components under `frontend/src/components/layout/`; `DashboardLayout` itself only coordinates resizable panels, the sidebar, and the workspace header. Shared form controls live under `frontend/src/components/ui/`. Use `CustomSelect` instead of browser-native selects: it is portal-rendered, collision-safe, can be made searchable, preserves search focus while its options filter, and supports an optional `menuHeight` that remains clamped to the available viewport. `SearchInput` and searchable selects use explicit muted clear buttons instead of browser-provided search cancel controls. Use `AppTooltip` rather than HTML `title` attributes for supplemental control labels; it can optionally include a small image alongside the label. Loading states should use structural skeletons rather than visible loading copy.
 
+Dashboard tables that display Discord identity data must batch user IDs through `useUsersStore` and render its avatar/name data with resilient fallbacks. Tooltips for Discord identities use the global name first, then the username; identity avatars are decorative unless they are the sole interactive control.
+
+The Economy action-cost feature keeps query-state selection in `ActionCostsPage`, editing/mutation/cache reconciliation in `useActionCostEditor`, and header, table, and updater metadata rendering in their focused colocated components under `frontend/src/pages/economy/`.
+
 The Tickets dashboard page keeps query orchestration in `frontend/src/pages/tickets/TicketsPage.tsx`. Its toolbar, list, ticket row, and expanded details are focused colocated components, each with an isolated CSS module. Reusable ticket formatting, user-ID collection, and message view mapping live in `frontend/src/utils/ticketUtils.ts`; presentation components must not duplicate those transformations.
 
 ## Deployment Model
