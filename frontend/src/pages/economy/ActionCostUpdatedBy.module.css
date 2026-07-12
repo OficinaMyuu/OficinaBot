@@ -1,0 +1,13 @@
+.lastUpdated {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.updaterAvatar {
+  border-radius: 999px;
+  display: block;
+  height: 24px;
+  object-fit: cover;
+  width: 24px;
+}

@@ -1,106 +1,51 @@
 import type { ActionCost } from "@/types/actionCost"
 
-import { useRef, useState } from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useTranslation } from "react-i18next"
-import { FiRefreshCw } from "react-icons/fi"
+import { ActionCostsHeader } from "./ActionCostsHeader"
+import { ActionCostsTable } from "./ActionCostsTable"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
-import { SortableHeader } from "@/components/ui/SortableHeader"
-import { Button } from "@/components/ui/Button"
 import { DataTableSkeleton } from "@/components/ui/DataTableSkeleton"
 import { Notice } from "@/components/ui/Notice"
 import { actionCostService } from "@/services/actionCostService"
-import { formatLocalTimestamp } from "@/utils/timeUtils"
-import { formatIntegerInput, parseFormattedInteger } from "@/utils/numberUtils"
-import { useTableSort } from "@/utils/useTableSort"
+import { useUsersStore } from "@/stores/useUsersStore"
 import { toMessage } from "@/utils/errorUtils"
-import { CostCell } from "./CostCell"
+import { useEffect } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { useTranslation } from "react-i18next"
+import { actionCostsQueryKey, useActionCostEditor } from "./useActionCostEditor"
 
 import styles from "./ActionCostsPage.module.css"
 
-const actionCostsQueryKey = ["action-costs"] as const
+const emptyActionCosts: ActionCost[] = []
 
 export function ActionCostsPage() {
   const { t } = useTranslation()
-  const queryClient = useQueryClient()
-  const [editingItemType, setEditingItemType] = useState<
-    ActionCost["item_type"] | null
-  >(null)
-  const [draftPrice, setDraftPrice] = useState("")
-  const [notice, setNotice] = useState<string | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
   const actionCostsQuery = useQuery({
     queryKey: actionCostsQueryKey,
     queryFn: actionCostService.list
   })
-  const updateCost = useMutation({
-    mutationFn: ({ item, price }: { item: ActionCost; price: number }) =>
-      actionCostService.update(item.item_type, {
-        price
-      }),
-    onSuccess: (updated) => {
-      queryClient.setQueryData<ActionCost[]>(
-        actionCostsQueryKey,
-        (items = []) =>
-          items.map((item) =>
-            item.item_type === updated.item_type ? updated : item
-          )
-      )
-      setEditingItemType(null)
-      setNotice(t("economy.actionCosts.messages.updated"))
-    },
-    onError: (error) => {
-      setEditingItemType(null)
-      setNotice(toMessage(error))
-    }
-  })
+  const items = actionCostsQuery.data ?? emptyActionCosts
+  const usersById = useUsersStore((state) => state.usersById)
+  const fetchUsers = useUsersStore((state) => state.fetchUsers)
+  const editor = useActionCostEditor()
 
-  const beginEditing = (item: ActionCost) => {
-    setEditingItemType(item.item_type)
-    setDraftPrice(formatIntegerInput(String(item.price)))
-    setNotice(null)
-    requestAnimationFrame(() => {
-      inputRef.current?.focus()
-      inputRef.current?.select()
-    })
-  }
-
-  const save = (item: ActionCost) => {
-    const price = parseFormattedInteger(draftPrice)
-    if (!Number.isSafeInteger(price) || price < 0) {
-      setNotice(t("economy.actionCosts.messages.invalidPrice"))
-      return
-    }
-    if (price === item.price) {
-      setEditingItemType(null)
-      return
-    }
-    updateCost.mutate({ item, price })
-  }
-
-  const items = actionCostsQuery.data ?? []
-  const { sorted, sortKey, sortDir, toggle } = useTableSort(items)
+  useEffect(() => {
+    void fetchUsers(
+      items.flatMap((item) => (item.updated_by ? [item.updated_by] : []))
+    )
+  }, [fetchUsers, items])
 
   return (
     <DashboardLayout title={t("economy.actionCosts.title")}>
       <section className={styles.page} aria-labelledby="action-costs-title">
-        <header className={styles.heading}>
-          <div>
-            <h2 id="action-costs-title">{t("economy.actionCosts.title")}</h2>
-            <p>{t("economy.actionCosts.description")}</p>
-          </div>
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={actionCostsQuery.isFetching}
-            onClick={() => void actionCostsQuery.refetch()}
-          >
-            <FiRefreshCw aria-hidden="true" />
-            {t("common.refresh")}
-          </Button>
-        </header>
+        <ActionCostsHeader
+          isRefreshing={actionCostsQuery.isFetching}
+          onRefresh={() => void actionCostsQuery.refetch()}
+        />
 
-        <Notice message={notice} onDismiss={() => setNotice(null)} />
+        <Notice
+          message={editor.notice}
+          onDismiss={() => editor.setNotice(null)}
+        />
 
         <div className={styles.tableShell}>
           {actionCostsQuery.isLoading ? (
@@ -115,70 +60,18 @@ export function ActionCostsPage() {
           ) : items.length === 0 ? (
             <div className={styles.state}>{t("economy.actionCosts.empty")}</div>
           ) : (
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <SortableHeader
-                    label={t("economy.actionCosts.fields.action")}
-                    sortKey="item_type"
-                    activeSortKey={sortKey as string | null}
-                    sortDir={sortDir}
-                    onSort={(key) => toggle(key as keyof ActionCost)}
-                  />
-                  <th>{t("economy.actionCosts.fields.command")}</th>
-                  <SortableHeader
-                    label={t("economy.actionCosts.fields.cost")}
-                    sortKey="price"
-                    activeSortKey={sortKey as string | null}
-                    sortDir={sortDir}
-                    onSort={(key) => toggle(key as keyof ActionCost)}
-                  />
-                  <SortableHeader
-                    label={t("economy.actionCosts.fields.updatedAt")}
-                    sortKey="updated_at"
-                    activeSortKey={sortKey as string | null}
-                    sortDir={sortDir}
-                    onSort={(key) => toggle(key as keyof ActionCost)}
-                  />
-                </tr>
-              </thead>
-              <tbody>
-                {sorted.map((item) => {
-                  const itemKey = `economy.actionCosts.items.${item.item_type}`
-                  const isEditing = item.item_type === editingItemType
-                  const isSaving = isEditing && updateCost.isPending
-
-                  return (
-                    <tr key={item.item_type}>
-                      <td>
-                        <strong>{t(`${itemKey}.title`)}</strong>
-                      </td>
-                      <td className={styles.command}>
-                        {t(`${itemKey}.command`)}
-                      </td>
-                      <td>
-                        <CostCell
-                          item={item}
-                          isEditing={isEditing}
-                          isSaving={isSaving}
-                          draftPrice={draftPrice}
-                          inputRef={inputRef}
-                          onBeginEditing={() => beginEditing(item)}
-                          onDraftChange={setDraftPrice}
-                          onSave={() => save(item)}
-                          onCancel={() => setEditingItemType(null)}
-                        />
-                      </td>
-                      <td>
-                        <time dateTime={item.updated_at}>
-                          {formatLocalTimestamp(item.updated_at)}
-                        </time>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            <ActionCostsTable
+              items={items}
+              usersById={usersById}
+              editingItemType={editor.editingItemType}
+              draftPrice={editor.draftPrice}
+              inputRef={editor.inputRef}
+              isSaving={editor.isSaving}
+              onBeginEditing={editor.beginEditing}
+              onDraftChange={editor.setDraftPrice}
+              onSave={editor.save}
+              onCancelEditing={editor.cancelEditing}
+            />
           )}
         </div>
       </section>
