@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router"
-import { useTranslation } from "react-i18next"
 import { FaBirthdayCake } from "react-icons/fa"
 import { FiDollarSign, FiMessageSquare } from "react-icons/fi"
+import { useTranslation } from "react-i18next"
+
 import styles from "./DashboardNavigation.module.css"
 
 export function DashboardNavigation() {
@@ -16,6 +17,7 @@ export function DashboardNavigation() {
         <Link
           to="/dashboard/birthdays"
           className={styles.link}
+          draggable={false}
           activeProps={{ className: `${styles.link} ${styles.active}` }}
         >
           <FaBirthdayCake aria-hidden="true" />
@@ -30,6 +32,7 @@ export function DashboardNavigation() {
         <Link
           to="/dashboard/tickets"
           className={styles.link}
+          draggable={false}
           activeProps={{ className: `${styles.link} ${styles.active}` }}
         >
           <FiMessageSquare aria-hidden="true" />
@@ -44,6 +47,7 @@ export function DashboardNavigation() {
         <Link
           to="/dashboard/economy/action-costs"
           className={styles.link}
+          draggable={false}
           activeProps={{ className: `${styles.link} ${styles.active}` }}
         >
           <FiDollarSign aria-hidden="true" />
