@@ -20,7 +20,11 @@ export function DashboardProfile({ onLogout, user }: DashboardProfileProps) {
       <img className={styles.avatar} src={getEffectiveAvatarUrl(user)} alt="" />
       <div className={styles.text}>
         <strong>{user.global_name ?? user.username}</strong>
-        <span>{t("auth.manageServer")}</span>
+        <span>
+          {user.permissions.isAdmin()
+            ? t("auth.roles.administrator")
+            : t("auth.roles.serverManager")}
+        </span>
       </div>
       <AppTooltip label={t("auth.logout")}>
         <button
