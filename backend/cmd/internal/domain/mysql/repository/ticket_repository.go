@@ -25,18 +25,8 @@ type TicketListFilter struct {
 	Cursor *TicketCursor
 }
 
-type TicketMessageFilter struct {
-	Limit  int
-	Cursor *TicketCursor
-}
-
 type TicketPage struct {
 	Tickets    []entity.Ticket
-	NextCursor *TicketCursor
-}
-
-type TicketMessagePage struct {
-	Messages   []entity.TicketMessage
 	NextCursor *TicketCursor
 }
 
@@ -130,149 +120,6 @@ LIMIT 1`, ticketID)
 	return tickets[0], nil
 }
 
-func (r *TicketRepository) ListMessages(ctx context.Context, channelID int64, filter TicketMessageFilter) (TicketMessagePage, error) {
-	limit := normalizedLimit(filter.Limit, 50, 100)
-	keys, nextCursor, err := r.pageMessageKeys(ctx, channelID, filter.Cursor, limit)
-	if err != nil {
-		return TicketMessagePage{}, err
-	}
-	if len(keys) == 0 {
-		return TicketMessagePage{Messages: []entity.TicketMessage{}}, nil
-	}
-
-	versions, err := r.messageVersions(ctx, channelID, keys)
-	if err != nil {
-		return TicketMessagePage{}, err
-	}
-
-	page := TicketMessagePage{
-		Messages:   foldMessages(keys, versions),
-		NextCursor: nextCursor,
-	}
-	return page, nil
-}
-
-func (r *TicketRepository) ListMessageVersions(ctx context.Context, channelID, messageID int64) ([]entity.TicketMessageVersion, error) {
-	rows, err := r.db.QueryContext(ctx, `
-SELECT message_id, author_id, message_ref_id, content, sticker_id, created_at
-FROM messages_versions
-WHERE channel_id = ? AND message_id = ? AND is_deleted = FALSE
-ORDER BY created_at ASC, id ASC`, channelID, messageID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	versions := make([]entity.TicketMessageVersion, 0)
-	for rows.Next() {
-		var version entity.TicketMessageVersion
-		var referenceID sql.NullInt64
-		var content sql.NullString
-		var stickerID sql.NullInt64
-		if err := rows.Scan(&version.MessageID, &version.AuthorID, &referenceID, &content, &stickerID, &version.CreatedAt); err != nil {
-			return nil, err
-		}
-		version.MessageReferenceID = nullableInt64(referenceID)
-		version.Content = nullableString(content)
-		version.StickerID = nullableInt64(stickerID)
-		versions = append(versions, version)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return versions, nil
-}
-
-func (r *TicketRepository) pageMessageKeys(ctx context.Context, channelID int64, cursor *TicketCursor, limit int) ([]messageKey, *TicketCursor, error) {
-	query := strings.Builder{}
-	query.WriteString(`
-SELECT message_id, MIN(created_at) AS created_at
-FROM messages_versions
-WHERE channel_id = ?
-GROUP BY message_id`)
-	args := []any{channelID}
-
-	if cursor != nil {
-		query.WriteString(" HAVING created_at > ? OR (created_at = ? AND message_id > ?)")
-		args = append(args, cursor.CreatedAt, cursor.CreatedAt, cursor.ID)
-	}
-
-	query.WriteString(" ORDER BY created_at ASC, message_id ASC LIMIT ?")
-	args = append(args, limit+1)
-
-	rows, err := r.db.QueryContext(ctx, query.String(), args...)
-	if err != nil {
-		return nil, nil, err
-	}
-	defer rows.Close()
-
-	keys := make([]messageKey, 0, limit+1)
-	for rows.Next() {
-		var key messageKey
-		if err := rows.Scan(&key.MessageID, &key.CreatedAt); err != nil {
-			return nil, nil, err
-		}
-		keys = append(keys, key)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, nil, err
-	}
-
-	var nextCursor *TicketCursor
-	if len(keys) > limit {
-		last := keys[limit-1]
-		nextCursor = &TicketCursor{CreatedAt: last.CreatedAt, ID: last.MessageID}
-		keys = keys[:limit]
-	}
-	return keys, nextCursor, nil
-}
-
-func (r *TicketRepository) messageVersions(ctx context.Context, channelID int64, keys []messageKey) ([]messageVersionRow, error) {
-	ids := make([]any, 0, len(keys)+1)
-	placeholders := make([]string, 0, len(keys))
-	for _, key := range keys {
-		ids = append(ids, key.MessageID)
-		placeholders = append(placeholders, "?")
-	}
-
-	args := append([]any{channelID}, ids...)
-	query := fmt.Sprintf(`
-SELECT mv.message_id, mv.author_id, mv.message_ref_id, mv.content, mv.sticker_id,
-       mv.is_deleted, mv.is_original, mv.deleted_by_id, mv.created_at
-FROM messages_versions mv
-WHERE mv.channel_id = ? AND mv.message_id IN (%s)
-ORDER BY mv.created_at ASC, mv.id ASC`, strings.Join(placeholders, ", "))
-
-	rows, err := r.db.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	versions := make([]messageVersionRow, 0)
-	for rows.Next() {
-		var row messageVersionRow
-		if err := rows.Scan(
-			&row.MessageID,
-			&row.AuthorID,
-			&row.MessageReferenceID,
-			&row.Content,
-			&row.StickerID,
-			&row.IsDeleted,
-			&row.IsOriginal,
-			&row.DeletedByID,
-			&row.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		versions = append(versions, row)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return versions, nil
-}
-
 func ParseTicketCursor(value string) (*TicketCursor, error) {
 	if value == "" {
 		return nil, nil
@@ -356,48 +203,6 @@ func scanTickets(rows interface {
 	return tickets, nil
 }
 
-func foldMessages(keys []messageKey, versions []messageVersionRow) []entity.TicketMessage {
-	messagesByID := make(map[int64]*entity.TicketMessage, len(keys))
-	for _, version := range versions {
-		message := messagesByID[version.MessageID]
-		if message == nil {
-			message = &entity.TicketMessage{
-				MessageID:          version.MessageID,
-				AuthorID:           version.AuthorID,
-				MessageReferenceID: nullableInt64(version.MessageReferenceID),
-				Content:            nullableString(version.Content),
-				StickerID:          nullableInt64(version.StickerID),
-				CreatedAt:          version.CreatedAt,
-				UpdatedAt:          version.CreatedAt,
-				RevisionCount:      1,
-			}
-			messagesByID[version.MessageID] = message
-			continue
-		}
-
-		message.UpdatedAt = version.CreatedAt
-		if version.IsDeleted {
-			message.IsDeleted = true
-			message.DeletedByID = nullableInt64(version.DeletedByID)
-			continue
-		}
-
-		message.RevisionCount++
-		message.Content = nullableString(version.Content)
-		message.StickerID = nullableInt64(version.StickerID)
-		message.MessageReferenceID = nullableInt64(version.MessageReferenceID)
-		message.IsEdited = true
-	}
-
-	messages := make([]entity.TicketMessage, 0, len(keys))
-	for _, key := range keys {
-		if message := messagesByID[key.MessageID]; message != nil {
-			messages = append(messages, *message)
-		}
-	}
-	return messages
-}
-
 func nullableString(value sql.NullString) *string {
 	if !value.Valid {
 		return nil
@@ -410,21 +215,4 @@ func nullableInt64(value sql.NullInt64) *int64 {
 		return nil
 	}
 	return &value.Int64
-}
-
-type messageKey struct {
-	MessageID int64
-	CreatedAt int64
-}
-
-type messageVersionRow struct {
-	MessageID          int64
-	AuthorID           int64
-	MessageReferenceID sql.NullInt64
-	Content            sql.NullString
-	StickerID          sql.NullInt64
-	IsDeleted          bool
-	IsOriginal         bool
-	DeletedByID        sql.NullInt64
-	CreatedAt          int64
 }

@@ -13,11 +13,9 @@ import (
 )
 
 type fakeTicketRepository struct {
-	listFilter      repository.TicketListFilter
-	messageFilter   repository.TicketMessageFilter
-	findErr         error
-	listErr         error
-	listMessagesErr error
+	listFilter repository.TicketListFilter
+	findErr    error
+	listErr    error
 }
 
 func (f *fakeTicketRepository) List(_ context.Context, filter repository.TicketListFilter) (repository.TicketPage, error) {
@@ -60,37 +58,6 @@ func (f *fakeTicketRepository) Find(_ context.Context, _ int) (entity.Ticket, er
 	}, nil
 }
 
-func (f *fakeTicketRepository) ListMessages(_ context.Context, _ int64, filter repository.TicketMessageFilter) (repository.TicketMessagePage, error) {
-	f.messageFilter = filter
-	if f.listMessagesErr != nil {
-		return repository.TicketMessagePage{}, f.listMessagesErr
-	}
-	ref := int64(100)
-	sticker := int64(200)
-	return repository.TicketMessagePage{
-		Messages: []entity.TicketMessage{{
-			MessageID:          101,
-			AuthorID:           42,
-			MessageReferenceID: &ref,
-			Content:            stringPtr("hello"),
-			StickerID:          &sticker,
-			IsEdited:           true,
-			CreatedAt:          1000,
-			UpdatedAt:          1001,
-		}},
-		NextCursor: &repository.TicketCursor{CreatedAt: 1000, ID: 101},
-	}, nil
-}
-
-func (f *fakeTicketRepository) ListMessageVersions(_ context.Context, _ int64, _ int64) ([]entity.TicketMessageVersion, error) {
-	return []entity.TicketMessageVersion{{
-		MessageID: 101,
-		AuthorID:  42,
-		Content:   stringPtr("original hello"),
-		CreatedAt: 1000,
-	}}, nil
-}
-
 func TestTicketHandlerListUsesSnakeCaseAndFilters(t *testing.T) {
 	e := echo.New()
 	repo := &fakeTicketRepository{}
@@ -120,77 +87,6 @@ func TestTicketHandlerListUsesSnakeCaseAndFilters(t *testing.T) {
 	for _, unexpected := range []string{`"initiator":`, `"closed_by":`, `"author":`, `"avatar_url":`, "channelId", "closeReason"} {
 		if strings.Contains(body, unexpected) {
 			t.Fatalf("did not expect %s in ticket response, got %s", unexpected, body)
-		}
-	}
-}
-
-func TestTicketHandlerMessagesReturnsSnakeCaseMessageFields(t *testing.T) {
-	e := echo.New()
-	repo := &fakeTicketRepository{}
-	req := httptest.NewRequest(http.MethodGet, "/tickets/7/messages?limit=5", nil)
-	rec := httptest.NewRecorder()
-	ctx := e.NewContext(req, rec)
-	ctx.SetParamNames("ticketID")
-	ctx.SetParamValues("7")
-
-	err := NewTicketHandler(repo).Messages(ctx)
-
-	if err != nil {
-		t.Fatalf("messages returned error: %v", err)
-	}
-	if repo.messageFilter.Limit != 5 {
-		t.Fatalf("expected limit filter, got %+v", repo.messageFilter)
-	}
-	body := rec.Body.String()
-	for _, expected := range []string{`"message_id":"101"`, `"author_id":"42"`, `"message_reference_id":"100"`, `"sticker_id":"200"`, `"is_edited":true`, `"is_deleted":false`, `"created_at":"1970-01-01T00:16:40Z"`, `"updated_at":"1970-01-01T00:16:41Z"`} {
-		if !strings.Contains(body, expected) {
-			t.Fatalf("expected %s in response, got %s", expected, body)
-		}
-	}
-	for _, unexpected := range []string{`"author":`, `"deleted_by":`, `"avatar_url":`, "messageReferenceId", "isEdited"} {
-		if strings.Contains(body, unexpected) {
-			t.Fatalf("did not expect %s in message response, got %s", unexpected, body)
-		}
-	}
-}
-
-func TestTicketHandlerMessagesMapsMissingTicketToNotFound(t *testing.T) {
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/tickets/7/messages", nil)
-	rec := httptest.NewRecorder()
-	ctx := e.NewContext(req, rec)
-	ctx.SetParamNames("ticketID")
-	ctx.SetParamValues("7")
-
-	err := NewTicketHandler(&fakeTicketRepository{findErr: repository.ErrTicketNotFound}).Messages(ctx)
-
-	if err != nil {
-		t.Fatalf("messages returned error: %v", err)
-	}
-	if rec.Code != http.StatusNotFound {
-		t.Fatalf("expected not found, got %d", rec.Code)
-	}
-}
-
-func TestTicketHandlerMessageVersionsReturnsTicketScopedHistory(t *testing.T) {
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/tickets/7/messages/101/versions", nil)
-	rec := httptest.NewRecorder()
-	ctx := e.NewContext(req, rec)
-	ctx.SetParamNames("ticketID", "messageID")
-	ctx.SetParamValues("7", "101")
-
-	err := NewTicketHandler(&fakeTicketRepository{}).MessageVersions(ctx)
-
-	if err != nil {
-		t.Fatalf("message versions returned error: %v", err)
-	}
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected ok, got %d", rec.Code)
-	}
-	for _, expected := range []string{`"message_id":"101"`, `"content":"original hello"`, `"created_at":"1970-01-01T00:16:40Z"`} {
-		if !strings.Contains(rec.Body.String(), expected) {
-			t.Fatalf("expected %s in response, got %s", expected, rec.Body.String())
 		}
 	}
 }

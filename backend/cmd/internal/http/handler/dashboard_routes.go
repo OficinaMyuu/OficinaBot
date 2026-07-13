@@ -10,9 +10,11 @@ type DashboardRoutesConfig struct {
 	Sessions      *SessionStore
 	Birthdays     BirthdayRepository
 	Tickets       TicketRepository
+	Messages      MessageRepository
 	StoreItems    StoreItemSettingsRepository
 	Users         UserRepository
 	Directory     *GuildDirectoryHandler
+	Stickers      LottieStickerClient
 	MissingConfig []string
 }
 
@@ -37,8 +39,12 @@ func RegisterDashboardRoutes(e *echo.Echo, cfg DashboardRoutesConfig) {
 		ticketHandler := NewTicketHandler(cfg.Tickets)
 		tickets := e.Group("/tickets", authHandler.RequireSession)
 		tickets.GET("", ticketHandler.List)
-		tickets.GET("/:ticketID/messages", ticketHandler.Messages)
-		tickets.GET("/:ticketID/messages/:messageID/versions", ticketHandler.MessageVersions)
+	}
+	if cfg.Messages != nil {
+		messageHandler := NewChannelMessageHandler(cfg.Messages)
+		channels := e.Group("/channels", authHandler.RequireSession)
+		channels.GET("/:channelID/messages", messageHandler.List)
+		channels.GET("/:channelID/messages/:messageID/versions", messageHandler.Versions)
 	}
 
 	if cfg.StoreItems != nil {
@@ -56,5 +62,9 @@ func RegisterDashboardRoutes(e *echo.Echo, cfg DashboardRoutesConfig) {
 	if cfg.Directory != nil {
 		directory := e.Group("/discord", authHandler.RequireSession)
 		directory.GET("/guild-directory", cfg.Directory.Get)
+	}
+	if cfg.Stickers != nil {
+		stickers := e.Group("/discord/stickers", authHandler.RequireSession)
+		stickers.GET("/:stickerID/lottie", NewStickerHandler(cfg.Stickers).Lottie)
 	}
 }

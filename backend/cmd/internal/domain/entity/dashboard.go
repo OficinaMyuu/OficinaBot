@@ -39,7 +39,7 @@ func (t Ticket) Status() string {
 	return "closed"
 }
 
-type TicketMessage struct {
+type Message struct {
 	MessageID          int64
 	AuthorID           int64
 	MessageReferenceID *int64
@@ -53,7 +53,7 @@ type TicketMessage struct {
 	UpdatedAt          int64
 }
 
-type TicketMessageVersion struct {
+type MessageVersion struct {
 	MessageID          int64
 	AuthorID           int64
 	MessageReferenceID *int64

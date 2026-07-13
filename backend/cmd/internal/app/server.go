@@ -52,13 +52,13 @@ func NewServer(cfg Config) (*Server, error) {
 
 	e := echo.New()
 	registerMiddleware(e, cfg)
-	db, birthdayRepository, ticketRepository, storeItemSettingsRepository, userRepository, sessionRepository, oauthClient, missingConfig, err := dashboardRuntime(cfg)
+	db, birthdayRepository, ticketRepository, messageRepository, storeItemSettingsRepository, userRepository, sessionRepository, oauthClient, missingConfig, err := dashboardRuntime(cfg)
 	if err != nil {
 		cardRenderer.Close()
 		pw.Stop()
 		return nil, err
 	}
-	registerRoutes(e, cfg, cardRenderer, birthdayRepository, ticketRepository, storeItemSettingsRepository, userRepository, sessionRepository, oauthClient, missingConfig)
+	registerRoutes(e, cfg, cardRenderer, birthdayRepository, ticketRepository, messageRepository, storeItemSettingsRepository, userRepository, sessionRepository, oauthClient, missingConfig)
 	return &Server{
 		Echo:         e,
 		playwright:   pw,
@@ -176,6 +176,7 @@ func registerRoutes(
 	cardRenderer handler.CardRenderer,
 	birthdayRepository handler.BirthdayRepository,
 	ticketRepository handler.TicketRepository,
+	messageRepository handler.MessageRepository,
 	storeItemSettingsRepository handler.StoreItemSettingsRepository,
 	userRepository handler.UserRepository,
 	sessionRepository handler.SessionRepository,
@@ -209,26 +210,28 @@ func registerRoutes(
 		Sessions:    handler.NewSessionStore(sessionRepository),
 		Birthdays:   birthdayRepository,
 		Tickets:     ticketRepository,
+		Messages:    messageRepository,
 		StoreItems:  storeItemSettingsRepository,
 		Users:       userRepository,
 		Directory:   handler.NewGuildDirectoryHandler(discord.NewBotClient(cfg.Dashboard.DiscordAPIBaseURL, cfg.Dashboard.DiscordBotToken), cfg.Dashboard.DiscordGuildID),
+		Stickers:    discord.NewStickerClient(discord.DiscordCDNBaseURL),
 	})
 }
 
-func dashboardRuntime(cfg Config) (*sql.DB, handler.BirthdayRepository, handler.TicketRepository, handler.StoreItemSettingsRepository, handler.UserRepository, handler.SessionRepository, handler.DiscordOAuthClient, []string, error) {
+func dashboardRuntime(cfg Config) (*sql.DB, handler.BirthdayRepository, handler.TicketRepository, handler.MessageRepository, handler.StoreItemSettingsRepository, handler.UserRepository, handler.SessionRepository, handler.DiscordOAuthClient, []string, error) {
 	missingConfig := cfg.MissingDashboardConfig()
 	if len(missingConfig) > 0 {
-		return nil, nil, nil, nil, nil, nil, nil, missingConfig, nil
+		return nil, nil, nil, nil, nil, nil, nil, nil, missingConfig, nil
 	}
 
 	dsn, err := cfg.Database.FormatDSN()
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, nil, nil, fmt.Errorf("dashboard database config is invalid: %w", err)
+		return nil, nil, nil, nil, nil, nil, nil, nil, nil, fmt.Errorf("dashboard database config is invalid: %w", err)
 	}
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, nil, nil, fmt.Errorf("open dashboard database: %w", err)
+		return nil, nil, nil, nil, nil, nil, nil, nil, nil, fmt.Errorf("open dashboard database: %w", err)
 	}
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
@@ -238,12 +241,13 @@ func dashboardRuntime(cfg Config) (*sql.DB, handler.BirthdayRepository, handler.
 	defer cancel()
 	if err := db.PingContext(pingCtx); err != nil {
 		db.Close()
-		return nil, nil, nil, nil, nil, nil, nil, nil, fmt.Errorf("ping dashboard database: %w", err)
+		return nil, nil, nil, nil, nil, nil, nil, nil, nil, fmt.Errorf("ping dashboard database: %w", err)
 	}
 
 	return db,
 		repository.NewBirthdayRepository(db),
 		repository.NewTicketRepository(db),
+		repository.NewMessageRepository(db),
 		repository.NewStoreItemSettingsRepository(db),
 		repository.NewUserRepository(db),
 		repository.NewDashboardSessionRepository(db),

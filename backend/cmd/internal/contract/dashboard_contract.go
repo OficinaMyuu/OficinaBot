@@ -25,14 +25,15 @@ type TicketListResponse struct {
 	NextCursor *string          `json:"next_cursor"`
 }
 
-type TicketMessagesResponse struct {
-	Ticket     TicketResponse          `json:"ticket"`
-	Messages   []TicketMessageResponse `json:"messages"`
-	NextCursor *string                 `json:"next_cursor"`
+type ChannelMessagesResponse struct {
+	ChannelID     string            `json:"channel_id"`
+	Messages      []MessageResponse `json:"messages"`
+	HasMoreBefore bool              `json:"has_more_before"`
+	HasMoreAfter  bool              `json:"has_more_after"`
 }
 
-type TicketMessageVersionsResponse struct {
-	Versions []TicketMessageVersionResponse `json:"versions"`
+type MessageVersionsResponse struct {
+	Versions []MessageVersionResponse `json:"versions"`
 }
 
 type TicketResponse struct {
@@ -50,7 +51,7 @@ type TicketResponse struct {
 	UpdatedAt   string  `json:"updated_at"`
 }
 
-type TicketMessageResponse struct {
+type MessageResponse struct {
 	MessageID          string  `json:"message_id"`
 	AuthorID           string  `json:"author_id"`
 	MessageReferenceID *string `json:"message_reference_id"`
@@ -64,7 +65,7 @@ type TicketMessageResponse struct {
 	UpdatedAt          string  `json:"updated_at"`
 }
 
-type TicketMessageVersionResponse struct {
+type MessageVersionResponse struct {
 	MessageID          string  `json:"message_id"`
 	AuthorID           string  `json:"author_id"`
 	MessageReferenceID *string `json:"message_reference_id"`

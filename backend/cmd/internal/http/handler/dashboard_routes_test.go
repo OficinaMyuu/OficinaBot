@@ -49,3 +49,34 @@ func TestDashboardRoutesDoNotServeFrontendAssets(t *testing.T) {
 		t.Fatalf("expected frontend asset route to be absent from backend, got %d", rec.Code)
 	}
 }
+
+func TestDashboardRoutesExposeOneGenericChannelMessageSurface(t *testing.T) {
+	e := echo.New()
+	RegisterDashboardRoutes(e, DashboardRoutesConfig{
+		AuthConfig:  testAuthConfig(nil),
+		OAuthClient: stubDiscordOAuthClient{},
+		Sessions:    NewSessionStore(),
+		Tickets:     &fakeTicketRepository{},
+		Messages:    &fakeMessageRepository{},
+	})
+	paths := make(map[string]struct{})
+	for _, route := range e.Routes() {
+		paths[route.Path] = struct{}{}
+	}
+	for _, expected := range []string{
+		"/channels/:channelID/messages",
+		"/channels/:channelID/messages/:messageID/versions",
+	} {
+		if _, ok := paths[expected]; !ok {
+			t.Fatalf("expected route %s", expected)
+		}
+	}
+	for _, removed := range []string{
+		"/tickets/:ticketID/messages",
+		"/tickets/:ticketID/messages/:messageID/versions",
+	} {
+		if _, ok := paths[removed]; ok {
+			t.Fatalf("did not expect legacy route %s", removed)
+		}
+	}
+}

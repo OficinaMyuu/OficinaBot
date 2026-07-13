@@ -12,6 +12,7 @@ func TestTicketRepositoryIntegrationListAndMessages(t *testing.T) {
 	db := openTemporaryMySQLSchema(t, dsn)
 	createTicketTables(t, db)
 	repository := NewTicketRepository(db)
+	messageRepository := NewMessageRepository(db)
 	ctx := context.Background()
 
 	insertTicketFixtures(t, db)
@@ -35,12 +36,12 @@ func TestTicketRepositoryIntegrationListAndMessages(t *testing.T) {
 		t.Fatalf("expected closed ticket metadata, got %+v", ticket)
 	}
 
-	messages, err := repository.ListMessages(ctx, 456, TicketMessageFilter{Limit: 10})
+	messages, err := messageRepository.List(ctx, 456, MessageFilter{Limit: 10})
 	if err != nil {
 		t.Fatalf("list messages: %v", err)
 	}
-	if len(messages.Messages) != 2 {
-		t.Fatalf("expected two folded messages, got %+v", messages.Messages)
+	if len(messages.Messages) != 5 {
+		t.Fatalf("expected five folded messages, got %+v", messages.Messages)
 	}
 	first := messages.Messages[0]
 	if first.MessageID != 100 || !first.IsEdited || first.Content == nil || *first.Content != "edited hello" {
@@ -49,6 +50,38 @@ func TestTicketRepositoryIntegrationListAndMessages(t *testing.T) {
 	second := messages.Messages[1]
 	if second.MessageID != 101 || !second.IsDeleted || second.DeletedByID == nil || second.Content == nil || *second.Content != "remove me" {
 		t.Fatalf("expected deleted second message with original content, got %+v", second)
+	}
+
+	latest, err := messageRepository.List(ctx, 456, MessageFilter{Limit: 2})
+	if err != nil {
+		t.Fatalf("list latest messages: %v", err)
+	}
+	if latest.Messages[0].MessageID != 103 || latest.Messages[1].MessageID != 104 || !latest.HasMoreBefore || latest.HasMoreAfter {
+		t.Fatalf("expected chronological latest page, got %+v", latest)
+	}
+	before := int64(103)
+	older, err := messageRepository.List(ctx, 456, MessageFilter{Limit: 2, BeforeID: &before})
+	if err != nil {
+		t.Fatalf("list older messages: %v", err)
+	}
+	if older.Messages[0].MessageID != 101 || older.Messages[1].MessageID != 102 || !older.HasMoreBefore || !older.HasMoreAfter {
+		t.Fatalf("expected page before message 103, got %+v", older)
+	}
+	after := int64(102)
+	newer, err := messageRepository.List(ctx, 456, MessageFilter{Limit: 2, AfterID: &after})
+	if err != nil {
+		t.Fatalf("list newer messages: %v", err)
+	}
+	if newer.Messages[0].MessageID != 103 || newer.Messages[1].MessageID != 104 || !newer.HasMoreBefore || newer.HasMoreAfter {
+		t.Fatalf("expected page after message 102, got %+v", newer)
+	}
+	around := int64(102)
+	centered, err := messageRepository.List(ctx, 456, MessageFilter{Limit: 3, AroundID: &around})
+	if err != nil {
+		t.Fatalf("list messages around anchor: %v", err)
+	}
+	if centered.Messages[0].MessageID != 101 || centered.Messages[1].MessageID != 102 || centered.Messages[2].MessageID != 103 {
+		t.Fatalf("expected centered page around message 102, got %+v", centered)
 	}
 }
 
@@ -122,7 +155,10 @@ func insertTicketFixtures(t *testing.T, db *sql.DB) {
 			(100, 42, 456, NULL, 'hello', NULL, false, true, NULL, 1000),
 			(100, 42, 456, NULL, 'edited hello', NULL, false, false, NULL, 1010),
 			(101, 1000, 456, 100, 'remove me', NULL, false, true, NULL, 1020),
-			(101, 0, 456, NULL, NULL, NULL, true, false, 99, 1030)`,
+			(101, 0, 456, NULL, NULL, NULL, true, false, 99, 1030),
+			(102, 42, 456, NULL, 'third', NULL, false, true, NULL, 1040),
+			(103, 42, 456, NULL, 'fourth', NULL, false, true, NULL, 1050),
+			(104, 42, 456, NULL, 'fifth', NULL, false, true, NULL, 1060)`,
 	}
 	for _, statement := range statements {
 		if _, err := db.Exec(statement); err != nil {
