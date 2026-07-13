@@ -1,10 +1,12 @@
-import { useTranslation } from "react-i18next"
-import type { Ticket } from "@/types/ticket"
 import type { UserSummary } from "@/types/user"
-import { formatLocalTimestamp } from "@/utils/timeUtils"
-import { formatTicketNumber } from "@/utils/ticketUtils"
+import type { Ticket } from "@/types/ticket"
+
 import { Meta } from "./Meta"
 import { TicketUser } from "./TicketUser"
+import { formatLocalTimestamp } from "@/utils/timeUtils"
+import { formatTicketNumber } from "@/utils/ticketUtils"
+import { useTranslation } from "react-i18next"
+
 import styles from "./TicketDetails.module.css"
 
 type TicketDetailsProps = {
