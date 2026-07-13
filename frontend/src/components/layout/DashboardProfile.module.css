@@ -9,8 +9,7 @@
 }
 
 .avatar {
-  background: var(--surface-raised);
-  border: 1px solid var(--border-strong);
+  background-color: var(--surface-raised);
   border-radius: 999px;
   height: 38px;
   object-fit: cover;
