@@ -55,6 +55,20 @@
 }
 
 .loadMoreMessages {
+  flex: 0 0 auto;
   margin-top: 12px;
   width: 100%;
+}
+
+.panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.viewport {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }

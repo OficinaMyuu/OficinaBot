@@ -111,10 +111,19 @@
   background: var(--surface-page);
   border: 1px solid var(--border-soft);
   border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  max-block-size: min(60dvh, 42rem);
   min-height: 220px;
   min-width: 0;
   overflow: hidden;
   padding: 12px;
+}
+
+.transcript > * {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 
 @media (prefers-reduced-motion: reduce) {
