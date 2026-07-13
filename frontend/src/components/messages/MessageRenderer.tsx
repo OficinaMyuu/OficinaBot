@@ -5,17 +5,21 @@ import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { formatMessageTimestamp } from "@/utils/timeUtils"
 import { ticketService } from "@/services/ticketService"
+import type { UserSummary } from "@/types/user"
+import { DiscordMessageContent } from "./DiscordMessageContent"
 
 import styles from "./MessageRenderer.module.css"
 
 type MessageRendererProps = {
   ticketId: number
   messages: TicketMessageView[]
+  usersById: Record<string, UserSummary>
 }
 
 export const MessageRenderer = memo(function MessageRenderer({
   ticketId,
-  messages
+  messages,
+  usersById
 }: MessageRendererProps) {
   const { t } = useTranslation()
 
@@ -30,6 +34,7 @@ export const MessageRenderer = memo(function MessageRenderer({
           key={message.message_id}
           ticketId={ticketId}
           message={message}
+          usersById={usersById}
           grouped={isGroupedMessage(messages[index - 1], message)}
         />
       ))}
@@ -41,9 +46,10 @@ type MessageProps = {
   ticketId: number
   message: TicketMessageView
   grouped: boolean
+  usersById: Record<string, UserSummary>
 }
 
-function Message({ ticketId, message, grouped }: MessageProps) {
+function Message({ ticketId, message, grouped, usersById }: MessageProps) {
   const { t } = useTranslation()
   const [versionsOpen, setVersionsOpen] = useState(false)
   const versionsQuery = useQuery({
@@ -81,7 +87,7 @@ function Message({ ticketId, message, grouped }: MessageProps) {
             {t("messages.replyReference", { id: message.message_reference_id })}
           </div>
         ) : null}
-        <p className={styles.content}>
+        <div className={styles.content}>
           {message.is_edited ? (
             <button
               className={styles.edited}
@@ -95,9 +101,9 @@ function Message({ ticketId, message, grouped }: MessageProps) {
           {isDeleted
             ? t("messages.deleted")
             : content
-              ? content
+              ? <DiscordMessageContent content={content} usersById={usersById} />
               : t("messages.noTextContent")}
-        </p>
+        </div>
         {versionsOpen ? (
           <MessageVersions
             versions={versionsQuery.data?.versions ?? []}

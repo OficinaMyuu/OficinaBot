@@ -17,6 +17,7 @@ type TicketListItemProps = {
   expanded: boolean
   messagesRequested: boolean
   messages: TicketMessageView[]
+  usersById: Record<string, UserSummary>
   messagesLoading: boolean
   messagesError: string | null
   hasMoreMessages: boolean
@@ -34,6 +35,7 @@ export function TicketListItem({
   expanded,
   messagesRequested,
   messages,
+  usersById,
   messagesLoading,
   messagesError,
   hasMoreMessages,
@@ -92,6 +94,7 @@ export function TicketListItem({
               hasMore={hasMoreMessages}
               loadingMore={loadingMoreMessages}
               messages={messagesRequested ? messages : []}
+              usersById={usersById}
               onLoad={onLoadMessages}
               onLoadMore={onLoadMoreMessages}
               onRetry={onRetryMessages}

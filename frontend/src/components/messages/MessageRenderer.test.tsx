@@ -11,6 +11,7 @@ describe("MessageRenderer", () => {
     renderMessageRenderer(
       <MessageRenderer
         ticketId={7}
+        usersById={{}}
         messages={[
           message({
             is_edited: true,
@@ -32,6 +33,7 @@ describe("MessageRenderer", () => {
     renderMessageRenderer(
       <MessageRenderer
         ticketId={7}
+        usersById={{}}
         messages={[
           message({
             is_deleted: true,

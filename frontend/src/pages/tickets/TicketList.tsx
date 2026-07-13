@@ -57,6 +57,7 @@ export function TicketList({
             expanded={expanded}
             messagesRequested={messagesRequested}
             messages={messages}
+            usersById={usersById}
             messagesLoading={messagesLoading}
             messagesError={messagesError}
             hasMoreMessages={hasMoreMessages}

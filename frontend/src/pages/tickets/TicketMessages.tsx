@@ -3,6 +3,7 @@ import { FiChevronDown, FiRefreshCw } from "react-icons/fi"
 import { MessageRenderer } from "@/components/messages/MessageRenderer"
 import { Button } from "@/components/ui/Button"
 import type { TicketMessageView } from "@/types/ticket"
+import type { UserSummary } from "@/types/user"
 import { MessageSkeleton } from "./MessageSkeleton"
 import styles from "./TicketMessages.module.css"
 
@@ -14,6 +15,7 @@ type TicketMessagesProps = {
   hasMore: boolean
   loadingMore: boolean
   messages: TicketMessageView[]
+  usersById: Record<string, UserSummary>
   onLoad: () => void
   onLoadMore: () => void
   onRetry: () => void
@@ -27,6 +29,7 @@ export function TicketMessages({
   hasMore,
   loadingMore,
   messages,
+  usersById,
   onLoad,
   onLoadMore,
   onRetry
@@ -67,7 +70,7 @@ export function TicketMessages({
   return (
     <div className={styles.panel}>
       <div className={styles.viewport}>
-        <MessageRenderer ticketId={ticketId} messages={messages} />
+        <MessageRenderer ticketId={ticketId} messages={messages} usersById={usersById} />
       </div>
       {hasMore ? (
         <Button

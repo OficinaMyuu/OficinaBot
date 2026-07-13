@@ -12,9 +12,11 @@ export function ticketUserIds(tickets: Ticket[]): string[] {
 }
 
 export function messageUserIds(messages: TicketMessage[]): string[] {
-  return messages.flatMap((message) =>
-    [message.author_id, message.deleted_by_id].filter(Boolean)
-  ) as string[]
+  return messages.flatMap((message) => [
+    message.author_id,
+    message.deleted_by_id,
+    ...[...(message.content?.matchAll(/<@!?(\d+)>/g) ?? [])].map((match) => match[1])
+  ]).filter(Boolean) as string[]
 }
 
 export function toTicketMessageViews(
