@@ -12,6 +12,7 @@ import { useInfiniteQuery } from "@tanstack/react-query"
 import { ticketService } from "@/services/ticketService"
 import { useTicketsStore } from "@/stores/useTicketsStore"
 import { fallbackUser, useUsersStore } from "@/stores/useUsersStore"
+import { useGuildDirectoryStore } from "@/stores/useGuildDirectoryStore"
 import { toMessage } from "@/utils/errorUtils"
 import { useTranslation } from "react-i18next"
 import {
@@ -42,6 +43,7 @@ export function TicketsPage() {
   const refreshTickets = useTicketsStore((state) => state.refresh)
   const usersById = useUsersStore((state) => state.usersById)
   const fetchUsers = useUsersStore((state) => state.fetchUsers)
+  const loadGuildDirectory = useGuildDirectoryStore((state) => state.load)
 
   const ticketQuery = useMemo<TicketListQuery>(
     () => ({ search: debouncedSearch, status, limit: ticketLimit }),
@@ -85,6 +87,10 @@ export function TicketsPage() {
   useEffect(() => {
     void fetchUsers(messageUserIds(rawMessages))
   }, [fetchUsers, rawMessages])
+
+  useEffect(() => {
+    if (messagesTicketId !== null) void loadGuildDirectory()
+  }, [loadGuildDirectory, messagesTicketId])
 
   const toggleTicket = (ticketId: number) => {
     setExpandedTicketId((current) => (current === ticketId ? null : ticketId))
