@@ -37,6 +37,7 @@ func RegisterDashboardRoutes(e *echo.Echo, cfg DashboardRoutesConfig) {
 		tickets := e.Group("/tickets", authHandler.RequireSession)
 		tickets.GET("", ticketHandler.List)
 		tickets.GET("/:ticketID/messages", ticketHandler.Messages)
+		tickets.GET("/:ticketID/messages/:messageID/versions", ticketHandler.MessageVersions)
 	}
 
 	if cfg.StoreItems != nil {

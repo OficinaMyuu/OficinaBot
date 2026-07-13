@@ -46,10 +46,20 @@ type TicketMessage struct {
 	Content            *string
 	StickerID          *int64
 	IsEdited           bool
+	RevisionCount      int
 	IsDeleted          bool
 	DeletedByID        *int64
 	CreatedAt          int64
 	UpdatedAt          int64
+}
+
+type TicketMessageVersion struct {
+	MessageID          int64
+	AuthorID           int64
+	MessageReferenceID *int64
+	Content            *string
+	StickerID          *int64
+	CreatedAt          int64
 }
 
 type StoreItemSetting struct {

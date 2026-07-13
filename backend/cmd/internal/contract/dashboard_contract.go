@@ -31,6 +31,10 @@ type TicketMessagesResponse struct {
 	NextCursor *string                 `json:"next_cursor"`
 }
 
+type TicketMessageVersionsResponse struct {
+	Versions []TicketMessageVersionResponse `json:"versions"`
+}
+
 type TicketResponse struct {
 	ID          int     `json:"id"`
 	Title       string  `json:"title"`
@@ -53,10 +57,20 @@ type TicketMessageResponse struct {
 	Content            *string `json:"content"`
 	StickerID          *string `json:"sticker_id"`
 	IsEdited           bool    `json:"is_edited"`
+	RevisionCount      int     `json:"revision_count"`
 	IsDeleted          bool    `json:"is_deleted"`
 	DeletedByID        *string `json:"deleted_by_id"`
 	CreatedAt          string  `json:"created_at"`
 	UpdatedAt          string  `json:"updated_at"`
+}
+
+type TicketMessageVersionResponse struct {
+	MessageID          string  `json:"message_id"`
+	AuthorID           string  `json:"author_id"`
+	MessageReferenceID *string `json:"message_reference_id"`
+	Content            *string `json:"content"`
+	StickerID          *string `json:"sticker_id"`
+	CreatedAt          string  `json:"created_at"`
 }
 
 type StoreItemSettingsUpdateRequest struct {

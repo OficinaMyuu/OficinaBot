@@ -152,6 +152,37 @@ func (r *TicketRepository) ListMessages(ctx context.Context, channelID int64, fi
 	return page, nil
 }
 
+func (r *TicketRepository) ListMessageVersions(ctx context.Context, channelID, messageID int64) ([]entity.TicketMessageVersion, error) {
+	rows, err := r.db.QueryContext(ctx, `
+SELECT message_id, author_id, message_ref_id, content, sticker_id, created_at
+FROM messages_versions
+WHERE channel_id = ? AND message_id = ? AND is_deleted = FALSE
+ORDER BY created_at ASC, id ASC`, channelID, messageID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	versions := make([]entity.TicketMessageVersion, 0)
+	for rows.Next() {
+		var version entity.TicketMessageVersion
+		var referenceID sql.NullInt64
+		var content sql.NullString
+		var stickerID sql.NullInt64
+		if err := rows.Scan(&version.MessageID, &version.AuthorID, &referenceID, &content, &stickerID, &version.CreatedAt); err != nil {
+			return nil, err
+		}
+		version.MessageReferenceID = nullableInt64(referenceID)
+		version.Content = nullableString(content)
+		version.StickerID = nullableInt64(stickerID)
+		versions = append(versions, version)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return versions, nil
+}
+
 func (r *TicketRepository) pageMessageKeys(ctx context.Context, channelID int64, cursor *TicketCursor, limit int) ([]messageKey, *TicketCursor, error) {
 	query := strings.Builder{}
 	query.WriteString(`
@@ -338,6 +369,7 @@ func foldMessages(keys []messageKey, versions []messageVersionRow) []entity.Tick
 				StickerID:          nullableInt64(version.StickerID),
 				CreatedAt:          version.CreatedAt,
 				UpdatedAt:          version.CreatedAt,
+				RevisionCount:      1,
 			}
 			messagesByID[version.MessageID] = message
 			continue
@@ -350,6 +382,7 @@ func foldMessages(keys []messageKey, versions []messageVersionRow) []entity.Tick
 			continue
 		}
 
+		message.RevisionCount++
 		message.Content = nullableString(version.Content)
 		message.StickerID = nullableInt64(version.StickerID)
 		message.MessageReferenceID = nullableInt64(version.MessageReferenceID)

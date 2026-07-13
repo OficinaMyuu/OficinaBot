@@ -82,6 +82,15 @@ func (f *fakeTicketRepository) ListMessages(_ context.Context, _ int64, filter r
 	}, nil
 }
 
+func (f *fakeTicketRepository) ListMessageVersions(_ context.Context, _ int64, _ int64) ([]entity.TicketMessageVersion, error) {
+	return []entity.TicketMessageVersion{{
+		MessageID: 101,
+		AuthorID:  42,
+		Content:   stringPtr("original hello"),
+		CreatedAt: 1000,
+	}}, nil
+}
+
 func TestTicketHandlerListUsesSnakeCaseAndFilters(t *testing.T) {
 	e := echo.New()
 	repo := &fakeTicketRepository{}
@@ -160,6 +169,29 @@ func TestTicketHandlerMessagesMapsMissingTicketToNotFound(t *testing.T) {
 	}
 	if rec.Code != http.StatusNotFound {
 		t.Fatalf("expected not found, got %d", rec.Code)
+	}
+}
+
+func TestTicketHandlerMessageVersionsReturnsTicketScopedHistory(t *testing.T) {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/tickets/7/messages/101/versions", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+	ctx.SetParamNames("ticketID", "messageID")
+	ctx.SetParamValues("7", "101")
+
+	err := NewTicketHandler(&fakeTicketRepository{}).MessageVersions(ctx)
+
+	if err != nil {
+		t.Fatalf("message versions returned error: %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected ok, got %d", rec.Code)
+	}
+	for _, expected := range []string{`"message_id":"101"`, `"content":"original hello"`, `"created_at":"1970-01-01T00:16:40Z"`} {
+		if !strings.Contains(rec.Body.String(), expected) {
+			t.Fatalf("expected %s in response, got %s", expected, rec.Body.String())
+		}
 	}
 }
 
