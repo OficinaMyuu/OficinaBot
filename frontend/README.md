@@ -52,6 +52,8 @@ The `public/_redirects` file keeps TanStack Router routes such as `/dashboard`, 
 
 ## Dashboard UI conventions
 
+- Session-user guild permissions are represented by `DiscordPermissions`, a `bigint`-backed value object created at the auth API boundary. Use `user.permissions.isAdmin()`, `isServerManager()`, `has(...)`, `hasAny(...)`, or `hasAll(...)` with the `DiscordPermission` flags for UI behavior. These checks are presentational only; the backend remains the authorization boundary.
+
 - Keep `DashboardLayout` as composition only. Sidebar brand, navigation, profile, and header each live in their own component and CSS module under `src/components/layout/`.
 - Use `CustomSelect` for application dropdowns and `AppTooltip` for supplemental control labels; do not introduce browser-native `<select>` controls or HTML `title` attributes for interactive elements. `CustomSelect` supports optional `searchable`, `searchPlaceholder`, `clearSearchLabel`, and collision-safe `menuHeight` props; its searchable mode retains input focus while filtering. `SearchInput` exposes the same muted explicit clear-control pattern. `AppTooltip` can include an optional `imageSrc` and `imageAlt`.
 - Search-backed dashboard lists use `useDebouncedValue`, which is powered by `lodash-es`, before requesting filtered data. Keep the input responsive while avoiding a request per keystroke.
