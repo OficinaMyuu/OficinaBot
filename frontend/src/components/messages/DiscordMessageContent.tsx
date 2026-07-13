@@ -21,6 +21,7 @@ export function DiscordMessageContent({
 }: DiscordMessageContentProps) {
   const channelsById = useGuildDirectoryStore((state) => state.channelsById)
   const rolesById = useGuildDirectoryStore((state) => state.rolesById)
+
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}

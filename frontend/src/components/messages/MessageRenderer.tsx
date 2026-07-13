@@ -1,12 +1,14 @@
 import type { TicketMessageVersion, TicketMessageView } from "@/types/ticket"
+import type { UserSummary } from "@/types/user"
 
-import { memo, useState } from "react"
+import { DiscordMessageContent } from "./DiscordMessageContent"
+import { memo, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { formatMessageTimestamp } from "@/utils/timeUtils"
 import { ticketService } from "@/services/ticketService"
-import type { UserSummary } from "@/types/user"
-import { DiscordMessageContent } from "./DiscordMessageContent"
+
+import clsx from "clsx"
 
 import styles from "./MessageRenderer.module.css"
 
@@ -22,6 +24,10 @@ export const MessageRenderer = memo(function MessageRenderer({
   usersById
 }: MessageRendererProps) {
   const { t } = useTranslation()
+  const messagesById = useMemo(
+    () => new Map(messages.map((message) => [message.message_id, message])),
+    [messages]
+  )
 
   if (messages.length === 0) {
     return <div className={styles.empty}>{t("messages.empty")}</div>
@@ -35,6 +41,11 @@ export const MessageRenderer = memo(function MessageRenderer({
           ticketId={ticketId}
           message={message}
           usersById={usersById}
+          referencedMessage={
+            message.message_reference_id
+              ? (messagesById.get(message.message_reference_id) ?? null)
+              : null
+          }
           grouped={isGroupedMessage(messages[index - 1], message)}
         />
       ))}
@@ -47,9 +58,16 @@ type MessageProps = {
   message: TicketMessageView
   grouped: boolean
   usersById: Record<string, UserSummary>
+  referencedMessage: TicketMessageView | null
 }
 
-function Message({ ticketId, message, grouped, usersById }: MessageProps) {
+function Message({
+  ticketId,
+  message,
+  grouped,
+  usersById,
+  referencedMessage
+}: MessageProps) {
   const { t } = useTranslation()
   const [versionsOpen, setVersionsOpen] = useState(false)
   const versionsQuery = useQuery({
@@ -59,16 +77,15 @@ function Message({ ticketId, message, grouped, usersById }: MessageProps) {
   })
   const isDeleted = message.is_deleted
   const content = message.content?.trim()
+  const hasContent = Boolean(content)
 
   return (
     <li
-      className={[
+      className={clsx(
         styles.message,
-        grouped ? styles.grouped : null,
-        isDeleted ? styles.deleted : null
-      ]
-        .filter(Boolean)
-        .join(" ")}
+        grouped && styles.grouped,
+        isDeleted && styles.deleted
+      )}
     >
       {!grouped ? (
         <img className={styles.avatar} src={message.author.avatar_url} alt="" />
@@ -83,9 +100,7 @@ function Message({ ticketId, message, grouped, usersById }: MessageProps) {
           </div>
         ) : null}
         {message.message_reference_id ? (
-          <div className={styles.reply}>
-            {t("messages.replyReference", { id: message.message_reference_id })}
-          </div>
+          <ReplyPreview message={referencedMessage} />
         ) : null}
         <div className={styles.content}>
           {message.is_edited ? (
@@ -98,11 +113,20 @@ function Message({ ticketId, message, grouped, usersById }: MessageProps) {
               {t("messages.edited")}
             </button>
           ) : null}
-          {isDeleted
-            ? t("messages.deleted")
-            : content
-              ? <DiscordMessageContent content={content} usersById={usersById} />
-              : t("messages.noTextContent")}
+          {hasContent ? (
+            <DiscordMessageContent
+              content={content ?? ""}
+              usersById={usersById}
+            />
+          ) : isDeleted ? (
+            <span className={styles.deletedPlaceholder}>
+              {t("messages.deleted")}
+            </span>
+          ) : (
+            <span className={styles.noTextContent}>
+              {t("messages.noTextContent")}
+            </span>
+          )}
         </div>
         {versionsOpen ? (
           <MessageVersions
@@ -112,9 +136,11 @@ function Message({ ticketId, message, grouped, usersById }: MessageProps) {
           />
         ) : null}
         {message.sticker_id ? (
-          <div className={styles.attachment}>
-            {t("messages.sticker", { id: message.sticker_id })}
-          </div>
+          <img
+            className={styles.sticker}
+            src={`https://media.discordapp.net/stickers/${message.sticker_id}.png`}
+            alt={t("messages.sticker", { id: message.sticker_id })}
+          />
         ) : null}
         {message.deleted_by ? (
           <div className={styles.audit}>
@@ -123,6 +149,26 @@ function Message({ ticketId, message, grouped, usersById }: MessageProps) {
         ) : null}
       </div>
     </li>
+  )
+}
+
+function ReplyPreview({ message }: { message: TicketMessageView | null }) {
+  const { t } = useTranslation()
+  const preview = message?.content?.trim()
+  return (
+    <div className={styles.reply}>
+      <span className={styles.replySpine} aria-hidden="true" />
+      {message ? (
+        <>
+          <strong>{message.author.display_name}</strong>
+          <span>{preview || t("messages.noTextContent")}</span>
+        </>
+      ) : (
+        <span className={styles.replyUnavailable}>
+          {t("messages.unavailable")}
+        </span>
+      )}
+    </div>
   )
 }
 

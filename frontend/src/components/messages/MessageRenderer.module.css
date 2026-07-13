@@ -32,9 +32,9 @@
   border: 1px solid var(--border-strong);
   border-radius: 999px;
   flex: 0 0 auto;
-  height: 34px;
   object-fit: cover;
-  width: 34px;
+  height: 40px;
+  width: 40px;
 }
 
 .body {
@@ -51,7 +51,7 @@
 
 .meta strong {
   color: var(--text-main);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -65,27 +65,71 @@
 }
 
 .reply {
+  align-items: center;
+  display: flex;
+  gap: 6px;
   margin-top: 4px;
+  min-width: 0;
+  position: relative;
+}
+
+.replySpine {
+  border-color: var(--text-faint);
+  border-style: solid;
+  border-width: 2px 0 0 2px;
+  border-top-left-radius: 6px;
+  height: 12px;
+  margin-left: 2px;
+  width: 18px;
+}
+
+.reply strong,
+.reply span:not(.replySpine) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reply strong {
+  color: var(--text-main);
+  font-size: 12px;
+}
+
+.replyUnavailable {
+  font-style: italic;
 }
 
 .content {
   color: var(--text-main);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.45;
   margin: 4px 0 0;
   overflow-wrap: anywhere;
 }
 
-.content > :first-child { margin-top: 0; }
-.content > :last-child { margin-bottom: 0; }
-.content p { margin: 4px 0 0; white-space: pre-wrap; }
+.content > :first-child {
+  margin-top: 0;
+}
+.content > :last-child {
+  margin-bottom: 0;
+}
+.content p {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+}
 
 .mention {
-  background: color-mix(in srgb, var(--accent) 34%, transparent);
+  background-color: oklab(0.57738 0.0140701 -0.208587 / 0.239216);
   border-radius: 3px;
-  color: var(--accent-strong);
-  font-weight: 600;
+  color: oklab(80.99% 0.00374 -0.05617);
+  font-weight: 500;
+  line-height: 22px;
   padding: 0 2px;
+  transition: background-color 150ms;
+}
+
+.mention:hover {
+  background-color: oklab(69.262% 0.02102 -0.16184 / 0.239);
 }
 
 .inlineEmoji {
@@ -142,9 +186,27 @@
   margin-top: 6px;
 }
 
+.sticker {
+  display: block;
+  height: auto;
+  margin-top: 6px;
+  max-height: 160px;
+  max-width: 160px;
+  object-fit: contain;
+}
+
 .deleted .content {
-  color: var(--text-muted);
+  color: var(--danger);
+}
+
+.noTextContent,
+.deletedPlaceholder {
+  color: var(--text-faint);
   font-style: italic;
+}
+
+.deleted .edited {
+  color: color-mix(in srgb, var(--danger) 78%, var(--text-main));
 }
 
 .empty {

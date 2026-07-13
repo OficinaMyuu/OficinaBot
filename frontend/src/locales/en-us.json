@@ -150,6 +150,7 @@
     "deleted": "Message deleted",
     "noTextContent": "No text content",
     "replyReference": "Reply to #{{id}}",
+    "unavailable": "Message could not be loaded",
     "sticker": "Sticker {{id}}",
     "deletedBy": "Deleted by {{name}}"
   },

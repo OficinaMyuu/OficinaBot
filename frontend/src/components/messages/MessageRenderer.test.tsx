@@ -25,8 +25,8 @@ describe("MessageRenderer", () => {
     expect(screen.getByText("Myuu")).toBeInTheDocument()
     expect(screen.getByText("Hello there")).toBeInTheDocument()
     expect(screen.getByText(/edited|editada/i)).toBeInTheDocument()
-    expect(screen.getByText(/#100/i)).toBeInTheDocument()
-    expect(screen.getByText(/200/i)).toBeInTheDocument()
+    expect(screen.getByText(/message could not be loaded|mensagem não pôde ser carregada/i)).toBeInTheDocument()
+    expect(screen.getByRole("img", { name: /sticker 200/i })).toBeInTheDocument()
   })
 
   it("renders deleted message state without dropping audit context", () => {
@@ -51,9 +51,7 @@ describe("MessageRenderer", () => {
       />
     )
 
-    expect(
-      screen.getByText(/message deleted|mensagem apagada/i)
-    ).toBeInTheDocument()
+    expect(screen.getByText("Hello there")).toBeInTheDocument()
     expect(screen.getByText(/staff/i)).toBeInTheDocument()
   })
 })

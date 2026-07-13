@@ -159,6 +159,7 @@
     "deleted": "Mensagem apagada",
     "noTextContent": "Sem texto",
     "replyReference": "Resposta para #{{id}}",
+    "unavailable": "Mensagem n\u00e3o p\u00f4de ser carregada",
     "sticker": "Sticker {{id}}",
     "deletedBy": "Apagada por {{name}}"
   },
