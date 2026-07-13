@@ -1,16 +1,16 @@
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import type { ReactNode } from "react"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { MessageRenderer } from "./MessageRenderer"
 import "@/services/i18n"
-import type { TicketMessageView } from "@/types/ticket"
+import type { MessageView } from "@/types/message"
 
 describe("MessageRenderer", () => {
   it("renders edited, referenced, and sticker message metadata", () => {
     renderMessageRenderer(
       <MessageRenderer
-        ticketId={7}
+        channelId="456"
         usersById={{}}
         messages={[
           message({
@@ -25,14 +25,20 @@ describe("MessageRenderer", () => {
     expect(screen.getByText("Myuu")).toBeInTheDocument()
     expect(screen.getByText("Hello there")).toBeInTheDocument()
     expect(screen.getByText(/edited|editada/i)).toBeInTheDocument()
-    expect(screen.getByText(/message could not be loaded|mensagem não pôde ser carregada/i)).toBeInTheDocument()
-    expect(screen.getByRole("img", { name: /sticker 200/i })).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        /message could not be loaded|mensagem não pôde ser carregada/i
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("img", { name: /sticker 200/i })
+    ).toBeInTheDocument()
   })
 
   it("renders deleted message state without dropping audit context", () => {
     renderMessageRenderer(
       <MessageRenderer
-        ticketId={7}
+        channelId="456"
         usersById={{}}
         messages={[
           message({
@@ -54,11 +60,37 @@ describe("MessageRenderer", () => {
     expect(screen.getByText("Hello there")).toBeInTheDocument()
     expect(screen.getByText(/staff/i)).toBeInTheDocument()
   })
+
+  it("starts a full author group when a consecutive message is a reply", () => {
+    const onSelect = vi.fn()
+    const { container } = renderMessageRenderer(
+      <MessageRenderer
+        channelId="456"
+        usersById={{}}
+        onMessageReferenceSelect={onSelect}
+        messages={[
+          message({ message_id: "100", content: "Original" }),
+          message({
+            message_id: "101",
+            created_at: "2023-11-14T22:14:20Z"
+          }),
+          message({
+            message_id: "102",
+            message_reference_id: "100",
+            created_at: "2023-11-14T22:15:20Z"
+          })
+        ]}
+      />
+    )
+
+    expect(container.querySelectorAll('img[src="/avatar.png"]')).toHaveLength(2)
+    expect(screen.getAllByText("Myuu")).toHaveLength(3)
+    fireEvent.click(screen.getByRole("button", { name: /myuu original/i }))
+    expect(onSelect).toHaveBeenCalledWith("100")
+  })
 })
 
-function message(
-  overrides: Partial<TicketMessageView> = {}
-): TicketMessageView {
+function message(overrides: Partial<MessageView> = {}): MessageView {
   return {
     message_id: "101",
     author_id: "42",

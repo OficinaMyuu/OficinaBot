@@ -1,0 +1,21 @@
+.versions {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 8px 10px;
+}
+
+.versions li {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 4px 0;
+}
+
+.versions time {
+  color: var(--text-faint);
+}

@@ -1,0 +1,114 @@
+.message {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  padding: 10px 4px;
+  scroll-margin-block: 16px;
+}
+
+.message:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.grouped {
+  min-height: 0;
+  padding-bottom: 2px;
+  padding-top: 2px;
+}
+
+.grouped .body {
+  margin-left: 52px;
+}
+
+.avatar {
+  border-radius: 999px;
+  flex: 0 0 auto;
+  height: 40px;
+  object-fit: cover;
+  width: 40px;
+}
+
+.replying .avatar {
+  margin-top: 22px;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.meta {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.displayName {
+  color: var(--text-main);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.timestamp,
+.audit {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.content {
+  color: var(--text-main);
+  font-size: 16px;
+  line-height: 1.45;
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.content > :first-child {
+  margin-top: 0;
+}
+
+.content > :last-child {
+  margin-bottom: 0;
+}
+
+.content p {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+}
+
+.edited {
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  margin: 0 6px 0 0;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.edited:hover,
+.edited:focus-visible {
+  color: var(--accent-strong);
+}
+
+.audit {
+  margin-top: 6px;
+}
+
+.deleted .content {
+  color: var(--danger);
+}
+
+.noTextContent,
+.deletedPlaceholder {
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+.deleted .edited {
+  color: color-mix(in srgb, var(--danger) 78%, var(--text-main));
+}

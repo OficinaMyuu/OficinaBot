@@ -1,0 +1,57 @@
+.reply {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  display: flex;
+  font: inherit;
+  gap: 6px;
+  margin: 0 0 3px;
+  min-width: 0;
+  padding: 0;
+  position: relative;
+  text-align: left;
+  width: 100%;
+}
+
+button.reply {
+  cursor: pointer;
+}
+
+button.reply:hover .preview,
+button.reply:focus-visible .preview {
+  color: var(--text-main);
+}
+
+.spine {
+  border-color: var(--text-faint);
+  border-style: solid;
+  border-top-left-radius: 6px;
+  border-width: 2px 0 0 2px;
+  height: 15px;
+  left: -32px;
+  position: absolute;
+  top: 7px;
+  width: 24px;
+}
+
+.authorName {
+  color: var(--text-main);
+  flex: 0 0 auto;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.preview {
+  font-size: 12px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unavailable {
+  color: var(--text-faint);
+  font-size: 12px;
+  font-style: italic;
+}

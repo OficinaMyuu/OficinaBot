@@ -1,0 +1,20 @@
+.mention {
+  background-color: oklab(0.57738 0.0140701 -0.208587 / 0.239216);
+  border-radius: 3px;
+  color: oklab(80.99% 0.00374 -0.05617);
+  font-weight: 500;
+  line-height: 22px;
+  padding: 0 2px;
+  transition: background-color 150ms;
+}
+.mention:hover {
+  background-color: oklab(69.262% 0.02102 -0.16184 / 0.239);
+}
+.inlineEmoji {
+  display: inline-block;
+  height: 1.35em;
+  margin: 0 0.05em;
+  object-fit: contain;
+  vertical-align: -0.25em;
+  width: 1.35em;
+}

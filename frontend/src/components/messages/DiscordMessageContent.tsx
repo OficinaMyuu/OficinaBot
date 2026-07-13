@@ -5,7 +5,7 @@ import remarkGfm from "remark-gfm"
 import { parse as parseTwemoji } from "twemoji-parser"
 import { useGuildDirectoryStore } from "@/stores/useGuildDirectoryStore"
 
-import styles from "./MessageRenderer.module.css"
+import styles from "./DiscordMessageContent.module.css"
 
 type DiscordMessageContentProps = {
   content: string
