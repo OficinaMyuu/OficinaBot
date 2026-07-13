@@ -17,7 +17,12 @@ export function DashboardProfile({ onLogout, user }: DashboardProfileProps) {
 
   return (
     <div className={styles.profile}>
-      <img className={styles.avatar} src={getEffectiveAvatarUrl(user)} alt="" />
+      <img
+        className={styles.avatar}
+        src={getEffectiveAvatarUrl(user)}
+        alt=""
+        draggable={false}
+      />
       <div className={styles.text}>
         <strong>{user.global_name ?? user.username}</strong>
         <span>
