@@ -9,6 +9,10 @@
     "logout": "Log out",
     "loading": "Validating session...",
     "manageServer": "Manage Server",
+    "roles": {
+      "administrator": "Administrator",
+      "serverManager": "Server Manager"
+    },
     "errors": {
       "forbidden": "Your account does not have Manage Server in Oficina.",
       "oauth": "Could not finish Discord login.",

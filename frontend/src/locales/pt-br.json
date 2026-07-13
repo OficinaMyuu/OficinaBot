@@ -9,6 +9,10 @@
     "logout": "Sair",
     "loading": "Validando sessão...",
     "manageServer": "Manage Server",
+    "roles": {
+      "administrator": "Administrator",
+      "serverManager": "Server Manager"
+    },
     "errors": {
       "forbidden": "Sua conta não tem Manage Server na Oficina.",
       "oauth": "Não foi possível concluir o login com Discord.",
