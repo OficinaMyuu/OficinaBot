@@ -55,8 +55,7 @@
 }
 
 .loadMoreMessages {
-  flex: 0 0 auto;
-  margin-top: 12px;
+  margin-bottom: 12px;
   width: 100%;
 }
 

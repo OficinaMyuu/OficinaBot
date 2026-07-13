@@ -1,42 +1,32 @@
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { FiChevronDown, FiRefreshCw } from "react-icons/fi"
+import { FiChevronUp, FiRefreshCw } from "react-icons/fi"
 import { MessageRenderer } from "@/components/messages/MessageRenderer"
 import { Button } from "@/components/ui/Button"
-import type { TicketMessageView } from "@/types/ticket"
-import type { UserSummary } from "@/types/user"
+import { useChannelMessages } from "@/hooks/useChannelMessages"
+import { useMessageViewport } from "@/hooks/useMessageViewport"
+import { toMessage } from "@/utils/errorUtils"
 import { MessageSkeleton } from "./MessageSkeleton"
 import styles from "./TicketMessages.module.css"
 
 type TicketMessagesProps = {
-  ticketId: number
-  expanded: boolean
-  loading: boolean
-  error: string | null
-  hasMore: boolean
-  loadingMore: boolean
-  messages: TicketMessageView[]
-  usersById: Record<string, UserSummary>
-  onLoad: () => void
-  onLoadMore: () => void
-  onRetry: () => void
+  channelId: string
 }
 
-export function TicketMessages({
-  ticketId,
-  expanded,
-  loading,
-  error,
-  hasMore,
-  loadingMore,
-  messages,
-  usersById,
-  onLoad,
-  onLoadMore,
-  onRetry
-}: TicketMessagesProps) {
+export function TicketMessages({ channelId }: TicketMessagesProps) {
   const { t } = useTranslation()
+  const [requested, setRequested] = useState(false)
+  const history = useChannelMessages(channelId, requested)
+  const loadOlder = () => void history.fetchNextPage()
+  const { viewportRef, onScroll } = useMessageViewport({
+    channelId,
+    messages: history.messages,
+    hasMoreBefore: Boolean(history.hasNextPage),
+    loadingMore: history.isFetchingNextPage,
+    onLoadOlder: loadOlder
+  })
 
-  if (!expanded) {
+  if (!requested) {
     return (
       <div className={styles.messageGate}>
         <div className={styles.gatePreview} aria-hidden="true">
@@ -44,22 +34,26 @@ export function TicketMessages({
           <span />
           <span />
         </div>
-        <Button type="button" onClick={onLoad}>
+        <Button type="button" onClick={() => setRequested(true)}>
           {t("tickets.actions.readMessages")}
         </Button>
       </div>
     )
   }
 
-  if (loading) {
+  if (history.isLoading) {
     return <MessageSkeleton label={t("tickets.loadingMessages")} />
   }
 
-  if (error) {
+  if (history.isError) {
     return (
       <div className={styles.messageState}>
-        <p>{error}</p>
-        <Button type="button" variant="secondary" onClick={onRetry}>
+        <p>{toMessage(history.error)}</p>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => void history.refetch()}
+        >
           <FiRefreshCw aria-hidden="true" />
           {t("common.refresh")}
         </Button>
@@ -69,21 +63,25 @@ export function TicketMessages({
 
   return (
     <div className={styles.panel}>
-      <div className={styles.viewport}>
-        <MessageRenderer ticketId={ticketId} messages={messages} usersById={usersById} />
+      <div className={styles.viewport} ref={viewportRef} onScroll={onScroll}>
+        {history.hasNextPage ? (
+          <Button
+            className={styles.loadMoreMessages}
+            type="button"
+            variant="secondary"
+            disabled={history.isFetchingNextPage}
+            onClick={loadOlder}
+          >
+            <FiChevronUp aria-hidden="true" />
+            {t("tickets.actions.loadMoreMessages")}
+          </Button>
+        ) : null}
+        <MessageRenderer
+          channelId={channelId}
+          messages={history.messages}
+          usersById={history.usersById}
+        />
       </div>
-      {hasMore ? (
-        <Button
-          className={styles.loadMoreMessages}
-          type="button"
-          variant="secondary"
-          disabled={loadingMore}
-          onClick={onLoadMore}
-        >
-          <FiChevronDown aria-hidden="true" />
-          {t("tickets.actions.loadMoreMessages")}
-        </Button>
-      ) : null}
     </div>
   )
 }

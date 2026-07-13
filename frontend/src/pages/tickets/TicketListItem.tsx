@@ -1,4 +1,4 @@
-import type { Ticket, TicketMessageView } from "@/types/ticket"
+import type { Ticket } from "@/types/ticket"
 import type { UserSummary } from "@/types/user"
 
 import { TicketDetails } from "./TicketDetails"
@@ -15,17 +15,7 @@ type TicketListItemProps = {
   initiator: UserSummary
   closedBy: UserSummary | null
   expanded: boolean
-  messagesRequested: boolean
-  messages: TicketMessageView[]
-  usersById: Record<string, UserSummary>
-  messagesLoading: boolean
-  messagesError: string | null
-  hasMoreMessages: boolean
-  loadingMoreMessages: boolean
   onToggle: () => void
-  onLoadMessages: () => void
-  onLoadMoreMessages: () => void
-  onRetryMessages: () => void
 }
 
 export function TicketListItem({
@@ -33,17 +23,7 @@ export function TicketListItem({
   initiator,
   closedBy,
   expanded,
-  messagesRequested,
-  messages,
-  usersById,
-  messagesLoading,
-  messagesError,
-  hasMoreMessages,
-  loadingMoreMessages,
-  onToggle,
-  onLoadMessages,
-  onLoadMoreMessages,
-  onRetryMessages
+  onToggle
 }: TicketListItemProps) {
   const { t } = useTranslation()
 
@@ -86,19 +66,7 @@ export function TicketListItem({
             closedBy={closedBy}
           />
           <div className={styles.transcript}>
-            <TicketMessages
-              ticketId={ticket.id}
-              expanded={messagesRequested}
-              loading={messagesLoading}
-              error={messagesError}
-              hasMore={hasMoreMessages}
-              loadingMore={loadingMoreMessages}
-              messages={messagesRequested ? messages : []}
-              usersById={usersById}
-              onLoad={onLoadMessages}
-              onLoadMore={onLoadMoreMessages}
-              onRetry={onRetryMessages}
-            />
+            <TicketMessages channelId={ticket.channel_id} />
           </div>
         </div>
       ) : null}

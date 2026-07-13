@@ -1,5 +1,3 @@
-import type { UserSummary } from "./user"
-
 export type TicketStatus = "all" | "open" | "closed"
 
 export type Ticket = {
@@ -17,34 +15,6 @@ export type Ticket = {
   updated_at: string
 }
 
-export type TicketMessage = {
-  message_id: string
-  author_id: string
-  message_reference_id: string | null
-  content: string | null
-  sticker_id: string | null
-  is_edited: boolean
-  revision_count: number
-  is_deleted: boolean
-  deleted_by_id: string | null
-  created_at: string
-  updated_at: string
-}
-
-export type TicketMessageVersion = {
-  message_id: string
-  author_id: string
-  message_reference_id: string | null
-  content: string | null
-  sticker_id: string | null
-  created_at: string
-}
-
-export type TicketMessageView = TicketMessage & {
-  author: UserSummary
-  deleted_by: UserSummary | null
-}
-
 export type TicketListQuery = {
   search: string
   status: TicketStatus
@@ -52,22 +22,7 @@ export type TicketListQuery = {
   cursor?: string
 }
 
-export type TicketMessagesQuery = {
-  limit?: number
-  cursor?: string
-}
-
 export type TicketPage = {
   tickets: Ticket[]
   next_cursor: string | null
-}
-
-export type TicketMessagesPage = {
-  ticket: Ticket
-  messages: TicketMessage[]
-  next_cursor: string | null
-}
-
-export type TicketMessageVersionsResponse = {
-  versions: TicketMessageVersion[]
 }
