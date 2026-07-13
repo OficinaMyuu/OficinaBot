@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react"
 import type { ReactNode } from "react"
 import { describe, expect, it, vi } from "vitest"
+import { DiscordPermissions } from "@/domain/discord/DiscordPermissions"
 import { DashboardLayout } from "./DashboardLayout"
 import "@/services/i18n"
 
@@ -13,7 +14,7 @@ vi.mock("@/contexts/SessionContext", () => ({
       avatar_url: null,
       guild_name: "Oficina",
       guild_icon_url: null,
-      permissions: "32"
+      permissions: new DiscordPermissions("32")
     },
     logout: vi.fn()
   })
