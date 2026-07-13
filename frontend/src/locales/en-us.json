@@ -82,7 +82,7 @@
     "actions": {
       "readMessages": "Read messages",
       "loadMore": "Load more tickets",
-      "loadMoreMessages": "Load more messages"
+      "loadMoreMessages": "Load older messages"
     }
   },
   "economy": {

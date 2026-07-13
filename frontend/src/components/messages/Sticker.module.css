@@ -1,0 +1,26 @@
+.sticker {
+  display: block;
+  height: 160px;
+  margin-top: 6px;
+  object-fit: contain;
+  width: 160px;
+}
+
+.sticker svg {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.unavailable {
+  color: var(--text-faint);
+  font-size: 12px;
+  font-style: italic;
+  margin-top: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sticker svg {
+    animation: none;
+  }
+}
