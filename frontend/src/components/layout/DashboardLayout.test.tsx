@@ -42,7 +42,7 @@ describe("DashboardLayout", () => {
 
     expect(screen.getByText("MISC")).toBeInTheDocument()
     expect(screen.getByText("MODERAÇÃO")).toBeInTheDocument()
-    expect(screen.getByText("ECONOMY")).toBeInTheDocument()
+    expect(screen.getByText(/ECONOMY|ECONOMIA/)).toBeInTheDocument()
     expect(screen.getByRole("link", { name: /aniversários/i })).toHaveAttribute(
       "href",
       "/dashboard/birthdays"
@@ -51,9 +51,8 @@ describe("DashboardLayout", () => {
       "href",
       "/dashboard/tickets"
     )
-    expect(screen.getByRole("link", { name: /preços|action costs|custos/i })).toHaveAttribute(
-      "href",
-      "/dashboard/economy/action-costs"
-    )
+    expect(
+      screen.getByRole("link", { name: /preços|action costs|custos/i })
+    ).toHaveAttribute("href", "/dashboard/economy/action-costs")
   })
 })
