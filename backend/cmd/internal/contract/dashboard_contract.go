@@ -97,6 +97,21 @@ type UserQueryResponse struct {
 	Users []UserResponse `json:"users"`
 }
 
+type GuildDirectoryResponse struct {
+	Channels []GuildChannelResponse `json:"channels"`
+	Roles    []GuildRoleResponse    `json:"roles"`
+}
+
+type GuildChannelResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type GuildRoleResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type UserResponse struct {
 	ID          string  `json:"id"`
 	Username    *string `json:"username"`

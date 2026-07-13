@@ -12,6 +12,7 @@ type DashboardRoutesConfig struct {
 	Tickets       TicketRepository
 	StoreItems    StoreItemSettingsRepository
 	Users         UserRepository
+	Directory     *GuildDirectoryHandler
 	MissingConfig []string
 }
 
@@ -51,5 +52,9 @@ func RegisterDashboardRoutes(e *echo.Echo, cfg DashboardRoutesConfig) {
 		userHandler := NewUserHandler(cfg.Users)
 		users := e.Group("/users", authHandler.RequireSession)
 		users.POST("/query", userHandler.Query)
+	}
+	if cfg.Directory != nil {
+		directory := e.Group("/discord", authHandler.RequireSession)
+		directory.GET("/guild-directory", cfg.Directory.Get)
 	}
 }

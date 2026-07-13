@@ -211,6 +211,7 @@ func registerRoutes(
 		Tickets:     ticketRepository,
 		StoreItems:  storeItemSettingsRepository,
 		Users:       userRepository,
+		Directory:   handler.NewGuildDirectoryHandler(discord.NewBotClient(cfg.Dashboard.DiscordAPIBaseURL, cfg.Dashboard.DiscordBotToken), cfg.Dashboard.DiscordGuildID),
 	})
 }
 

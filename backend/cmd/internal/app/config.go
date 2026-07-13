@@ -43,6 +43,7 @@ type DashboardConfig struct {
 	DiscordClientID     string
 	DiscordClientSecret string
 	DiscordGuildID      string
+	DiscordBotToken     string
 }
 
 func LoadConfig() (Config, error) {
@@ -69,6 +70,7 @@ func LoadConfig() (Config, error) {
 			DiscordClientID:     os.Getenv("DISCORD_CLIENT_ID"),
 			DiscordClientSecret: os.Getenv("DISCORD_CLIENT_SECRET"),
 			DiscordGuildID:      os.Getenv("DISCORD_GUILD_ID"),
+			DiscordBotToken:     os.Getenv("DISCORD_BOT_TOKEN"),
 		},
 	}, nil
 }
