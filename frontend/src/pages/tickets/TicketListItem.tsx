@@ -85,6 +85,7 @@ export function TicketListItem({
           />
           <div className={styles.transcript}>
             <TicketMessages
+              ticketId={ticket.id}
               expanded={messagesRequested}
               loading={messagesLoading}
               error={messagesError}

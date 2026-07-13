@@ -154,6 +154,8 @@
     "logLabel": "Historico de mensagens",
     "empty": "Nenhuma mensagem encontrada.",
     "edited": "editada",
+    "loadingVersions": "Carregando hist\u00f3rico de edi\u00e7\u00f5es…",
+    "versionsError": "N\u00e3o foi poss\u00edvel carregar o hist\u00f3rico de edi\u00e7\u00f5es.",
     "deleted": "Mensagem apagada",
     "noTextContent": "Sem texto",
     "replyReference": "Resposta para #{{id}}",

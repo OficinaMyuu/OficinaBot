@@ -54,6 +54,7 @@ const message: TicketMessage = {
   content: "Hello",
   sticker_id: null,
   is_edited: false,
+  revision_count: 1,
   is_deleted: false,
   deleted_by_id: null,
   created_at: "2023-11-14T22:13:20Z",

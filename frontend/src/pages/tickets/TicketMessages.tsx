@@ -7,6 +7,7 @@ import { MessageSkeleton } from "./MessageSkeleton"
 import styles from "./TicketMessages.module.css"
 
 type TicketMessagesProps = {
+  ticketId: number
   expanded: boolean
   loading: boolean
   error: string | null
@@ -19,6 +20,7 @@ type TicketMessagesProps = {
 }
 
 export function TicketMessages({
+  ticketId,
   expanded,
   loading,
   error,
@@ -63,8 +65,10 @@ export function TicketMessages({
   }
 
   return (
-    <>
-      <MessageRenderer messages={messages} />
+    <div className={styles.panel}>
+      <div className={styles.viewport}>
+        <MessageRenderer ticketId={ticketId} messages={messages} />
+      </div>
       {hasMore ? (
         <Button
           className={styles.loadMoreMessages}
@@ -77,6 +81,6 @@ export function TicketMessages({
           {t("tickets.actions.loadMoreMessages")}
         </Button>
       ) : null}
-    </>
+    </div>
   )
 }

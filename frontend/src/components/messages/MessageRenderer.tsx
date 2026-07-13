@@ -1,16 +1,20 @@
-import type { TicketMessageView } from "@/types/ticket"
+import type { TicketMessageVersion, TicketMessageView } from "@/types/ticket"
 
-import { memo } from "react"
+import { memo, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { formatMessageTimestamp } from "@/utils/timeUtils"
+import { ticketService } from "@/services/ticketService"
 
 import styles from "./MessageRenderer.module.css"
 
 type MessageRendererProps = {
+  ticketId: number
   messages: TicketMessageView[]
 }
 
 export const MessageRenderer = memo(function MessageRenderer({
+  ticketId,
   messages
 }: MessageRendererProps) {
   const { t } = useTranslation()
@@ -21,63 +25,145 @@ export const MessageRenderer = memo(function MessageRenderer({
 
   return (
     <ol className={styles.list} aria-label={t("messages.logLabel")}>
-      {messages.map((message) => {
-        const isDeleted = message.is_deleted
-        const content = message.content?.trim()
-
-        return (
-          <li
-            className={[styles.message, isDeleted ? styles.deleted : null]
-              .filter(Boolean)
-              .join(" ")}
-            key={message.message_id}
-          >
-            <img
-              className={styles.avatar}
-              src={message.author.avatar_url}
-              alt=""
-            />
-            <div className={styles.body}>
-              <div className={styles.meta}>
-                <strong>{message.author.display_name}</strong>
-                <time dateTime={message.created_at}>
-                  {formatMessageTimestamp(message.created_at)}
-                </time>
-                {message.is_edited ? <span>{t("messages.edited")}</span> : null}
-              </div>
-
-              {message.message_reference_id ? (
-                <div className={styles.reply}>
-                  {t("messages.replyReference", {
-                    id: message.message_reference_id
-                  })}
-                </div>
-              ) : null}
-
-              <p className={styles.content}>
-                {isDeleted
-                  ? t("messages.deleted")
-                  : content
-                    ? content
-                    : t("messages.noTextContent")}
-              </p>
-
-              {message.sticker_id ? (
-                <div className={styles.attachment}>
-                  {t("messages.sticker", { id: message.sticker_id })}
-                </div>
-              ) : null}
-              {message.deleted_by ? (
-                <div className={styles.audit}>
-                  {t("messages.deletedBy", {
-                    name: message.deleted_by.display_name
-                  })}
-                </div>
-              ) : null}
-            </div>
-          </li>
-        )
-      })}
+      {messages.map((message, index) => (
+        <Message
+          key={message.message_id}
+          ticketId={ticketId}
+          message={message}
+          grouped={isGroupedMessage(messages[index - 1], message)}
+        />
+      ))}
     </ol>
   )
 })
+
+type MessageProps = {
+  ticketId: number
+  message: TicketMessageView
+  grouped: boolean
+}
+
+function Message({ ticketId, message, grouped }: MessageProps) {
+  const { t } = useTranslation()
+  const [versionsOpen, setVersionsOpen] = useState(false)
+  const versionsQuery = useQuery({
+    queryKey: ["ticket-message-versions", ticketId, message.message_id],
+    queryFn: () => ticketService.messageVersions(ticketId, message.message_id),
+    enabled: versionsOpen
+  })
+  const isDeleted = message.is_deleted
+  const content = message.content?.trim()
+
+  return (
+    <li
+      className={[
+        styles.message,
+        grouped ? styles.grouped : null,
+        isDeleted ? styles.deleted : null
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      {!grouped ? (
+        <img className={styles.avatar} src={message.author.avatar_url} alt="" />
+      ) : null}
+      <div className={styles.body}>
+        {!grouped ? (
+          <div className={styles.meta}>
+            <strong>{message.author.display_name}</strong>
+            <time dateTime={message.created_at}>
+              {formatMessageTimestamp(message.created_at)}
+            </time>
+          </div>
+        ) : null}
+        {message.message_reference_id ? (
+          <div className={styles.reply}>
+            {t("messages.replyReference", { id: message.message_reference_id })}
+          </div>
+        ) : null}
+        <p className={styles.content}>
+          {message.is_edited ? (
+            <button
+              className={styles.edited}
+              type="button"
+              aria-expanded={versionsOpen}
+              onClick={() => setVersionsOpen((open) => !open)}
+            >
+              {t("messages.edited")}
+            </button>
+          ) : null}
+          {isDeleted
+            ? t("messages.deleted")
+            : content
+              ? content
+              : t("messages.noTextContent")}
+        </p>
+        {versionsOpen ? (
+          <MessageVersions
+            versions={versionsQuery.data?.versions ?? []}
+            loading={versionsQuery.isLoading}
+            error={versionsQuery.isError}
+          />
+        ) : null}
+        {message.sticker_id ? (
+          <div className={styles.attachment}>
+            {t("messages.sticker", { id: message.sticker_id })}
+          </div>
+        ) : null}
+        {message.deleted_by ? (
+          <div className={styles.audit}>
+            {t("messages.deletedBy", { name: message.deleted_by.display_name })}
+          </div>
+        ) : null}
+      </div>
+    </li>
+  )
+}
+
+function MessageVersions({
+  versions,
+  loading,
+  error
+}: {
+  versions: TicketMessageVersion[]
+  loading: boolean
+  error: boolean
+}) {
+  const { t } = useTranslation()
+  if (loading)
+    return (
+      <div className={styles.versions}>{t("messages.loadingVersions")}</div>
+    )
+  if (error)
+    return <div className={styles.versions}>{t("messages.versionsError")}</div>
+  return (
+    <ol className={styles.versions}>
+      {versions.slice(0, -1).map((version) => (
+        <li key={version.created_at}>
+          <time dateTime={version.created_at}>
+            {formatMessageTimestamp(version.created_at)}
+          </time>
+          <span>{version.content?.trim() || t("messages.noTextContent")}</span>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+function isGroupedMessage(
+  previous: TicketMessageView | undefined,
+  message: TicketMessageView
+): boolean {
+  if (
+    !previous ||
+    previous.author_id !== message.author_id ||
+    previous.is_deleted ||
+    message.is_deleted
+  )
+    return false
+  return (
+    new Date(message.created_at).getTime() -
+      new Date(previous.created_at).getTime() <=
+    5 * 60 * 1000
+  )
+}

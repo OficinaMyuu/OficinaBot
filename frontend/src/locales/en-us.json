@@ -145,6 +145,8 @@
     "logLabel": "Message log",
     "empty": "No messages found.",
     "edited": "edited",
+    "loadingVersions": "Loading edit history…",
+    "versionsError": "Could not load edit history.",
     "deleted": "Message deleted",
     "noTextContent": "No text content",
     "replyReference": "Reply to #{{id}}",

@@ -1,4 +1,6 @@
 import { render, screen } from "@testing-library/react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import type { ReactNode } from "react"
 import { describe, expect, it } from "vitest"
 import { MessageRenderer } from "./MessageRenderer"
 import "@/services/i18n"
@@ -6,8 +8,9 @@ import type { TicketMessageView } from "@/types/ticket"
 
 describe("MessageRenderer", () => {
   it("renders edited, referenced, and sticker message metadata", () => {
-    render(
+    renderMessageRenderer(
       <MessageRenderer
+        ticketId={7}
         messages={[
           message({
             is_edited: true,
@@ -26,8 +29,9 @@ describe("MessageRenderer", () => {
   })
 
   it("renders deleted message state without dropping audit context", () => {
-    render(
+    renderMessageRenderer(
       <MessageRenderer
+        ticketId={7}
         messages={[
           message({
             is_deleted: true,
@@ -70,6 +74,7 @@ function message(
     content: "Hello there",
     sticker_id: null,
     is_edited: false,
+    revision_count: 1,
     is_deleted: false,
     deleted_by_id: null,
     deleted_by: null,
@@ -77,4 +82,13 @@ function message(
     updated_at: "2023-11-14T22:13:20Z",
     ...overrides
   }
+}
+
+function renderMessageRenderer(node: ReactNode) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } }
+  })
+  return render(
+    <QueryClientProvider client={client}>{node}</QueryClientProvider>
+  )
 }
