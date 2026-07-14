@@ -18,3 +18,10 @@
   vertical-align: -0.25em;
   width: 1.35em;
 }
+
+.emojiOnly {
+  height: 3rem;
+  margin: 0 0.1rem;
+  vertical-align: -0.75rem;
+  width: 3rem;
+}

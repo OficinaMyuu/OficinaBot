@@ -4,6 +4,9 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { parse as parseTwemoji } from "twemoji-parser"
 import { useGuildDirectoryStore } from "@/stores/useGuildDirectoryStore"
+import { isEmojiOnlyMessage } from "./messageContent"
+
+import clsx from "clsx"
 
 import styles from "./DiscordMessageContent.module.css"
 
@@ -21,6 +24,7 @@ export function DiscordMessageContent({
 }: DiscordMessageContentProps) {
   const channelsById = useGuildDirectoryStore((state) => state.channelsById)
   const rolesById = useGuildDirectoryStore((state) => state.rolesById)
+  const emojiOnly = isEmojiOnlyMessage(content)
 
   return (
     <ReactMarkdown
@@ -35,7 +39,7 @@ export function DiscordMessageContent({
         },
         img: ({ src, alt }) => (
           <img
-            className={styles.inlineEmoji}
+            className={clsx(styles.inlineEmoji, emojiOnly && styles.emojiOnly)}
             src={src}
             alt={alt ?? ""}
             draggable={false}
