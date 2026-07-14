@@ -5,6 +5,7 @@ export type UserSummary = {
   display_name: string
   avatar_hash: string | null
   avatar_url: string
+  is_bot: boolean
 }
 
 export type UserQueryResponse = {

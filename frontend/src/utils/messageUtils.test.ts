@@ -45,6 +45,7 @@ function createUser(username: string): UserSummary {
     global_name: username,
     display_name: username,
     avatar_hash: null,
-    avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png"
+    avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png",
+    is_bot: false
   }
 }

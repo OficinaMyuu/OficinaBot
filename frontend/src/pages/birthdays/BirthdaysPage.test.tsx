@@ -79,5 +79,6 @@ const user = {
   global_name: "Myuu",
   display_name: "Myuu",
   avatar_hash: null,
-  avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png"
+  avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png",
+  is_bot: false
 }

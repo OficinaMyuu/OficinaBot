@@ -50,7 +50,8 @@ export function fallbackUser(userId: string): UserSummary {
     global_name: null,
     display_name: userId,
     avatar_hash: null,
-    avatar_url: `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex(userId)}.png`
+    avatar_url: `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex(userId)}.png`,
+    is_bot: false
   }
 }
 

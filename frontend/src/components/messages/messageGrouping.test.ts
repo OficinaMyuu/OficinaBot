@@ -45,7 +45,8 @@ function message(overrides: Partial<MessageView>): MessageView {
       global_name: "Myuu",
       display_name: "Myuu",
       avatar_hash: null,
-      avatar_url: "/avatar.png"
+      avatar_url: "/avatar.png",
+      is_bot: false
     },
     message_reference_id: null,
     content: "Hello",
