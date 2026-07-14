@@ -34,7 +34,7 @@ INSERT INTO store_item_settings (item_type, price, created_at, updated_at) VALUE
 		t.Fatalf("seed store item settings: %v", err)
 	}
 
-	repository := NewStoreItemSettingsRepository(db)
+	repository := NewStoreItemSettingsRepository(openTestGORM(t, db))
 	ctx := context.Background()
 	items, err := repository.List(ctx)
 	if err != nil {
