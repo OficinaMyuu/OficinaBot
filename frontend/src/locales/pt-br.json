@@ -82,7 +82,8 @@
     "actions": {
       "readMessages": "Ler mensagens",
       "loadMore": "Carregar mais tickets",
-      "loadMoreMessages": "Carregar mensagens anteriores"
+      "loadMoreMessages": "Carregar mensagens anteriores",
+      "loadNewerMessages": "Carregar mensagens posteriores"
     }
   },
   "economy": {
@@ -161,6 +162,7 @@
     "replyReference": "Resposta para #{{id}}",
     "unavailable": "Mensagem n\u00e3o p\u00f4de ser carregada",
     "sticker": "Sticker {{id}}",
+    "viewAttachment": "Clique para ver anexo",
     "deletedBy": "Apagada por {{name}}"
   },
   "common": {

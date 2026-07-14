@@ -84,9 +84,61 @@ describe("MessageRenderer", () => {
     )
 
     expect(container.querySelectorAll('img[src="/avatar.png"]')).toHaveLength(2)
+    expect(
+      screen.getByRole("list", {
+        name: /message log|historico de mensagens/i
+      }).children
+    ).toHaveLength(2)
+    expect(container.querySelectorAll("[data-message-id]")).toHaveLength(3)
     expect(screen.getAllByText("Myuu")).toHaveLength(3)
     fireEvent.click(screen.getByRole("button", { name: /myuu original/i }))
     expect(onSelect).toHaveBeenCalledWith("100")
+  })
+
+  it("describes sticker-only reply references without empty-text copy", () => {
+    const onSelect = vi.fn()
+    renderMessageRenderer(
+      <MessageRenderer
+        channelId="456"
+        usersById={{}}
+        onMessageReferenceSelect={onSelect}
+        messages={[
+          message({ message_id: "100", content: null, sticker_id: "200" }),
+          message({
+            message_id: "101",
+            message_reference_id: "100",
+            created_at: "2023-11-14T22:14:20Z"
+          })
+        ]}
+      />
+    )
+
+    const attachment = screen.getByRole("button", {
+      name: /click to view attachment|clique para ver anexo/i
+    })
+    expect(
+      screen.queryByText(/^no text content$|^sem texto$/i)
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(attachment)
+    expect(onSelect).toHaveBeenCalledWith("100")
+  })
+
+  it("renders the edited control after the message content", () => {
+    renderMessageRenderer(
+      <MessageRenderer
+        channelId="456"
+        usersById={{}}
+        messages={[message({ is_edited: true })]}
+      />
+    )
+
+    const content = screen.getByText("Hello there")
+    const edited = screen.getByRole("button", { name: /edited|editada/i })
+
+    expect(
+      content.compareDocumentPosition(edited) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
   })
 })
 

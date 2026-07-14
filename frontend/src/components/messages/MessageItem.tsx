@@ -1,15 +1,18 @@
-import { useState } from "react"
-import { useQuery } from "@tanstack/react-query"
-import { useTranslation } from "react-i18next"
-import clsx from "clsx"
 import type { MessageView } from "@/types/message"
 import type { UserSummary } from "@/types/user"
-import { messageService } from "@/services/messageService"
-import { formatMessageTimestamp } from "@/utils/timeUtils"
+
+import { useState } from "react"
 import { DiscordMessageContent } from "./DiscordMessageContent"
 import { MessageVersions } from "./MessageVersions"
 import { ReplyPreview } from "./ReplyPreview"
 import { Sticker } from "./Sticker"
+import { useQuery } from "@tanstack/react-query"
+import { useTranslation } from "react-i18next"
+import { messageService } from "@/services/messageService"
+import { formatMessageTimestamp } from "@/utils/timeUtils"
+
+import clsx from "clsx"
+
 import styles from "./MessageItem.module.css"
 
 type MessageItemProps = {
@@ -43,6 +46,8 @@ export function MessageItem({
   return (
     <li
       id={`message-${message.message_id}`}
+      data-message-id={message.message_id}
+      tabIndex={-1}
       className={clsx(
         styles.message,
         grouped && styles.grouped,
@@ -71,17 +76,12 @@ export function MessageItem({
             </time>
           </div>
         ) : null}
-        <div className={styles.content}>
-          {message.is_edited ? (
-            <button
-              className={styles.edited}
-              type="button"
-              aria-expanded={versionsOpen}
-              onClick={() => setVersionsOpen((open) => !open)}
-            >
-              {t("messages.edited")}
-            </button>
-          ) : null}
+        <div
+          className={clsx(
+            styles.content,
+            message.is_edited && styles.editedContent
+          )}
+        >
           {hasContent ? (
             <DiscordMessageContent
               content={content ?? ""}
@@ -91,11 +91,21 @@ export function MessageItem({
             <span className={styles.deletedPlaceholder}>
               {t("messages.deleted")}
             </span>
-          ) : (
+          ) : !message.sticker_id ? (
             <span className={styles.noTextContent}>
               {t("messages.noTextContent")}
             </span>
-          )}
+          ) : null}
+          {message.is_edited ? (
+            <button
+              className={styles.edited}
+              type="button"
+              aria-expanded={versionsOpen}
+              onClick={() => setVersionsOpen((open) => !open)}
+            >
+              ({t("messages.edited")})
+            </button>
+          ) : null}
         </div>
         {versionsOpen ? (
           <MessageVersions

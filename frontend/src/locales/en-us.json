@@ -82,7 +82,8 @@
     "actions": {
       "readMessages": "Read messages",
       "loadMore": "Load more tickets",
-      "loadMoreMessages": "Load older messages"
+      "loadMoreMessages": "Load older messages",
+      "loadNewerMessages": "Load newer messages"
     }
   },
   "economy": {
@@ -152,6 +153,7 @@
     "replyReference": "Reply to #{{id}}",
     "unavailable": "Message could not be loaded",
     "sticker": "Sticker {{id}}",
+    "viewAttachment": "Click to view attachment",
     "deletedBy": "Deleted by {{name}}"
   },
   "common": {

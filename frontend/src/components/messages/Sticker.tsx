@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { messageService } from "@/services/messageService"
+
 import styles from "./Sticker.module.css"
 
 export function Sticker({ stickerId }: { stickerId: string }) {
@@ -51,6 +52,7 @@ export function Sticker({ stickerId }: { stickerId: string }) {
         src={`https://cdn.discordapp.com/stickers/${stickerId}.png`}
         onError={() => setFormat("lottie")}
         alt={label}
+        draggable={false}
       />
     )
   }

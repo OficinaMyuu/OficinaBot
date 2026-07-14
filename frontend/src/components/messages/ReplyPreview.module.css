@@ -19,7 +19,9 @@ button.reply {
 }
 
 button.reply:hover .preview,
-button.reply:focus-visible .preview {
+button.reply:focus-visible .preview,
+button.reply:hover .attachment,
+button.reply:focus-visible .attachment {
   color: var(--text-main);
 }
 
@@ -48,6 +50,25 @@ button.reply:focus-visible .preview {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.attachment {
+  align-items: center;
+  display: inline-flex;
+  font-size: 12px;
+  gap: 4px;
+  min-width: 0;
+  transition: color 150ms ease-out;
+}
+
+.attachment span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment svg {
+  flex: 0 0 auto;
 }
 
 .unavailable {

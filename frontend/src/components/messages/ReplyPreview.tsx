@@ -1,6 +1,7 @@
 import type { MessageView } from "@/types/message"
 
 import { useTranslation } from "react-i18next"
+import { FiPaperclip } from "react-icons/fi"
 
 import styles from "./ReplyPreview.module.css"
 
@@ -17,6 +18,10 @@ export function ReplyPreview({
 }: ReplyPreviewProps) {
   const { t } = useTranslation()
   const preview = message?.content?.trim()
+  const attachmentOnly = Boolean(message?.sticker_id && !preview)
+  const previewLabel = attachmentOnly
+    ? t("messages.viewAttachment")
+    : preview || t("messages.noTextContent")
 
   const content = (
     <>
@@ -26,9 +31,14 @@ export function ReplyPreview({
           <strong className={styles.authorName}>
             {message.author.display_name}
           </strong>
-          <span className={styles.preview}>
-            {preview || t("messages.noTextContent")}
-          </span>
+          {attachmentOnly ? (
+            <span className={styles.attachment}>
+              <FiPaperclip aria-hidden="true" />
+              <span>{previewLabel}</span>
+            </span>
+          ) : (
+            <span className={styles.preview}>{previewLabel}</span>
+          )}
         </>
       ) : (
         <span className={styles.unavailable}>{t("messages.unavailable")}</span>
@@ -40,7 +50,7 @@ export function ReplyPreview({
     <button
       className={styles.reply}
       type="button"
-      aria-label={`${message?.author.display_name ?? ""} ${preview ?? t("messages.unavailable")}`.trim()}
+      aria-label={`${message?.author.display_name ?? ""} ${message ? previewLabel : t("messages.unavailable")}`.trim()}
       onClick={() => onSelect(referencedMessageId)}
     >
       {content}
