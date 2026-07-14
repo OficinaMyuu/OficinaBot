@@ -67,5 +67,17 @@ export function useMessageViewport({
     [hasMoreBefore, loadingMore, onLoadOlder]
   )
 
-  return { viewportRef, onScroll }
+  const scrollToMessage = useCallback((messageId: string): boolean => {
+    const viewport = viewportRef.current
+    const message = viewport?.querySelector<HTMLElement>(
+      `[data-message-id="${messageId}"]`
+    )
+    if (!message) return false
+
+    message.scrollIntoView({ behavior: "smooth", block: "center" })
+    message.focus({ preventScroll: true })
+    return true
+  }, [])
+
+  return { viewportRef, onScroll, scrollToMessage }
 }

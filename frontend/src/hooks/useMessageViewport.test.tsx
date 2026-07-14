@@ -44,6 +44,35 @@ describe("useMessageViewport", () => {
     })
     expect(onLoadOlder).toHaveBeenCalledOnce()
   })
+
+  it("scrolls to and focuses a loaded message", () => {
+    const { result } = renderHook(() =>
+      useMessageViewport({
+        channelId: "456",
+        messages: [],
+        hasMoreBefore: false,
+        loadingMore: false,
+        onLoadOlder: vi.fn()
+      })
+    )
+    const viewport = document.createElement("div")
+    const messageElement = document.createElement("article")
+    const scrollIntoView = vi.fn()
+    const focus = vi.fn()
+    messageElement.dataset.messageId = "100"
+    messageElement.scrollIntoView = scrollIntoView
+    messageElement.focus = focus
+    viewport.append(messageElement)
+    result.current.viewportRef.current = viewport
+
+    expect(result.current.scrollToMessage("100")).toBe(true)
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "center"
+    })
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true })
+    expect(result.current.scrollToMessage("404")).toBe(false)
+  })
 })
 
 function message(messageId: string): MessageView {

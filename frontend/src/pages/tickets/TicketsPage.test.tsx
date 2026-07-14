@@ -149,6 +149,68 @@ describe("TicketsPage", () => {
       screen.getAllByText(/Older|Newest/).map((node) => node.textContent)
     ).toEqual(["Older", "Newest"])
   })
+
+  it("loads an around page for an unloaded reply and can paginate forward", async () => {
+    vi.mocked(messageService.list).mockImplementation((_channelId, query) => {
+      if (query?.around) {
+        return Promise.resolve({
+          channel_id: "456",
+          messages: [rawMessage("100", "Original")],
+          has_more_before: false,
+          has_more_after: true
+        })
+      }
+      if (query?.after) {
+        return Promise.resolve({
+          channel_id: "456",
+          messages: [rawMessage("200", "Reply")],
+          has_more_before: true,
+          has_more_after: false
+        })
+      }
+      return Promise.resolve({
+        channel_id: "456",
+        messages: [
+          {
+            ...rawMessage("200", "Reply"),
+            message_reference_id: "100"
+          }
+        ],
+        has_more_before: true,
+        has_more_after: false
+      })
+    })
+    renderPage()
+
+    fireEvent.click(await screen.findByRole("button", { name: /need help/i }))
+    fireEvent.click(
+      screen.getByRole("button", { name: /ler mensagens|read messages/i })
+    )
+    await screen.findByText("Reply")
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /message could not be loaded|mensagem n.o p.de ser carregada/i
+      })
+    )
+
+    await screen.findByText("Original")
+    expect(messageService.list).toHaveBeenLastCalledWith(
+      "456",
+      expect.objectContaining({ around: "100" })
+    )
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /load newer messages|carregar mensagens posteriores/i
+      })
+    )
+
+    await screen.findByText("Reply")
+    expect(messageService.list).toHaveBeenLastCalledWith(
+      "456",
+      expect.objectContaining({ after: "100" })
+    )
+  })
 })
 
 function renderPage() {
