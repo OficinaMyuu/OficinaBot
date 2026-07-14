@@ -2,12 +2,12 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
+	"gorm.io/gorm"
 	"oficina-img/internal/domain/entity"
 )
 
@@ -31,62 +31,53 @@ type TicketPage struct {
 }
 
 type TicketRepository struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewTicketRepository(db *sql.DB) *TicketRepository {
+func NewTicketRepository(db *gorm.DB) *TicketRepository {
 	return &TicketRepository{db: db}
 }
 
 func (r *TicketRepository) List(ctx context.Context, filter TicketListFilter) (TicketPage, error) {
 	limit := normalizedLimit(filter.Limit, 25, 100)
-	query := strings.Builder{}
-	query.WriteString(`
-SELECT st.id, st.title, st.description, st.guild_id, st.channel_id, st.initiator_id,
-       st.close_reason, st.closed_by_id, st.merged_into, st.created_at, st.updated_at
-FROM support_tickets st
-LEFT JOIN users initiator ON initiator.id = st.initiator_id
-WHERE 1 = 1`)
-	args := make([]any, 0, 8)
+	query := r.db.WithContext(ctx).
+		Table("support_tickets AS st").
+		Select(`st.id, st.title, st.description, st.guild_id, st.channel_id, st.initiator_id,
+			st.close_reason, st.closed_by_id, st.merged_into, st.created_at, st.updated_at`).
+		Joins("LEFT JOIN users AS initiator ON initiator.id = st.initiator_id")
 
 	switch filter.Status {
 	case "open":
-		query.WriteString(" AND st.closed_by_id IS NULL")
+		query = query.Where("st.closed_by_id IS NULL")
 	case "closed":
-		query.WriteString(" AND st.closed_by_id IS NOT NULL")
+		query = query.Where("st.closed_by_id IS NOT NULL")
 	}
 
 	if search := strings.TrimSpace(filter.Search); search != "" {
 		needle := "%" + strings.ToLower(search) + "%"
-		query.WriteString(` AND (
-LOWER(st.title) LIKE ?
-OR LOWER(st.description) LIKE ?
-OR CAST(st.id AS CHAR) LIKE ?
-OR CAST(st.channel_id AS CHAR) LIKE ?
-OR CAST(st.initiator_id AS CHAR) LIKE ?
-OR LOWER(initiator.name) LIKE ?
-OR LOWER(initiator.global_name) LIKE ?
-)`)
-		args = append(args, needle, needle, "%"+search+"%", "%"+search+"%", "%"+search+"%", needle, needle)
+		idNeedle := "%" + search + "%"
+		query = query.Where(`(LOWER(st.title) LIKE ?
+			OR LOWER(st.description) LIKE ?
+			OR CAST(st.id AS CHAR) LIKE ?
+			OR CAST(st.channel_id AS CHAR) LIKE ?
+			OR CAST(st.initiator_id AS CHAR) LIKE ?
+			OR LOWER(initiator.name) LIKE ?
+			OR LOWER(initiator.global_name) LIKE ?)`,
+			needle, needle, idNeedle, idNeedle, idNeedle, needle, needle)
 	}
 
 	if filter.Cursor != nil {
-		query.WriteString(" AND (st.created_at < ? OR (st.created_at = ? AND st.id < ?))")
-		args = append(args, filter.Cursor.CreatedAt, filter.Cursor.CreatedAt, filter.Cursor.ID)
+		query = query.Where("st.created_at < ? OR (st.created_at = ? AND st.id < ?)",
+			filter.Cursor.CreatedAt, filter.Cursor.CreatedAt, filter.Cursor.ID)
 	}
 
-	query.WriteString(" ORDER BY st.created_at DESC, st.id DESC LIMIT ?")
-	args = append(args, limit+1)
-
-	rows, err := r.db.QueryContext(ctx, query.String(), args...)
-	if err != nil {
+	var rows []ticketRow
+	if err := query.Order("st.created_at DESC, st.id DESC").Limit(limit + 1).Scan(&rows).Error; err != nil {
 		return TicketPage{}, err
 	}
-	defer rows.Close()
-
-	tickets, err := scanTickets(rows)
-	if err != nil {
-		return TicketPage{}, err
+	tickets := make([]entity.Ticket, 0, len(rows))
+	for _, row := range rows {
+		tickets = append(tickets, row.entity())
 	}
 
 	page := TicketPage{Tickets: tickets}
@@ -99,25 +90,15 @@ OR LOWER(initiator.global_name) LIKE ?
 }
 
 func (r *TicketRepository) Find(ctx context.Context, ticketID int) (entity.Ticket, error) {
-	rows, err := r.db.QueryContext(ctx, `
-SELECT st.id, st.title, st.description, st.guild_id, st.channel_id, st.initiator_id,
-       st.close_reason, st.closed_by_id, st.merged_into, st.created_at, st.updated_at
-FROM support_tickets st
-WHERE st.id = ?
-LIMIT 1`, ticketID)
-	if err != nil {
-		return entity.Ticket{}, err
-	}
-	defer rows.Close()
-
-	tickets, err := scanTickets(rows)
-	if err != nil {
-		return entity.Ticket{}, err
-	}
-	if len(tickets) == 0 {
+	var row ticketRow
+	err := r.db.WithContext(ctx).Where("id = ?", ticketID).Take(&row).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return entity.Ticket{}, ErrTicketNotFound
 	}
-	return tickets[0], nil
+	if err != nil {
+		return entity.Ticket{}, err
+	}
+	return row.entity(), nil
 }
 
 func ParseTicketCursor(value string) (*TicketCursor, error) {
@@ -155,64 +136,4 @@ func normalizedLimit(value, fallback, max int) int {
 		return max
 	}
 	return value
-}
-
-type ticketScanner interface {
-	Scan(dest ...any) error
-}
-
-func scanTickets(rows interface {
-	Next() bool
-	ticketScanner
-	Err() error
-}) ([]entity.Ticket, error) {
-	tickets := make([]entity.Ticket, 0)
-	for rows.Next() {
-		var ticket entity.Ticket
-		var closeReason sql.NullString
-		var closedByID sql.NullInt64
-		var mergedInto sql.NullInt64
-
-		if err := rows.Scan(
-			&ticket.ID,
-			&ticket.Title,
-			&ticket.Description,
-			&ticket.GuildID,
-			&ticket.ChannelID,
-			&ticket.InitiatorID,
-			&closeReason,
-			&closedByID,
-			&mergedInto,
-			&ticket.CreatedAt,
-			&ticket.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-
-		ticket.CloseReason = nullableString(closeReason)
-		ticket.ClosedByID = nullableInt64(closedByID)
-		if mergedInto.Valid {
-			value := int(mergedInto.Int64)
-			ticket.MergedInto = &value
-		}
-		tickets = append(tickets, ticket)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return tickets, nil
-}
-
-func nullableString(value sql.NullString) *string {
-	if !value.Valid {
-		return nil
-	}
-	return &value.String
-}
-
-func nullableInt64(value sql.NullInt64) *int64 {
-	if !value.Valid {
-		return nil
-	}
-	return &value.Int64
 }

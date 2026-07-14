@@ -11,8 +11,9 @@ func TestTicketRepositoryIntegrationListAndMessages(t *testing.T) {
 	dsn := testMySQLDSN(t)
 	db := openTemporaryMySQLSchema(t, dsn)
 	createTicketTables(t, db)
-	repository := NewTicketRepository(db)
-	messageRepository := NewMessageRepository(db)
+	gormDB := openTestGORM(t, db)
+	repository := NewTicketRepository(gormDB)
+	messageRepository := NewMessageRepository(gormDB)
 	ctx := context.Background()
 
 	insertTicketFixtures(t, db)
@@ -89,7 +90,7 @@ func testMySQLDSN(t *testing.T) string {
 	t.Helper()
 	dsn := os.Getenv("OFICINA_TEST_MYSQL_DSN")
 	if dsn == "" {
-		t.Skip("set OFICINA_TEST_MYSQL_DSN to run live MySQL ticket repository coverage")
+		t.Skip("set OFICINA_TEST_MYSQL_DSN to run live MySQL repository coverage")
 	}
 	return dsn
 }
