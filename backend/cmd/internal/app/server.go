@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -13,6 +14,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/mxschmitt/playwright-go"
+	gormmysql "gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
 	"oficina-img/internal/domain/mysql/repository"
 	"oficina-img/internal/http/handler"
 	"oficina-img/internal/infrastructure/discord"
@@ -237,6 +241,25 @@ func dashboardRuntime(cfg Config) (*sql.DB, handler.BirthdayRepository, handler.
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(30 * time.Minute)
 
+	gormDB, err := gorm.Open(gormmysql.New(gormmysql.Config{
+		Conn:                      db,
+		SkipInitializeWithVersion: true,
+	}), &gorm.Config{
+		DisableAutomaticPing:   true,
+		SkipDefaultTransaction: true,
+		Logger: gormlogger.New(log.New(os.Stderr, "", log.LstdFlags), gormlogger.Config{
+			SlowThreshold:             200 * time.Millisecond,
+			LogLevel:                  gormlogger.Warn,
+			IgnoreRecordNotFoundError: true,
+			ParameterizedQueries:      true,
+			Colorful:                  false,
+		}),
+	})
+	if err != nil {
+		db.Close()
+		return nil, nil, nil, nil, nil, nil, nil, nil, nil, fmt.Errorf("initialize GORM: %w", err)
+	}
+
 	pingCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := db.PingContext(pingCtx); err != nil {
@@ -245,12 +268,12 @@ func dashboardRuntime(cfg Config) (*sql.DB, handler.BirthdayRepository, handler.
 	}
 
 	return db,
-		repository.NewBirthdayRepository(db),
-		repository.NewTicketRepository(db),
-		repository.NewMessageRepository(db),
-		repository.NewStoreItemSettingsRepository(db),
-		repository.NewUserRepository(db),
-		repository.NewDashboardSessionRepository(db),
+		repository.NewBirthdayRepository(gormDB),
+		repository.NewTicketRepository(gormDB),
+		repository.NewMessageRepository(gormDB),
+		repository.NewStoreItemSettingsRepository(gormDB),
+		repository.NewUserRepository(gormDB),
+		repository.NewDashboardSessionRepository(gormDB),
 		discord.NewOAuthClient(cfg.Dashboard.DiscordAPIBaseURL, cfg.Dashboard.DiscordClientID, cfg.Dashboard.DiscordClientSecret),
 		nil,
 		nil
