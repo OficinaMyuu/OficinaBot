@@ -19,19 +19,36 @@ public class AppUser extends OficinaRecord<AppUser> {
         super(USERS);
     }
 
-    public AppUser(long id, String name, String globalName, String avatarHash, long createdAt, long updatedAt) {
+    public AppUser(
+            long id,
+            String name,
+            String globalName,
+            String avatarHash,
+            boolean isBot,
+            long createdAt,
+            long updatedAt
+    ) {
         this();
         set(USERS.ID, id);
         set(USERS.NAME, name);
         set(USERS.GLOBAL_NAME, globalName);
         set(USERS.AVATAR_HASH, avatarHash);
+        set(USERS.IS_BOT, isBot);
         set(USERS.CREATED_AT, createdAt);
         set(USERS.UPDATED_AT, updatedAt);
     }
 
     public static AppUser fromUser(User user) {
         long now = Bot.unixNow();
-        return new AppUser(user.getIdLong(), user.getName(), user.getGlobalName(), user.getAvatarId(), now, now);
+        return new AppUser(
+                user.getIdLong(),
+                user.getName(),
+                user.getGlobalName(),
+                user.getAvatarId(),
+                user.isBot(),
+                now,
+                now
+        );
     }
 
     public long getId() {
@@ -48,6 +65,10 @@ public class AppUser extends OficinaRecord<AppUser> {
 
     public String getAvatarHash() {
         return get(USERS.AVATAR_HASH);
+    }
+
+    public boolean isBot() {
+        return get(USERS.IS_BOT);
     }
 
     public String getDisplayName() {
@@ -80,6 +101,11 @@ public class AppUser extends OficinaRecord<AppUser> {
 
     public AppUser setAvatarHash(String avatarHash) {
         set(USERS.AVATAR_HASH, avatarHash);
+        return this;
+    }
+
+    public AppUser setBot(boolean isBot) {
+        set(USERS.IS_BOT, isBot);
         return this;
     }
 

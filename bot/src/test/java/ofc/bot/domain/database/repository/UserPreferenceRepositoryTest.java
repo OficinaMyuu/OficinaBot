@@ -83,6 +83,6 @@ class UserPreferenceRepositoryTest {
     }
 
     private void insertUser(DSLContext ctx, long userId) {
-        new UserRepository(ctx).upsert(new AppUser(userId, "user" + userId, null, null, 1L, 1L));
+        new UserRepository(ctx).upsert(new AppUser(userId, "user" + userId, null, null, false, 1L, 1L));
     }
 }
