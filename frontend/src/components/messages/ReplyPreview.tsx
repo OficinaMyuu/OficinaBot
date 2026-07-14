@@ -28,7 +28,14 @@ export function ReplyPreview({
       <span className={styles.spine} aria-hidden="true" />
       {message ? (
         <>
+          <img
+            className={styles.authorAvatar}
+            src={message.author.avatar_url}
+            alt=""
+            draggable={false}
+          />
           <strong className={styles.authorName}>
+            <span aria-hidden="true">@</span>
             {message.author.display_name}
           </strong>
           {attachmentOnly ? (
@@ -50,7 +57,7 @@ export function ReplyPreview({
     <button
       className={styles.reply}
       type="button"
-      aria-label={`${message?.author.display_name ?? ""} ${message ? previewLabel : t("messages.unavailable")}`.trim()}
+      aria-label={`${message ? `@${message.author.display_name}` : ""} ${message ? previewLabel : t("messages.unavailable")}`.trim()}
       onClick={() => onSelect(referencedMessageId)}
     >
       {content}

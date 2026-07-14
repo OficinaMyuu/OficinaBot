@@ -83,7 +83,7 @@ describe("MessageRenderer", () => {
       />
     )
 
-    expect(container.querySelectorAll('img[src="/avatar.png"]')).toHaveLength(2)
+    expect(container.querySelectorAll('img[src="/avatar.png"]')).toHaveLength(3)
     expect(
       screen.getByRole("list", {
         name: /message log|historico de mensagens/i
@@ -91,7 +91,16 @@ describe("MessageRenderer", () => {
     ).toHaveLength(2)
     expect(container.querySelectorAll("[data-message-id]")).toHaveLength(3)
     expect(screen.getAllByText("Myuu")).toHaveLength(3)
-    fireEvent.click(screen.getByRole("button", { name: /myuu original/i }))
+    expect(
+      screen.getByText((_content, element) =>
+        Boolean(
+          element?.tagName === "STRONG" && element.textContent === "@Myuu"
+        )
+      )
+    ).toBeInTheDocument()
+    const reply = screen.getByRole("button", { name: /@myuu original/i })
+    expect(reply.querySelector('img[src="/avatar.png"]')).toBeInTheDocument()
+    fireEvent.click(reply)
     expect(onSelect).toHaveBeenCalledWith("100")
   })
 

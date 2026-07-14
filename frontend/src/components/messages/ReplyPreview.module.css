@@ -1,6 +1,6 @@
 .reply {
   align-items: center;
-  background: transparent;
+  background-color: transparent;
   border: 0;
   color: var(--text-muted);
   display: flex;
@@ -30,11 +30,19 @@ button.reply:focus-visible .attachment {
   border-style: solid;
   border-top-left-radius: 6px;
   border-width: 2px 0 0 2px;
-  height: 15px;
+  height: 10px;
   left: -32px;
   position: absolute;
   top: 7px;
   width: 24px;
+}
+
+.authorAvatar {
+  border-radius: 999px;
+  flex: 0 0 auto;
+  height: 16px;
+  object-fit: cover;
+  width: 16px;
 }
 
 .authorName {
