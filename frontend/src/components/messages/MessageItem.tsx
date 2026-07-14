@@ -117,7 +117,9 @@ export function MessageItem({
             error={versionsQuery.isError}
           />
         ) : null}
-        {message.sticker_id ? <Sticker stickerId={message.sticker_id} /> : null}
+        {message.sticker_id ? (
+          <Sticker key={message.sticker_id} stickerId={message.sticker_id} />
+        ) : null}
         {message.deleted_by ? (
           <div className={styles.audit}>
             {t("messages.deletedBy", { name: message.deleted_by.display_name })}

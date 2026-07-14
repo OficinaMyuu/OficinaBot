@@ -18,6 +18,7 @@ export function Sticker({ stickerId }: { stickerId: string }) {
   })
 
   useEffect(() => {
+    if (format !== "lottie") return
     const container = containerRef.current
     const animationData = lottieQuery.data
     if (!container || !animationData) return
@@ -43,7 +44,7 @@ export function Sticker({ stickerId }: { stickerId: string }) {
       destroyed = true
       animation?.destroy()
     }
-  }, [lottieQuery.data])
+  }, [format, lottieQuery.data])
 
   if (format === "image") {
     return (
