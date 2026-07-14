@@ -120,6 +120,7 @@ type UserResponse struct {
 	DisplayName string  `json:"display_name"`
 	AvatarHash  *string `json:"avatar_hash"`
 	AvatarURL   string  `json:"avatar_url"`
+	IsBot       bool    `json:"is_bot"`
 }
 
 type DashboardSessionResponse struct {

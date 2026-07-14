@@ -102,6 +102,7 @@ func createTicketTables(t *testing.T, db *sql.DB) {
 			name VARCHAR(255) NOT NULL,
 			global_name VARCHAR(255),
 			avatar_hash VARCHAR(128),
+			is_bot BOOLEAN NOT NULL DEFAULT FALSE,
 			created_at BIGINT NOT NULL,
 			updated_at BIGINT NOT NULL
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,

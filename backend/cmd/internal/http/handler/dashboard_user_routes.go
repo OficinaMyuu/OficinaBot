@@ -81,6 +81,7 @@ func toUserResponse(user entity.User) contract.UserResponse {
 		DisplayName: userDisplayName(user),
 		AvatarHash:  user.AvatarHash,
 		AvatarURL:   userAvatarURL(user),
+		IsBot:       user.IsBot,
 	}
 }
 

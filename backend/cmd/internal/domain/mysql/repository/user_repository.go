@@ -29,7 +29,7 @@ func (r *UserRepository) FindMany(ctx context.Context, userIDs []int64) ([]entit
 	}
 
 	rows, err := r.db.QueryContext(ctx, `
-SELECT id, name, global_name, avatar_hash
+SELECT id, name, global_name, avatar_hash, is_bot
 FROM users
 WHERE id IN (`+strings.Join(placeholders, ", ")+`)
 ORDER BY name ASC, id ASC`, args...)
@@ -42,7 +42,7 @@ ORDER BY name ASC, id ASC`, args...)
 	for rows.Next() {
 		var user entity.User
 		var username, globalName, avatarHash sql.NullString
-		if err := rows.Scan(&user.ID, &username, &globalName, &avatarHash); err != nil {
+		if err := rows.Scan(&user.ID, &username, &globalName, &avatarHash, &user.IsBot); err != nil {
 			return nil, err
 		}
 		user.Username = nullableString(username)

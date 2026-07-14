@@ -32,6 +32,7 @@ func TestUserHandlerQueryDedupesIDsAndReturnsAvatarHash(t *testing.T) {
 			Username:   textPtr("myuu"),
 			GlobalName: textPtr("Oficina Myuu"),
 			AvatarHash: &hash,
+			IsBot:      true,
 		}},
 	}
 	req := httptest.NewRequest(http.MethodPost, "/users/query", strings.NewReader(`{"user_ids":["42","42","99"]}`))
@@ -50,7 +51,7 @@ func TestUserHandlerQueryDedupesIDsAndReturnsAvatarHash(t *testing.T) {
 		t.Fatalf("expected deduped ids, got %+v", repo.userIDs)
 	}
 	body := rec.Body.String()
-	for _, expected := range []string{`"id":"42"`, `"display_name":"Oficina Myuu"`, `"avatar_hash":"avatar-hash"`, `"avatar_url":"https://cdn.discordapp.com/avatars/42/avatar-hash.png"`} {
+	for _, expected := range []string{`"id":"42"`, `"display_name":"Oficina Myuu"`, `"avatar_hash":"avatar-hash"`, `"avatar_url":"https://cdn.discordapp.com/avatars/42/avatar-hash.png"`, `"is_bot":true`} {
 		if !strings.Contains(body, expected) {
 			t.Fatalf("expected %s in response, got %s", expected, body)
 		}

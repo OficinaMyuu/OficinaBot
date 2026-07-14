@@ -16,6 +16,7 @@ type User struct {
 	Username   *string
 	GlobalName *string
 	AvatarHash *string
+	IsBot      bool
 }
 
 type Ticket struct {
