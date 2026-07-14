@@ -1,9 +1,11 @@
-import { memo, useMemo } from "react"
-import { useTranslation } from "react-i18next"
 import type { MessageView } from "@/types/message"
 import type { UserSummary } from "@/types/user"
-import { MessageItem } from "./MessageItem"
-import { isGroupedMessage } from "./messageGrouping"
+
+import { memo, useMemo } from "react"
+import { useTranslation } from "react-i18next"
+import { MessageGroup } from "./MessageGroup"
+import { createMessageGroups } from "./messageGrouping"
+
 import styles from "./MessageRenderer.module.css"
 
 type MessageRendererProps = {
@@ -24,6 +26,7 @@ export const MessageRenderer = memo(function MessageRenderer({
     () => new Map(messages.map((message) => [message.message_id, message])),
     [messages]
   )
+  const messageGroups = useMemo(() => createMessageGroups(messages), [messages])
 
   if (messages.length === 0) {
     return <div className={styles.empty}>{t("messages.empty")}</div>
@@ -31,18 +34,13 @@ export const MessageRenderer = memo(function MessageRenderer({
 
   return (
     <ol className={styles.list} aria-label={t("messages.logLabel")}>
-      {messages.map((message, index) => (
-        <MessageItem
-          key={message.message_id}
+      {messageGroups.map((group) => (
+        <MessageGroup
+          key={group[0].message_id}
           channelId={channelId}
-          message={message}
+          messages={group}
+          messagesById={messagesById}
           usersById={usersById}
-          referencedMessage={
-            message.message_reference_id
-              ? (messagesById.get(message.message_reference_id) ?? null)
-              : null
-          }
-          grouped={isGroupedMessage(messages[index - 1], message)}
           onMessageReferenceSelect={onMessageReferenceSelect}
         />
       ))}

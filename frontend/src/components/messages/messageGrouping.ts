@@ -19,3 +19,20 @@ export function isGroupedMessage(
     5 * 60 * 1000
   )
 }
+
+export function createMessageGroups(messages: MessageView[]): MessageView[][] {
+  const groups: MessageView[][] = []
+
+  for (const message of messages) {
+    const currentGroup = groups[groups.length - 1]
+    const previousMessage = currentGroup?.[currentGroup.length - 1]
+
+    if (currentGroup && isGroupedMessage(previousMessage, message)) {
+      currentGroup.push(message)
+    } else {
+      groups.push([message])
+    }
+  }
+
+  return groups
+}
