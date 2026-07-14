@@ -7,13 +7,11 @@
 }
 
 .message:hover {
-  background: rgba(255, 255, 255, 0.025);
+  background-color: rgba(255, 255, 255, 0.025);
 }
 
 .message:focus {
-  background: rgba(255, 255, 255, 0.045);
-  box-shadow: inset 0 0 0 1px var(--border-soft);
-  outline: none;
+  background-color: rgba(255, 255, 255, 0.045);
 }
 
 .grouped {
@@ -63,6 +61,7 @@
 .audit {
   color: var(--text-muted);
   font-size: 12px;
+  cursor: default;
 }
 
 .content {
@@ -91,7 +90,7 @@
 }
 
 .edited {
-  background: transparent;
+  background-color: transparent;
   border: 0;
   color: var(--text-muted);
   cursor: pointer;
