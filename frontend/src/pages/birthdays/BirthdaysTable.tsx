@@ -72,7 +72,7 @@ export function BirthdaysTable({
               <td>
                 <AppTooltip label={getDiscordDisplayName(user)}>
                   <span className={styles.user}>
-                    <img src={user.avatar_url} alt="" />
+                    <img src={user.avatar_url} alt="" draggable={false} />
                     <strong>{birthday.name}</strong>
                   </span>
                 </AppTooltip>
