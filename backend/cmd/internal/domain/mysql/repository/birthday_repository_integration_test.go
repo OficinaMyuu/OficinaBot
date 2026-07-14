@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
-	_ "github.com/go-sql-driver/mysql"
+	gormmysql "gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"oficina-img/internal/domain/entity"
 )
 
@@ -21,7 +22,7 @@ func TestBirthdayRepositoryIntegrationCRUD(t *testing.T) {
 	}
 
 	db := openTemporaryMySQLSchema(t, dsn)
-	repository := NewBirthdayRepository(db)
+	repository := NewBirthdayRepository(openTestGORM(t, db))
 	ctx := context.Background()
 
 	created, err := repository.Create(ctx, entity.Birthday{
@@ -122,6 +123,21 @@ func openTemporaryMySQLSchema(t *testing.T, dsn string) *sql.DB {
 	}
 
 	return db
+}
+
+func openTestGORM(t *testing.T, db *sql.DB) *gorm.DB {
+	t.Helper()
+	gormDB, err := gorm.Open(gormmysql.New(gormmysql.Config{
+		Conn:                      db,
+		SkipInitializeWithVersion: true,
+	}), &gorm.Config{
+		DisableAutomaticPing:   true,
+		SkipDefaultTransaction: true,
+	})
+	if err != nil {
+		t.Fatalf("initialize test GORM connection: %v", err)
+	}
+	return gormDB
 }
 
 func mustDate(t *testing.T, value string) time.Time {

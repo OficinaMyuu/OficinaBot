@@ -2,13 +2,13 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
+	"gorm.io/gorm"
 	"oficina-img/internal/domain/entity"
 )
 
@@ -25,47 +25,32 @@ type BirthdayFilter struct {
 }
 
 type BirthdayRepository struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewBirthdayRepository(db *sql.DB) *BirthdayRepository {
+func NewBirthdayRepository(db *gorm.DB) *BirthdayRepository {
 	return &BirthdayRepository{db: db}
 }
 
 func (r *BirthdayRepository) List(ctx context.Context, filter BirthdayFilter) ([]entity.Birthday, error) {
-	query := strings.Builder{}
-	query.WriteString("SELECT user_id, name, birthday, zone_hours, created_at, updated_at FROM birthdays WHERE 1 = 1")
-	args := make([]any, 0, 4)
+	query := r.db.WithContext(ctx).Model(&birthdayRow{})
 
 	if search := strings.TrimSpace(filter.Search); search != "" {
 		needle := "%" + strings.ToLower(search) + "%"
-		query.WriteString(" AND (LOWER(name) LIKE ? OR CAST(user_id AS CHAR) LIKE ?)")
-		args = append(args, needle, "%"+search+"%")
+		query = query.Where("LOWER(name) LIKE ? OR CAST(user_id AS CHAR) LIKE ?", needle, "%"+search+"%")
 	}
 
 	if filter.Month > 0 {
-		query.WriteString(" AND MONTH(birthday) = ?")
-		args = append(args, filter.Month)
+		query = query.Where("MONTH(birthday) = ?", filter.Month)
 	}
 
-	query.WriteString(" ORDER BY MONTH(birthday), DAYOFMONTH(birthday), LOWER(name), user_id")
-
-	rows, err := r.db.QueryContext(ctx, query.String(), args...)
-	if err != nil {
+	var rows []birthdayRow
+	if err := query.Order("MONTH(birthday), DAYOFMONTH(birthday), LOWER(name), user_id").Find(&rows).Error; err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	var birthdays []entity.Birthday
-	for rows.Next() {
-		birthday, err := scanBirthday(rows)
-		if err != nil {
-			return nil, err
-		}
-		birthdays = append(birthdays, birthday)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
+	birthdays := make([]entity.Birthday, 0, len(rows))
+	for _, row := range rows {
+		birthdays = append(birthdays, row.entity())
 	}
 	return birthdays, nil
 }
@@ -75,16 +60,11 @@ func (r *BirthdayRepository) Create(ctx context.Context, birthday entity.Birthda
 	birthday.CreatedAt = now
 	birthday.UpdatedAt = now
 
-	_, err := r.db.ExecContext(
-		ctx,
-		"INSERT INTO birthdays (user_id, name, birthday, zone_hours, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-		birthday.UserID,
-		birthday.Name,
-		birthday.Birthday.Format(DateOnlyLayout),
-		birthday.ZoneHours,
-		birthday.CreatedAt,
-		birthday.UpdatedAt,
-	)
+	row := birthdayRow{
+		UserID: birthday.UserID, Name: birthday.Name, Birthday: normalizeDate(birthday.Birthday),
+		ZoneHours: birthday.ZoneHours, CreatedAt: birthday.CreatedAt, UpdatedAt: birthday.UpdatedAt,
+	}
+	err := r.db.WithContext(ctx).Create(&row).Error
 	if err != nil {
 		if isDuplicateKey(err) {
 			return entity.Birthday{}, ErrDuplicateBirthday
@@ -97,64 +77,30 @@ func (r *BirthdayRepository) Create(ctx context.Context, birthday entity.Birthda
 func (r *BirthdayRepository) Update(ctx context.Context, birthday entity.Birthday) (entity.Birthday, error) {
 	birthday.UpdatedAt = time.Now().Unix()
 
-	result, err := r.db.ExecContext(
-		ctx,
-		"UPDATE birthdays SET name = ?, birthday = ?, zone_hours = ?, updated_at = ? WHERE user_id = ?",
-		birthday.Name,
-		birthday.Birthday.Format(DateOnlyLayout),
-		birthday.ZoneHours,
-		birthday.UpdatedAt,
-		birthday.UserID,
-	)
-	if err != nil {
-		return entity.Birthday{}, err
+	result := r.db.WithContext(ctx).Model(&birthdayRow{}).
+		Where("user_id = ?", birthday.UserID).
+		Updates(map[string]any{
+			"name": birthday.Name, "birthday": normalizeDate(birthday.Birthday),
+			"zone_hours": birthday.ZoneHours, "updated_at": birthday.UpdatedAt,
+		})
+	if result.Error != nil {
+		return entity.Birthday{}, result.Error
 	}
-
-	affected, err := result.RowsAffected()
-	if err != nil {
-		return entity.Birthday{}, err
-	}
-	if affected == 0 {
+	if result.RowsAffected == 0 {
 		return entity.Birthday{}, ErrBirthdayNotFound
 	}
 	return birthday, nil
 }
 
 func (r *BirthdayRepository) Delete(ctx context.Context, userID int64) error {
-	result, err := r.db.ExecContext(ctx, "DELETE FROM birthdays WHERE user_id = ?", userID)
-	if err != nil {
-		return err
+	result := r.db.WithContext(ctx).Where("user_id = ?", userID).Delete(&birthdayRow{})
+	if result.Error != nil {
+		return result.Error
 	}
-
-	affected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if affected == 0 {
+	if result.RowsAffected == 0 {
 		return ErrBirthdayNotFound
 	}
 	return nil
-}
-
-type birthdayScanner interface {
-	Scan(dest ...any) error
-}
-
-func scanBirthday(scanner birthdayScanner) (entity.Birthday, error) {
-	var birthday entity.Birthday
-	var birthdayDate time.Time
-	if err := scanner.Scan(
-		&birthday.UserID,
-		&birthday.Name,
-		&birthdayDate,
-		&birthday.ZoneHours,
-		&birthday.CreatedAt,
-		&birthday.UpdatedAt,
-	); err != nil {
-		return entity.Birthday{}, err
-	}
-	birthday.Birthday = normalizeDate(birthdayDate)
-	return birthday, nil
 }
 
 func normalizeDate(value time.Time) time.Time {
