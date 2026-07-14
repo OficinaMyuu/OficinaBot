@@ -71,6 +71,9 @@ export function MessageItem({
             <strong className={styles.displayName}>
               {message.author.display_name}
             </strong>
+            {message.author.is_bot ? (
+              <span className={styles.botBadge}>BOT</span>
+            ) : null}
             <time className={styles.timestamp} dateTime={message.created_at}>
               {formatMessageTimestamp(message.created_at)}
             </time>

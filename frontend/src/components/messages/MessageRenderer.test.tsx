@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { fireEvent, render, screen, within } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import type { ReactNode } from "react"
 import { describe, expect, it, vi } from "vitest"
@@ -60,6 +60,63 @@ describe("MessageRenderer", () => {
 
     expect(screen.getByText("Hello there")).toBeInTheDocument()
     expect(screen.getByText(/staff/i)).toBeInTheDocument()
+  })
+
+  it("renders the bot badge between bot names and timestamps only", () => {
+    renderMessageRenderer(
+      <MessageRenderer
+        channelId="456"
+        usersById={{}}
+        messages={[
+          message({
+            message_id: "100",
+            author_id: "10",
+            author: {
+              id: "10",
+              username: "bot-user",
+              global_name: null,
+              display_name: "Bot User",
+              avatar_hash: null,
+              avatar_url: "/bot.png",
+              is_bot: true
+            }
+          }),
+          message({
+            message_id: "101",
+            author_id: "11",
+            author: {
+              id: "11",
+              username: "human-user",
+              global_name: null,
+              display_name: "Human User",
+              avatar_hash: null,
+              avatar_url: "/human.png",
+              is_bot: false
+            }
+          })
+        ]}
+      />
+    )
+
+    const botName = screen.getByText("Bot User")
+    const botMeta = botName.parentElement
+    expect(botMeta).not.toBeNull()
+    const badge = within(botMeta as HTMLElement).getByText("BOT")
+    const timestamp = botMeta?.querySelector("time")
+    expect(timestamp).not.toBeNull()
+
+    expect(
+      botName.compareDocumentPosition(badge) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    expect(
+      badge.compareDocumentPosition(timestamp as HTMLTimeElement) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    expect(
+      within(
+        screen.getByText("Human User").parentElement as HTMLElement
+      ).queryByText("BOT")
+    ).not.toBeInTheDocument()
   })
 
   it("starts a full author group when a consecutive message is a reply", () => {
