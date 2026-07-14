@@ -24,7 +24,7 @@ func TestUserRepositoryIntegrationFindManyReturnsBotFlag(t *testing.T) {
 		t.Fatalf("insert user fixture: %v", err)
 	}
 
-	users, err := NewUserRepository(db).FindMany(context.Background(), []int64{42})
+	users, err := NewUserRepository(openTestGORM(t, db)).FindMany(context.Background(), []int64{42})
 	if err != nil {
 		t.Fatalf("find users: %v", err)
 	}
