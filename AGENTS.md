@@ -43,6 +43,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Sad Monday/Sunday image posts are configured with `SAD_MONDAY_URL` and `SAD_SUNDAY_URL` environment variables.
 - The DB schema is migration-first: product DDL lives in `database/migrations/`; Java table classes are query mappings only.
 - The shared `users.avatar_hash` column is nullable and updated by normal bot user upserts plus avatar update events; do not backfill from Discord by bulk-loading guild members.
+- The shared `users.is_bot` column is non-null, defaults to false, and is refreshed from Discord's `User.isBot()` by normal bot user upserts; do not backfill it by bulk-loading guild members.
 - Do not add automatic migration logic or `CREATE TABLE IF NOT EXISTS` startup DDL to application services.
 - Do not add interactive console SQL/query handlers to bot startup; database access should go through typed repositories, migrations, or purpose-built admin tooling.
 - Many features are registered centrally, so missing behavior is often a registration problem, not a logic problem.
@@ -65,7 +66,7 @@ This is the root index for agents working in the OficinaServices mono-repo. Keep
 - Dashboard access is restricted to the configured `DISCORD_GUILD_ID` when Discord reports guild owner, `Administrator`, or `Manage Server`.
 - Dashboard modules include Birthdays, backed by the existing `birthdays` table; Tickets, backed by existing `support_tickets`, `messages_versions`, and `users` rows; and Economy action-cost configuration, backed by `store_item_settings`. Add schema changes through `database/migrations/`; the dashboard must not create tables at startup.
 - Dashboard sessions are persisted in `dashboard_sessions`, keyed by a hash of the HttpOnly session cookie. Sessions should survive backend process restarts until their expiry.
-- Dashboard API JSON fields use `snake_case`, including existing auth/session and birthday payloads. Discord snowflake IDs and all `created_at`/`updated_at` values are serialized as strings; timestamps are RFC 3339 UTC.
+- Dashboard API JSON fields use `snake_case`, including existing auth/session and birthday payloads. Batched user responses include the non-null `is_bot` flag. Discord snowflake IDs and all `created_at`/`updated_at` values are serialized as strings; timestamps are RFC 3339 UTC.
 - Ticket and channel-message API responses carry user ID fields such as `initiator_id`, `closed_by_id`, `author_id`, and `deleted_by_id`; do not reintroduce embedded user objects. Dashboard clients should batch lookup display data through `POST /users/query`. Tickets load transcripts through the generic authenticated `GET /channels/{channel_id}/messages` API using the ticket payload's `channel_id`; do not restore ticket-specific message routes. Channel history supports mutually exclusive `before`, `after`, and `around` message-ID anchors and returns chronological pages with directional availability flags.
 - Mutating dashboard API requests use the session CSRF token returned by `/auth/me` in `X-CSRF-Token`.
 
