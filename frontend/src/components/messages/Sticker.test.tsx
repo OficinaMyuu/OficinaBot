@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { messageService } from "@/services/messageService"
+import { getDiscordStickerUrl } from "@/config/discordUrls"
 import { Sticker } from "./Sticker"
 import "@/services/i18n"
 
@@ -45,6 +46,10 @@ describe("Sticker", () => {
       </QueryClientProvider>
     )
 
+    expect(screen.getByRole("img")).toHaveAttribute(
+      "src",
+      getDiscordStickerUrl("749054660769218631")
+    )
     fireEvent.error(screen.getByRole("img"))
 
     await waitFor(() =>
