@@ -5,6 +5,7 @@ import { FiEdit2, FiTrash2 } from "react-icons/fi"
 import { AppTooltip } from "@/components/ui/AppTooltip"
 import { SortableHeader } from "@/components/ui/SortableHeader"
 import { fallbackUser } from "@/stores/useUsersStore"
+import { calculateAge } from "@/utils/birthdayUtils"
 import { getDiscordDisplayName } from "@/utils/userUtils"
 import { useTranslation } from "react-i18next"
 import { useTableSort } from "@/utils/useTableSort"
@@ -78,7 +79,11 @@ export function BirthdaysTable({
                 </AppTooltip>
               </td>
               <td className={styles.monospace}>{birthday.user_id}</td>
-              <td>{formatBirthday(birthday.birthday)}</td>
+              <td>
+                <AppTooltip label={`${calculateAge(birthday.birthday)} anos`}>
+                  <span>{formatBirthday(birthday.birthday)}</span>
+                </AppTooltip>
+              </td>
               <td>{formatZone(birthday.zone_hours)}</td>
               <td>
                 <div className={styles.rowActions}>

@@ -7,6 +7,7 @@ import { birthdayService } from "@/services/birthdayService"
 import { userService } from "@/services/userService"
 import { useBirthdaysStore } from "@/stores/useBirthdaysStore"
 import { useUsersStore } from "@/stores/useUsersStore"
+import { calculateAge } from "@/utils/birthdayUtils"
 
 import "@/services/i18n"
 
@@ -61,6 +62,17 @@ describe("BirthdaysPage", () => {
     })
 
     expect(await screen.findByRole("tooltip")).toHaveTextContent("Myuu")
+  })
+
+  it("shows the birthday user's age when hovering over the birthday date", async () => {
+    render(<BirthdaysPage />)
+
+    const birthdayDate = await screen.findByText("15/06/2000")
+    fireEvent.pointerMove(birthdayDate, { pointerType: "mouse" })
+
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(
+      `${calculateAge(birthday.birthday)} anos`
+    )
   })
 })
 
