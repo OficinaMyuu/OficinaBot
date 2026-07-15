@@ -277,7 +277,6 @@ public final class EntityInitializerManager {
                 new InfractionsAutocompletion(pnshRepo),
                 new LeaveGroupCommand.FakePISuggester(),
                 new LogTimeout(),
-                new LorittaDailySpamBlocker(),
                 new MafiaLifecycleListener(),
                 new MafiaInteractionListener(),
                 new MentionLoggerHandler(mentionLogRepo),
