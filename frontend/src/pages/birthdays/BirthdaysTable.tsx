@@ -80,7 +80,11 @@ export function BirthdaysTable({
               </td>
               <td className={styles.monospace}>{birthday.user_id}</td>
               <td>
-                <AppTooltip label={`${calculateAge(birthday.birthday)} anos`}>
+                <AppTooltip
+                  label={t("birthdays.age", {
+                    count: calculateAge(birthday.birthday)
+                  })}
+                >
                   <span>{formatBirthday(birthday.birthday)}</span>
                 </AppTooltip>
               </td>

@@ -9,6 +9,7 @@ import { useBirthdaysStore } from "@/stores/useBirthdaysStore"
 import { useUsersStore } from "@/stores/useUsersStore"
 import { calculateAge } from "@/utils/birthdayUtils"
 
+import i18n from "@/services/i18n"
 import "@/services/i18n"
 
 vi.mock("@/components/layout/DashboardLayout", () => ({
@@ -71,7 +72,7 @@ describe("BirthdaysPage", () => {
     fireEvent.pointerMove(birthdayDate, { pointerType: "mouse" })
 
     expect(await screen.findByRole("tooltip")).toHaveTextContent(
-      `${calculateAge(birthday.birthday)} anos`
+      i18n.t("birthdays.age", { count: calculateAge(birthday.birthday) })
     )
   })
 })

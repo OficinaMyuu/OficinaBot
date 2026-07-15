@@ -21,6 +21,8 @@
     }
   },
   "birthdays": {
+    "age_one": "{{count}} ano",
+    "age_other": "{{count}} anos",
     "title": "Aniversários",
     "searchPlaceholder": "Buscar por nome ou ID",
     "loading": "Carregando aniversários...",
