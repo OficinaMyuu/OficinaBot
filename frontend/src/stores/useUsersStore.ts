@@ -1,6 +1,8 @@
+import type { UserSummary } from "@/types/user"
+
 import { create } from "zustand"
 import { userService } from "@/services/userService"
-import type { UserSummary } from "@/types/user"
+import { getDiscordDefaultAvatarUrl } from "@/config/discordUrls"
 
 type UsersState = {
   usersById: Record<string, UserSummary>
@@ -50,7 +52,7 @@ export function fallbackUser(userId: string): UserSummary {
     global_name: null,
     display_name: userId,
     avatar_hash: null,
-    avatar_url: `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex(userId)}.png`,
+    avatar_url: getDiscordDefaultAvatarUrl(defaultAvatarIndex(userId)),
     is_bot: false
   }
 }

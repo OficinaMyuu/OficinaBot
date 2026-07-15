@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
+import { getDiscordStickerUrl } from "@/config/discordUrls"
 import { messageService } from "@/services/messageService"
 
 import styles from "./Sticker.module.css"
@@ -50,7 +51,7 @@ export function Sticker({ stickerId }: { stickerId: string }) {
     return (
       <img
         className={styles.sticker}
-        src={`https://cdn.discordapp.com/stickers/${stickerId}.png`}
+        src={getDiscordStickerUrl(stickerId)}
         onError={() => setFormat("lottie")}
         alt={label}
         draggable={false}

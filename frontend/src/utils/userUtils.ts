@@ -1,4 +1,4 @@
-const BASE_AVATAR_URL = "https://cdn.discordapp.com/embed/avatars"
+import { getDiscordDefaultAvatarUrl } from "@/config/discordUrls"
 
 type AvatarContainer = {
   id: string
@@ -12,7 +12,7 @@ type DiscordNameContainer = {
 }
 
 export function getEffectiveAvatarUrl(user: AvatarContainer): string {
-  return user.avatar_url || `${BASE_AVATAR_URL}/${Number(user.id) % 5}.png`
+  return user.avatar_url || getDiscordDefaultAvatarUrl(Number(user.id) % 5)
 }
 
 export function getDiscordDisplayName(user: DiscordNameContainer): string {
